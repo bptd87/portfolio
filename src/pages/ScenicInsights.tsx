@@ -227,7 +227,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:auto-rows-[280px]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-[400px] lg:auto-rows-[280px]">
               {sortedPosts.map((post, index) => (
                 <motion.div
                   key={post.id}
@@ -236,7 +236,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className={`h-[400px] lg:h-auto ${getBentoSize(index)}`}
+                  className={getBentoSize(index)}
                 >
                   <BlogCard
                     title={post.title}

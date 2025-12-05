@@ -359,7 +359,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* Hero Section with Cover Image - Image separate from text */}
-      {article.coverImage && article.coverImage.trim() !== '' && !article.coverImage.startsWith('blob:') && (
+      {article.coverImage && article.coverImage.trim() !== '' && (
         <>
           {/* Full-width image */}
           <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden">
@@ -440,9 +440,9 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       )}
 
       {/* Article Content */}
-      <article className={`max-w-4xl mx-auto px-6 md:px-12 ${article.coverImage && article.coverImage.trim() !== '' && !article.coverImage.startsWith('blob:') ? 'pt-8 pb-16' : 'py-16 md:py-24'}`}>
+      <article className={`max-w-4xl mx-auto px-6 md:px-12 ${article.coverImage && article.coverImage.trim() !== '' ? 'pt-8 pb-16' : 'py-16 md:py-24'}`}>
         {/* If no cover image, show header here */}
-        {(!article.coverImage || article.coverImage.trim() === '' || article.coverImage.startsWith('blob:')) && (
+        {(!article.coverImage || article.coverImage.trim() === '') && (
           <div className="mb-16">
             <button
               onClick={(e) => {
