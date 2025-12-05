@@ -179,8 +179,8 @@ export function Admin({ onNavigate }: AdminProps) {
       <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-3xl mb-4">
-              <Lock className="w-8 h-8 text-amber-400" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-warm-500/10 border border-warm-500/30 rounded-3xl mb-4">
+              <Lock className="w-8 h-8 text-warm-400" />
             </div>
             <h1 className="text-3xl tracking-tight mb-2 text-white">SET NEW PASSWORD</h1>
             <p className="text-sm text-gray-400">Create a new password for your account</p>
@@ -196,7 +196,7 @@ export function Admin({ onNavigate }: AdminProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-amber-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
+                  className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
                   placeholder="Enter new password"
                   required
                 />
@@ -218,7 +218,7 @@ export function Admin({ onNavigate }: AdminProps) {
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-amber-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
+                className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
                 placeholder="Confirm new password"
                 required
               />
@@ -233,7 +233,7 @@ export function Admin({ onNavigate }: AdminProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 bg-amber-600 text-white rounded-3xl text-xs tracking-wider uppercase hover:bg-amber-700 transition-colors disabled:opacity-50 shadow-lg shadow-amber-500/20"
+              className="w-full px-6 py-3 bg-warm-600 text-white rounded-3xl text-xs tracking-wider uppercase hover:bg-warm-700 transition-colors disabled:opacity-50 shadow-lg shadow-warm-500/20"
             >
               {loading ? 'UPDATING...' : 'UPDATE PASSWORD'}
             </button>
@@ -249,8 +249,8 @@ export function Admin({ onNavigate }: AdminProps) {
         <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
           <div className="w-full max-w-md">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-3xl mb-4">
-                <Lock className="w-8 h-8 text-amber-400" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-warm-500/10 border border-warm-500/30 rounded-3xl mb-4">
+                <Lock className="w-8 h-8 text-warm-400" />
               </div>
               <h1 className="text-3xl tracking-tight mb-2 text-white">RESET PASSWORD</h1>
               <p className="text-sm text-gray-400">
@@ -270,7 +270,7 @@ export function Admin({ onNavigate }: AdminProps) {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-amber-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
+                      className="w-full pl-11 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
                       placeholder="admin@example.com"
                       autoComplete="email"
                       required
@@ -287,7 +287,7 @@ export function Admin({ onNavigate }: AdminProps) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full px-6 py-3 bg-amber-600 text-white rounded-3xl text-xs tracking-wider uppercase hover:bg-amber-700 transition-colors disabled:opacity-50 shadow-lg shadow-amber-500/20"
+                  className="w-full px-6 py-3 bg-warm-600 text-white rounded-3xl text-xs tracking-wider uppercase hover:bg-warm-700 transition-colors disabled:opacity-50 shadow-lg shadow-warm-500/20"
                 >
                   {loading ? 'SENDING...' : 'SEND RESET LINK'}
                 </button>
@@ -323,8 +323,8 @@ export function Admin({ onNavigate }: AdminProps) {
       <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-3xl mb-4">
-              <Lock className="w-8 h-8 text-amber-400" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-warm-500/10 border border-warm-500/30 rounded-3xl mb-4">
+              <Lock className="w-8 h-8 text-warm-400" />
             </div>
             <h1 className="text-3xl tracking-tight mb-2 text-white">ADMIN ACCESS</h1>
             <p className="text-sm text-gray-400">Sign in with your email and password</p>
@@ -341,7 +341,7 @@ export function Admin({ onNavigate }: AdminProps) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-amber-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
+                  className="w-full pl-11 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
                   placeholder="admin@example.com"
                   autoComplete="email"
                   required
@@ -358,7 +358,7 @@ export function Admin({ onNavigate }: AdminProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-amber-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
+                  className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
                   placeholder="Enter your password"
                   autoComplete="current-password"
                   required
@@ -382,7 +382,7 @@ export function Admin({ onNavigate }: AdminProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 bg-amber-600 text-white rounded-3xl text-xs tracking-wider uppercase hover:bg-amber-700 transition-colors disabled:opacity-50 shadow-lg shadow-amber-500/20"
+              className="w-full px-6 py-3 bg-warm-600 text-white rounded-3xl text-xs tracking-wider uppercase hover:bg-warm-700 transition-colors disabled:opacity-50 shadow-lg shadow-warm-500/20"
             >
               {loading ? 'Authenticating...' : 'Login'}
             </button>
@@ -391,7 +391,7 @@ export function Admin({ onNavigate }: AdminProps) {
           <button
             type="button"
             onClick={() => { setResetMode(true); setError(''); }}
-            className="w-full mt-4 text-center text-sm text-amber-400 hover:text-amber-300 transition-colors"
+            className="w-full mt-4 text-center text-sm text-warm-400 hover:text-warm-300 transition-colors"
           >
             Forgot password?
           </button>
@@ -469,4 +469,5 @@ export function Admin({ onNavigate }: AdminProps) {
     </div>
   );
 }
+
 
