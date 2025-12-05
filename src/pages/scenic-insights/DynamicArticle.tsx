@@ -370,11 +370,12 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
         <>
           {console.log('✅ RENDERING HERO SECTION WITH IMAGE:', article.coverImage)}
           {/* Full-width image */}
-          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-red-500">
-            <ImageWithFallback
+          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-neutral-900">
+            <img
               src={article.coverImage}
               alt={article.title}
               className="absolute inset-0 w-full h-full object-cover"
+              loading="eager"
             />
             
             {/* Back Button - Top Left */}
