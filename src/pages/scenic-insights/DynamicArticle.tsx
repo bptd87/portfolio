@@ -356,33 +356,23 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
     );
   }
 
-  // Debug logging for cover image
-  console.log('🖼️ Article coverImage:', article.coverImage);
-  console.log('🖼️ Cover image exists:', !!article.coverImage);
-  console.log('🖼️ Cover image not empty:', article.coverImage ? article.coverImage.trim() !== '' : false);
-  console.log('🖼️ Conditional will render:', article.coverImage && article.coverImage.trim() !== '');
-  console.log('🖼️ Full article object:', article);
-
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* Hero Section with Cover Image - Image separate from text */}
       {article.coverImage && article.coverImage.trim() !== '' ? (
         <>
-          {console.log('✅ RENDERING HERO SECTION WITH IMAGE:', article.coverImage)}
           {/* Full-width image */}
-          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-neutral-900">
+          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-neutral-900 z-0">
             <img
               src={article.coverImage}
               alt={article.title}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover z-0"
               loading="eager"
               crossOrigin="anonymous"
-              onLoad={(e) => console.log('✅ IMAGE LOADED:', e.currentTarget.src, 'Size:', e.currentTarget.naturalWidth, 'x', e.currentTarget.naturalHeight)}
-              onError={(e) => console.error('❌ IMAGE FAILED TO LOAD:', e.currentTarget.src, 'Error:', e)}
             />
             
             {/* Back Button - Top Left */}
-            <div className="absolute top-6 left-6 z-50">
+            <div className="absolute top-6 left-6 z-10">
               <button
                 type="button"
                 onClick={() => onNavigate('articles')}
@@ -451,7 +441,6 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
         </>
       ) : (
         <>
-          {console.log('❌ NO COVER IMAGE - Rendering without hero section')}
           {/* Article Header - No Image Version */}
           <div className="max-w-4xl mx-auto px-6 md:px-12 pt-24 pb-8">
             {/* Back Button */}
