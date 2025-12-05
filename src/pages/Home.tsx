@@ -567,7 +567,10 @@ export function Home({ onNavigate }: HomeProps) {
         return sections;
       })()}
 
-      <Footer onNavigate={onNavigate} />
+      {/* Footer Section */}
+      <section className="relative w-full snap-start flex-shrink-0">
+        <Footer onNavigate={onNavigate} />
+      </section>
     </div>
   );
 }
