@@ -87,7 +87,7 @@ export function CategoryManager() {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${publicAnonKey}`,
-              'X-Admin-Token': token || ''
+              // Token in Authorization header
             },
             body: JSON.stringify(cat),
           }
@@ -112,7 +112,7 @@ export function CategoryManager() {
         {
           headers: { 
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || ''
+            // Token in Authorization header
           },
         }
       );
@@ -190,7 +190,7 @@ export function CategoryManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || ''
+            // Token in Authorization header
           },
           body: JSON.stringify(categoryData),
         }
@@ -225,7 +225,7 @@ export function CategoryManager() {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || ''
+            // Token in Authorization header
           },
         }
       );

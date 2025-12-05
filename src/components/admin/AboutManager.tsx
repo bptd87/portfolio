@@ -84,7 +84,7 @@ export function AboutManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': adminToken,
+            // Token in Authorization header
           },
           body: JSON.stringify(content),
         }
@@ -267,3 +267,4 @@ export function AboutManager() {
     </div>
   );
 }
+

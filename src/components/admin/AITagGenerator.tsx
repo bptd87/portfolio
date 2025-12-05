@@ -33,7 +33,7 @@ export function AITagGenerator({
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || '',
+            // Token in Authorization header,
           },
           body: JSON.stringify({
             imageUrl,

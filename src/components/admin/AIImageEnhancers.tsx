@@ -23,7 +23,7 @@ export function AIAltTextGenerator({ imageUrl, context, onAltTextGenerated }: AI
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || '',
+            // Token in Authorization header,
           },
           body: JSON.stringify({ imageUrl, context }),
         }
@@ -90,7 +90,7 @@ export function AICaptionGenerator({ imageUrl, context, onCaptionGenerated }: AI
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || '',
+            // Token in Authorization header,
           },
           body: JSON.stringify({ imageUrl, context }),
         }

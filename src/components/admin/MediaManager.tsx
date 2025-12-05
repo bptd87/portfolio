@@ -140,7 +140,7 @@ export function MediaManager() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${publicAnonKey}`,
-          'X-Admin-Token': token
+          // Token in Authorization header
         },
         body: JSON.stringify({
           bucket_id: activeBucket,
@@ -356,7 +356,7 @@ export function MediaManager() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${publicAnonKey}`,
-          'X-Admin-Token': token
+          // Token in Authorization header
         },
         body: JSON.stringify({
           bucket_id: activeBucket,
@@ -655,3 +655,4 @@ export function MediaManager() {
     </div>
   );
 }
+

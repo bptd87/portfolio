@@ -70,7 +70,7 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || '',
+            // Token in Authorization header,
           },
           body: formData,
         }

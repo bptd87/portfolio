@@ -336,7 +336,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${publicAnonKey}`,
-              'X-Admin-Token': token!,
+              // Token in Authorization header,
             },
             body: formData,
           }
@@ -380,7 +380,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token!,
+            // Token in Authorization header,
           },
           body: JSON.stringify({
             type: 'fix-grammar',
@@ -416,7 +416,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token!,
+            // Token in Authorization header,
           },
           body: JSON.stringify({
             type: 'expand',
@@ -1031,7 +1031,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                               method: 'POST',
                               headers: {
                                 'Authorization': `Bearer ${publicAnonKey}`,
-                                'X-Admin-Token': token,
+                                // Token in Authorization header
                               },
                               body: formData,
                             }

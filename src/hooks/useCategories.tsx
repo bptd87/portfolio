@@ -31,12 +31,17 @@ export function useCategories() {
     try {
       const token = sessionStorage.getItem('admin_token');
       
+      if (!token) {
+        console.error('❌ No admin token found');
+        setLoading(false);
+        return;
+      }
+      
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/categories`,
         {
           headers: { 
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || ''
+            'Authorization': `Bearer ${token}`,
           },
         }
       );

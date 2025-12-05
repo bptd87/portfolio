@@ -68,7 +68,7 @@ export function DataSync() {
         {
           headers: { 
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token 
+            // Token in Authorization header 
           },
         }
       );
@@ -89,7 +89,7 @@ export function DataSync() {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${publicAnonKey}`, // Required by Supabase
-              'X-Admin-Token': token, // Our custom auth
+              // Token in Authorization header // Our custom auth
             },
             body: JSON.stringify({
               ...post,
@@ -152,7 +152,7 @@ export function DataSync() {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${publicAnonKey}`, // Required by Supabase
-              'X-Admin-Token': token, // Our custom auth
+              // Token in Authorization header // Our custom auth
             },
             body: JSON.stringify(projectData),
           }
@@ -172,7 +172,7 @@ export function DataSync() {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${publicAnonKey}`, // Required by Supabase
-              'X-Admin-Token': token, // Our custom auth
+              // Token in Authorization header // Our custom auth
             },
             body: JSON.stringify({
               ...newsItem,
@@ -223,7 +223,7 @@ export function DataSync() {
         {
           headers: { 
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token 
+            // Token in Authorization header 
           },
         }
       );
@@ -249,7 +249,7 @@ export function DataSync() {
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${publicAnonKey}`,
-                'X-Admin-Token': token,
+                // Token in Authorization header
               },
               body: JSON.stringify({
                 ...article,

@@ -115,7 +115,7 @@ export function CollaboratorsManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || '',
+            // Token in Authorization header,
           },
           body: JSON.stringify({
             name: editing.name,
@@ -173,7 +173,7 @@ export function CollaboratorsManager() {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token,
+            // Token in Authorization header
           },
           body: formData,
         }
@@ -208,7 +208,7 @@ export function CollaboratorsManager() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${publicAnonKey}`,
-          'X-Admin-Token': token || '',
+          // Token in Authorization header,
         },
         body: JSON.stringify(editing),
       });
@@ -236,7 +236,7 @@ export function CollaboratorsManager() {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || '',
+            // Token in Authorization header,
           },
         }
       );

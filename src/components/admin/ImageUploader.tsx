@@ -86,7 +86,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'make-74296
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': adminToken,
+            // Token in Authorization header
           },
           body: formData,
         }
@@ -252,7 +252,7 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${publicAnonKey}`,
-                'X-Admin-Token': adminToken,
+                // Token in Authorization header
               },
               body: formData,
             }

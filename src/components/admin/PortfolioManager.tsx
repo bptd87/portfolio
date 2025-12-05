@@ -96,11 +96,19 @@ export function PortfolioManager() {
     try {
       const token = sessionStorage.getItem('admin_token');
       
+      if (!token) {
+        console.error('❌ No admin token found in sessionStorage');
+        toast.error('Please log in again');
+        return;
+      }
+      
+      console.log('🔑 Using admin token:', token.substring(0, 20) + '...');
+      
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`,
         {
           headers: {
-            'Authorization': `Bearer ${token || publicAnonKey}`,
+            'Authorization': `Bearer ${token}`,
           },
         }
       );
@@ -174,7 +182,10 @@ export function PortfolioManager() {
 
       const response = await fetch(url, {
         method: isNew ? 'POST' : 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${publicAnonKey}`, 'X-Admin-Token': token || '' },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ ...formData, slug }),
       });
 
@@ -196,9 +207,13 @@ export function PortfolioManager() {
     if (!confirm('Are you sure you want to delete this project?')) return;
     try {
       const token = sessionStorage.getItem('admin_token');
+      if (!token) {
+        toast.error('Please log in again');
+        return;
+      }
       const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${publicAnonKey}`, 'X-Admin-Token': token || '' },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
         toast.success('Project deleted successfully!');

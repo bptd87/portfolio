@@ -16,19 +16,19 @@ export function DatabaseDebug() {
         fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/posts`, {
           headers: { 
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token,
+            // Token in Authorization header
           },
         }),
         fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`, {
           headers: { 
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token,
+            // Token in Authorization header
           },
         }),
         fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news`, {
           headers: { 
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token,
+            // Token in Authorization header
           },
         }),
       ]);

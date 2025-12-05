@@ -121,7 +121,7 @@ export function ResumeManager() {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': adminToken,
+            // Token in Authorization header
           },
           body: formData,
         }
@@ -141,7 +141,7 @@ export function ResumeManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': adminToken,
+            // Token in Authorization header
           },
           body: JSON.stringify({
             resumeUrl: url,
@@ -185,7 +185,7 @@ export function ResumeManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': adminToken,
+            // Token in Authorization header
           },
           body: JSON.stringify({
             resumeUrl: null,
@@ -232,7 +232,7 @@ export function ResumeManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': adminToken,
+            // Token in Authorization header
           },
           body: JSON.stringify({
             phone: cvData.phone,
@@ -350,7 +350,7 @@ export function ResumeManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': adminToken,
+            // Token in Authorization header
           },
           body: JSON.stringify({
             upcomingProductions: cvData.upcomingProductions,
@@ -446,7 +446,7 @@ export function ResumeManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': adminToken,
+            // Token in Authorization header
           },
           body: JSON.stringify({
             upcomingProductions,
@@ -879,3 +879,4 @@ export function ResumeManager() {
     </div>
   );
 }
+

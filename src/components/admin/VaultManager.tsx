@@ -203,7 +203,7 @@ export function VaultManager() {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': adminToken,
+            // Token in Authorization header
           },
           body: formData,
         }
@@ -1213,3 +1213,4 @@ export function VaultManager() {
     </div>
   );
 }
+

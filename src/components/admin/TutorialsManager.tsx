@@ -89,7 +89,7 @@ export function TutorialsManager() {
         {
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token!,
+            // Token in Authorization header,
           },
         }
       );
@@ -105,7 +105,7 @@ export function TutorialsManager() {
         {
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token!,
+            // Token in Authorization header,
           },
         }
       );
@@ -148,7 +148,7 @@ export function TutorialsManager() {
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${publicAnonKey}`,
-                'X-Admin-Token': token!,
+                // Token in Authorization header,
               },
               body: JSON.stringify(tutorial),
             }
@@ -262,7 +262,7 @@ export function TutorialsManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token!,
+            // Token in Authorization header,
           },
           body: JSON.stringify(formData),
         }
@@ -295,7 +295,7 @@ export function TutorialsManager() {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token!,
+            // Token in Authorization header,
           },
         }
       );
@@ -383,7 +383,7 @@ export function TutorialsManager() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token!,
+            // Token in Authorization header,
           },
           body: JSON.stringify({
             type,

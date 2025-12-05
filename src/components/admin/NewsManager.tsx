@@ -123,7 +123,7 @@ export function NewsManager() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${publicAnonKey}`,
-          'X-Admin-Token': token,
+          // Token in Authorization header
         },
         body: JSON.stringify(dataToSave),
       });
@@ -153,7 +153,7 @@ export function NewsManager() {
           method: 'DELETE',
           headers: { 
             'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token 
+            // Token in Authorization header 
           },
         }
       );
