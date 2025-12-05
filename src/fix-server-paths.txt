@@ -1,0 +1,11 @@
+This file tracks the path fix needed:
+
+OLD PATH: /make-server-980dd7a4
+NEW PATH: /make-server-74296234
+
+OLD BUCKET: make-980dd7a4-images
+NEW BUCKET: make-74296234-images
+
+Files to update:
+- /supabase/functions/server/index.tsx (51 occurrences)
+- All frontend component and page files (see file_search results)

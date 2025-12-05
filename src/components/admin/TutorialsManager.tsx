@@ -1,0 +1,1075 @@
+import React, { useState, useEffect } from 'react';
+import { Play, Plus, Edit2, Trash2, Save, X, ExternalLink, AlertCircle, ChevronDown, ChevronUp, Settings, Wand2, Loader2, Sparkles } from 'lucide-react';
+import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { DEFAULT_CATEGORIES, TUTORIALS as STATIC_TUTORIALS, type TutorialCategory } from '../../data/tutorials';
+import { BlockEditor, ContentBlock } from './BlockEditor';
+import { ImageUploader } from './ImageUploader';
+import { PrimaryButton, SecondaryButton, SaveButton, CancelButton, IconButton, DevToolButton } from './AdminButtons';
+import { InfoBanner } from './InfoBanner';
+import { 
+  DarkInput, 
+  DarkTextarea, 
+  DarkSelect, 
+  DarkLabel,
+  formContainerClasses,
+  listItemClasses,
+  badgeClasses
+} from './DarkModeStyles';
+
+interface Tutorial {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  duration: string;
+  thumbnail: string;
+  videoUrl: string;
+  publishDate: string;
+  learningObjectives?: string[];
+  tutorialContent?: ContentBlock[]; // Changed to blocks!
+  keyShortcuts?: { name: string; shortcut: string }[];
+  commonPitfalls?: string[];
+  proTips?: string[];
+  resources?: {
+    name: string;
+    description: string;
+    url: string;
+  }[];
+  relatedTutorials?: {
+    title: string;
+    slug: string;
+    thumbnail: string;
+    duration: string;
+  }[];
+}
+
+const emptyTutorial: Tutorial = {
+  id: '',
+  slug: '',
+  title: '',
+  description: '',
+  category: 'quick-tips',
+  duration: '',
+  thumbnail: '',
+  videoUrl: '',
+  publishDate: new Date().toISOString().split('T')[0],
+  learningObjectives: [],
+  tutorialContent: [],
+  keyShortcuts: [],
+  commonPitfalls: [],
+  proTips: [],
+  resources: [],
+  relatedTutorials: [],
+};
+
+export function TutorialsManager() {
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [categories, setCategories] = useState<TutorialCategory[]>(DEFAULT_CATEGORIES);
+  const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['basic']));
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState<Tutorial>(emptyTutorial);
+
+  // Fetch tutorials and categories
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem('admin_token');
+      
+      // Fetch tutorials
+      const tutorialsResponse = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials`,
+        {
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-Admin-Token': token!,
+          },
+        }
+      );
+
+      if (tutorialsResponse.ok) {
+        const data = await tutorialsResponse.json();
+        setTutorials(data.tutorials || []);
+      }
+
+      // Fetch categories
+      const categoriesResponse = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorial-categories`,
+        {
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-Admin-Token': token!,
+          },
+        }
+      );
+
+      if (categoriesResponse.ok) {
+        const data = await categoriesResponse.json();
+        setCategories(data.categories || DEFAULT_CATEGORIES);
+      }
+    } catch (err) {
+      setError('Failed to connect to server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleImportStaticTutorials = async () => {
+    if (!confirm(`This will import ${STATIC_TUTORIALS.length} static tutorials into the database. Continue?`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+      setSuccess('');
+      const token = sessionStorage.getItem('admin_token');
+      
+      let importedCount = 0;
+      let failedCount = 0;
+
+      for (const tutorial of STATIC_TUTORIALS) {
+        try {
+          const response = await fetch(
+            `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${publicAnonKey}`,
+                'X-Admin-Token': token!,
+              },
+              body: JSON.stringify(tutorial),
+            }
+          );
+          
+          if (response.ok) {
+            importedCount++;
+          } else {
+            failedCount++;
+            }
+        } catch (err) {
+          failedCount++;
+          }
+      }
+
+      setSuccess(`Import complete: ${importedCount} imported, ${failedCount} failed.`);
+      await fetchData();
+    } catch (err) {
+      setError('Import failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const ensureArray = (item: any) => {
+    if (Array.isArray(item)) return item;
+    return [];
+  };
+
+  const handleEdit = (tutorial: Tutorial) => {
+    // Ensure tutorialContent is a valid array of blocks
+    let content = tutorial.tutorialContent;
+    if (!Array.isArray(content)) {
+      if (typeof content === 'string' && content) {
+        // Convert string content to a paragraph block
+        content = [{
+          id: Date.now().toString(),
+          type: 'paragraph',
+          content: content
+        }];
+      } else {
+        content = [];
+      }
+    }
+
+    setFormData({
+      ...tutorial,
+      learningObjectives: ensureArray(tutorial.learningObjectives),
+      tutorialContent: content,
+      keyShortcuts: ensureArray(tutorial.keyShortcuts),
+      commonPitfalls: ensureArray(tutorial.commonPitfalls),
+      proTips: ensureArray(tutorial.proTips),
+      resources: ensureArray(tutorial.resources),
+      relatedTutorials: ensureArray(tutorial.relatedTutorials),
+    });
+    setEditingId(tutorial.id);
+    setIsAdding(false);
+    setError('');
+    setSuccess('');
+    setExpandedSections(new Set(['basic']));
+    
+    // Scroll to top to see the form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAdd = () => {
+    const newId = Date.now().toString();
+    setFormData({
+      ...emptyTutorial,
+      id: newId,
+      publishDate: new Date().toISOString().split('T')[0],
+    });
+    setIsAdding(true);
+    setEditingId(null);
+    setError('');
+    setSuccess('');
+    setExpandedSections(new Set(['basic']));
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setIsAdding(false);
+    setFormData(emptyTutorial);
+    setError('');
+  };
+
+  const handleSave = async () => {
+    try {
+      setError('');
+      setSuccess('');
+
+      if (!formData.title.trim()) {
+        setError('Title is required');
+        return;
+      }
+      if (!formData.slug.trim()) {
+        setError('Slug is required');
+        return;
+      }
+      if (!formData.videoUrl.trim()) {
+        setError('Video URL is required');
+        return;
+      }
+
+      const token = sessionStorage.getItem('admin_token');
+      
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials`,
+        {
+          method: isAdding ? 'POST' : 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-Admin-Token': token!,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        setSuccess(isAdding ? 'Tutorial added successfully!' : 'Tutorial updated successfully!');
+        await fetchData();
+        handleCancel();
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError(data.error || 'Failed to save tutorial');
+      }
+    } catch (err) {
+      setError(`Failed to connect to server: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this tutorial?')) {
+      return;
+    }
+
+    try {
+      const token = sessionStorage.getItem('admin_token');
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials/${id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-Admin-Token': token!,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setSuccess('Tutorial deleted successfully!');
+        await fetchData();
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError('Failed to delete tutorial');
+      }
+    } catch (err) {
+      setError('Failed to connect to server');
+    }
+  };
+
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
+  const extractYouTubeId = (url: string) => {
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
+
+  const handleVideoUrlChange = (url: string) => {
+    const videoId = extractYouTubeId(url);
+    if (videoId) {
+      setFormData({
+        ...formData,
+        videoUrl: `https://www.youtube.com/embed/${videoId}`,
+        thumbnail: formData.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+      });
+    } else {
+      setFormData({ ...formData, videoUrl: url });
+    }
+  };
+
+  const toggleSection = (section: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  // Array field helpers
+  const addArrayItem = (field: keyof Tutorial, defaultValue: any) => {
+    setFormData({
+      ...formData,
+      [field]: [...(formData[field] as any[] || []), defaultValue],
+    });
+  };
+
+  const removeArrayItem = (field: keyof Tutorial, index: number) => {
+    setFormData({
+      ...formData,
+      [field]: (formData[field] as any[]).filter((_, i) => i !== index),
+    });
+  };
+
+  const updateArrayItem = (field: keyof Tutorial, index: number, value: any) => {
+    const array = [...(formData[field] as any[])];
+    array[index] = value;
+    setFormData({
+      ...formData,
+      [field]: array,
+    });
+  };
+
+  // AI Generation Functions
+  const generateWithAI = async (type: string, context: string) => {
+    setAiLoading(type);
+    try {
+      const token = sessionStorage.getItem('admin_token');
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/ai/generate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-Admin-Token': token!,
+          },
+          body: JSON.stringify({
+            type,
+            context,
+            prompt: formData.title + (formData.description ? ': ' + formData.description : '')
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.success && data.result) {
+        return data.result;
+      } else {
+        setError('AI generation failed: ' + (data.error || 'Unknown error'));
+        return null;
+      }
+    } catch (err) {
+      setError('Failed to connect to AI service');
+      return null;
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleAIGenerateObjectives = async () => {
+    const result = await generateWithAI('tutorial-objectives', `Tutorial: ${formData.title}\n\nDescription: ${formData.description}\n\nGenerate 4 clear learning objectives for this tutorial.`);
+    if (result) {
+      // Parse result as array
+      const objectives = result.split('\n').filter((line: string) => line.trim()).map((line: string) => line.replace(/^[-*•]\s*/, '').trim());
+      setFormData({ ...formData, learningObjectives: objectives });
+    }
+  };
+
+  const handleAIGenerateTips = async () => {
+    const result = await generateWithAI('tutorial-tips', `Tutorial: ${formData.title}\n\nGenerate 3 pro tips for this tutorial about ${formData.description}`);
+    if (result) {
+      const tips = result.split('\n').filter((line: string) => line.trim()).map((line: string) => line.replace(/^[-*•]\s*/, '').trim());
+      setFormData({ ...formData, proTips: tips });
+    }
+  };
+
+  const handleAIGeneratePitfalls = async () => {
+    const result = await generateWithAI('tutorial-pitfalls', `Tutorial: ${formData.title}\n\nGenerate 3-4 common mistakes or pitfalls students should avoid.`);
+    if (result) {
+      const pitfalls = result.split('\n').filter((line: string) => line.trim()).map((line: string) => line.replace(/^[-*•]\s*/, '').trim());
+      setFormData({ ...formData, commonPitfalls: pitfalls });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-2 border-accent-brand border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-sm text-gray-400">Loading tutorials...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-2xl tracking-tight mb-2 text-white">Scenic Studio Tutorials</h2>
+          <p className="text-sm text-gray-400">Manage video tutorials with rich content and AI assistance</p>
+        </div>
+        <div className="flex gap-3">
+          {tutorials.length === 0 && (
+            <SecondaryButton onClick={handleImportStaticTutorials} icon={Sparkles}>
+              Import Static Data
+            </SecondaryButton>
+          )}
+          <button
+            onClick={() => setShowCategoryManager(!showCategoryManager)}
+            className="flex items-center gap-2 px-4 py-2 border border-border hover:border-accent-brand transition-colors"
+          >
+            <Settings className="w-4 h-4" />
+            <span className="text-xs tracking-wider uppercase">Categories</span>
+          </button>
+          <button
+            onClick={handleAdd}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-xs tracking-wider uppercase">Add Tutorial</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Messages */}
+      {error && (
+        <div className="mb-6 px-4 py-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-6 px-4 py-3 bg-accent-brand/10 border border-accent-brand/20 text-accent-brand text-sm">
+          {success}
+        </div>
+      )}
+
+      {/* Category Manager */}
+      {showCategoryManager && (
+        <div className="mb-8 p-6 border border-border bg-secondary/20">
+          <h3 className="text-lg tracking-tight mb-4">Manage Categories</h3>
+          <div className="text-sm text-gray-400 mb-4">
+            Categories are currently managed in code. Contact your developer to add new categories.
+          </div>
+          <div className="space-y-2">
+            {categories.map((cat) => (
+              <div key={cat.id} className="px-4 py-3 border border-border bg-background">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="font-mono text-sm text-gray-400">{cat.id}</div>
+                    <div className="mt-1 text-white">{cat.name}</div>
+                    {cat.description && <div className="text-sm text-gray-400 mt-1">{cat.description}</div>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Form */}
+      {(isAdding || editingId) && (
+        <div className="mb-8 p-6 border border-accent-brand bg-accent-brand/5">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg tracking-tight">
+                {isAdding ? 'Add New Tutorial' : 'Edit Tutorial'}
+              </h3>
+              <div className="flex items-center gap-2 px-3 py-1 bg-accent-brand/10 border border-accent-brand/20">
+                <Sparkles className="w-3 h-3 text-accent-brand" />
+                <span className="text-xs text-accent-brand">AI Assistant Available</span>
+              </div>
+            </div>
+            <button
+              onClick={handleCancel}
+              className="p-2 opacity-60 hover:opacity-100 transition-opacity"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {/* BASIC INFO */}
+            <div className="border border-border">
+              <button
+                onClick={() => toggleSection('basic')}
+                className="w-full px-6 py-4 bg-secondary/50 flex items-center justify-between hover:bg-secondary/70 transition-colors"
+              >
+                <span className="text-sm tracking-wider uppercase">Basic Information</span>
+                {expandedSections.has('basic') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              
+              {expandedSections.has('basic') && (
+                <div className="p-6 space-y-6 bg-background">
+                  <div>
+                    <DarkLabel className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Title *</DarkLabel>
+                    <DarkInput
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => {
+                        const title = e.target.value;
+                        setFormData({ 
+                          ...formData, 
+                          title,
+                          slug: formData.slug || generateSlug(title)
+                        });
+                      }}
+                      className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                      placeholder="Enter tutorial title"
+                    />
+                  </div>
+
+                  <div>
+                    <DarkLabel className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Slug *</DarkLabel>
+                    <DarkInput
+                      type="text"
+                      value={formData.slug}
+                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                      className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none font-mono text-sm"
+                      placeholder="my-tutorial-slug"
+                    />
+                  </div>
+
+                  <div>
+                    <DarkLabel className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Description</DarkLabel>
+                    <DarkTextarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none min-h-[100px]"
+                      placeholder="Brief description"
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <DarkLabel className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Category</DarkLabel>
+                      <DarkSelect
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                      >
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                      </DarkSelect>
+                    </div>
+
+                    <div>
+                      <DarkLabel className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Duration</DarkLabel>
+                      <DarkInput
+                        type="text"
+                        value={formData.duration}
+                        onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                        className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        placeholder="10:45"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <DarkLabel className="block text-xs tracking-wider uppercase text-gray-300 mb-2">YouTube URL *</DarkLabel>
+                    <DarkInput
+                      type="text"
+                      value={formData.videoUrl}
+                      onChange={(e) => handleVideoUrlChange(e.target.value)}
+                      className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                      placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
+                    />
+                  </div>
+
+                  <div>
+                    <ImageUploader
+                      value={formData.thumbnail}
+                      onChange={(url) => setFormData({ ...formData, thumbnail: url })}
+                      label="Thumbnail Image"
+                    />
+                    <p className="text-xs opacity-50 mt-2">Auto-filled from YouTube, or upload custom thumbnail</p>
+                  </div>
+
+                  <div>
+                    <DarkLabel className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Publish Date</DarkLabel>
+                    <DarkInput
+                      type="date"
+                      value={formData.publishDate}
+                      onChange={(e) => setFormData({ ...formData, publishDate: e.target.value })}
+                      className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* LEARNING OBJECTIVES */}
+            <div className="border border-border">
+              <button
+                onClick={() => toggleSection('objectives')}
+                className="w-full px-6 py-4 bg-secondary/50 flex items-center justify-between hover:bg-secondary/70 transition-colors"
+              >
+                <span className="text-sm tracking-wider uppercase">Learning Objectives</span>
+                {expandedSections.has('objectives') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              
+              {expandedSections.has('objectives') && (
+                <div className="p-6 space-y-4 bg-background">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleAIGenerateObjectives}
+                      disabled={!formData.title || aiLoading === 'tutorial-objectives'}
+                      className="flex items-center gap-2 px-3 py-2 bg-accent-brand text-accent-brand-foreground text-xs tracking-wider uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      {aiLoading === 'tutorial-objectives' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                      Generate with AI
+                    </button>
+                  </div>
+                  {(formData.learningObjectives || []).map((obj, index) => (
+                    <div key={index} className="flex gap-3">
+                      <DarkInput
+                        type="text"
+                        value={obj}
+                        onChange={(e) => updateArrayItem('learningObjectives', index, e.target.value)}
+                        className="flex-1 px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        placeholder="What students will learn"
+                      />
+                      <button
+                        onClick={() => removeArrayItem('learningObjectives', index)}
+                        className="px-4 py-3 border border-border hover:border-destructive text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('learningObjectives', '')}
+                    className="text-xs tracking-wider uppercase text-accent-brand hover:opacity-80 transition-opacity"
+                  >
+                    + Add Learning Objective
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* TUTORIAL CONTENT - BLOCK EDITOR! */}
+            <div className="border border-border">
+              <button
+                onClick={() => toggleSection('content')}
+                className="w-full px-6 py-4 bg-secondary/50 flex items-center justify-between hover:bg-secondary/70 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm tracking-wider uppercase">Tutorial Content</span>
+                  <span className="px-2 py-0.5 bg-accent-brand/20 text-accent-brand text-[10px] tracking-wider uppercase">Rich Editor</span>
+                </div>
+                {expandedSections.has('content') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              
+              {expandedSections.has('content') && (
+                <div className="p-6 bg-background">
+                  <p className="text-sm text-gray-400 mb-4">
+                    Build your tutorial content with rich text blocks, images, videos, code snippets, and more. Drag and drop images to upload.
+                  </p>
+                  <BlockEditor
+                    blocks={formData.tutorialContent || []}
+                    onChange={(blocks) => setFormData({ ...formData, tutorialContent: blocks })}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* PRO TIPS */}
+            <div className="border border-border">
+              <button
+                onClick={() => toggleSection('tips')}
+                className="w-full px-6 py-4 bg-secondary/50 flex items-center justify-between hover:bg-secondary/70 transition-colors"
+              >
+                <span className="text-sm tracking-wider uppercase">Pro Tips</span>
+                {expandedSections.has('tips') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              
+              {expandedSections.has('tips') && (
+                <div className="p-6 space-y-4 bg-background">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleAIGenerateTips}
+                      disabled={!formData.title || aiLoading === 'tutorial-tips'}
+                      className="flex items-center gap-2 px-3 py-2 bg-accent-brand text-accent-brand-foreground text-xs tracking-wider uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      {aiLoading === 'tutorial-tips' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                      Generate with AI
+                    </button>
+                  </div>
+                  {(formData.proTips || []).map((tip, index) => (
+                    <div key={index} className="flex gap-3">
+                      <DarkInput
+                        type="text"
+                        value={tip}
+                        onChange={(e) => updateArrayItem('proTips', index, e.target.value)}
+                        className="flex-1 px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        placeholder="Pro tip text"
+                      />
+                      <button
+                        onClick={() => removeArrayItem('proTips', index)}
+                        className="px-4 py-3 border border-border hover:border-destructive text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('proTips', '')}
+                    className="text-xs tracking-wider uppercase text-accent-brand hover:opacity-80 transition-opacity"
+                  >
+                    + Add Pro Tip
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* KEY SHORTCUTS */}
+            <div className="border border-border">
+              <button
+                onClick={() => toggleSection('shortcuts')}
+                className="w-full px-6 py-4 bg-secondary/50 flex items-center justify-between hover:bg-secondary/70 transition-colors"
+              >
+                <span className="text-sm tracking-wider uppercase">Key Shortcuts</span>
+                {expandedSections.has('shortcuts') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              
+              {expandedSections.has('shortcuts') && (
+                <div className="p-6 space-y-4 bg-background">
+                  {(formData.keyShortcuts || []).map((shortcut, index) => (
+                    <div key={index} className="flex gap-3">
+                      <DarkInput
+                        type="text"
+                        value={shortcut.name}
+                        onChange={(e) => updateArrayItem('keyShortcuts', index, { ...shortcut, name: e.target.value })}
+                        className="flex-1 px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        placeholder="Action name"
+                      />
+                      <DarkInput
+                        type="text"
+                        value={shortcut.shortcut}
+                        onChange={(e) => updateArrayItem('keyShortcuts', index, { ...shortcut, shortcut: e.target.value })}
+                        className="w-48 px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none font-mono text-sm"
+                        placeholder="Cmd+K"
+                      />
+                      <button
+                        onClick={() => removeArrayItem('keyShortcuts', index)}
+                        className="px-4 py-3 border border-border hover:border-destructive text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('keyShortcuts', { name: '', shortcut: '' })}
+                    className="text-xs tracking-wider uppercase text-accent-brand hover:opacity-80 transition-opacity"
+                  >
+                    + Add Shortcut
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* COMMON PITFALLS */}
+            <div className="border border-border">
+              <button
+                onClick={() => toggleSection('pitfalls')}
+                className="w-full px-6 py-4 bg-secondary/50 flex items-center justify-between hover:bg-secondary/70 transition-colors"
+              >
+                <span className="text-sm tracking-wider uppercase">Common Pitfalls</span>
+                {expandedSections.has('pitfalls') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              
+              {expandedSections.has('pitfalls') && (
+                <div className="p-6 space-y-4 bg-background">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleAIGeneratePitfalls}
+                      disabled={!formData.title || aiLoading === 'tutorial-pitfalls'}
+                      className="flex items-center gap-2 px-3 py-2 bg-accent-brand text-accent-brand-foreground text-xs tracking-wider uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      {aiLoading === 'tutorial-pitfalls' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                      Generate with AI
+                    </button>
+                  </div>
+                  {(formData.commonPitfalls || []).map((pitfall, index) => (
+                    <div key={index} className="flex gap-3">
+                      <DarkInput
+                        type="text"
+                        value={pitfall}
+                        onChange={(e) => updateArrayItem('commonPitfalls', index, e.target.value)}
+                        className="flex-1 px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        placeholder="Common mistake to avoid"
+                      />
+                      <button
+                        onClick={() => removeArrayItem('commonPitfalls', index)}
+                        className="px-4 py-3 border border-border hover:border-destructive text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('commonPitfalls', '')}
+                    className="text-xs tracking-wider uppercase text-accent-brand hover:opacity-80 transition-opacity"
+                  >
+                    + Add Pitfall
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* RESOURCES */}
+            <div className="border border-border">
+              <button
+                onClick={() => toggleSection('resources')}
+                className="w-full px-6 py-4 bg-secondary/50 flex items-center justify-between hover:bg-secondary/70 transition-colors"
+              >
+                <span className="text-sm tracking-wider uppercase">Resources & Downloads</span>
+                {expandedSections.has('resources') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              
+              {expandedSections.has('resources') && (
+                <div className="p-6 space-y-4 bg-background">
+                  {(formData.resources || []).map((resource, index) => (
+                    <div key={index} className="border border-border p-4 space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-xs tracking-wider uppercase text-gray-400">Resource {index + 1}</span>
+                        <button
+                          onClick={() => removeArrayItem('resources', index)}
+                          className="text-destructive hover:opacity-80 transition-opacity"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <DarkInput
+                        type="text"
+                        value={resource.name}
+                        onChange={(e) => updateArrayItem('resources', index, { ...resource, name: e.target.value })}
+                        className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        placeholder="Resource name"
+                      />
+                      <DarkTextarea
+                        value={resource.description}
+                        onChange={(e) => updateArrayItem('resources', index, { ...resource, description: e.target.value })}
+                        className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        placeholder="Description"
+                      />
+                      <DarkInput
+                        type="text"
+                        value={resource.url}
+                        onChange={(e) => updateArrayItem('resources', index, { ...resource, url: e.target.value })}
+                        className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none font-mono text-sm"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('resources', { name: '', description: '', url: '' })}
+                    className="text-xs tracking-wider uppercase text-accent-brand hover:opacity-80 transition-opacity"
+                  >
+                    + Add Resource
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* RELATED TUTORIALS */}
+            <div className="border border-border">
+              <button
+                onClick={() => toggleSection('related')}
+                className="w-full px-6 py-4 bg-secondary/50 flex items-center justify-between hover:bg-secondary/70 transition-colors"
+              >
+                <span className="text-sm tracking-wider uppercase">Related Tutorials</span>
+                {expandedSections.has('related') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              
+              {expandedSections.has('related') && (
+                <div className="p-6 space-y-4 bg-background">
+                  {(formData.relatedTutorials || []).map((related, index) => (
+                    <div key={index} className="border border-border p-4 space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-xs tracking-wider uppercase text-gray-400">Related {index + 1}</span>
+                        <button
+                          onClick={() => removeArrayItem('relatedTutorials', index)}
+                          className="text-destructive hover:opacity-80 transition-opacity"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <DarkInput
+                        type="text"
+                        value={related.title}
+                        onChange={(e) => updateArrayItem('relatedTutorials', index, { ...related, title: e.target.value })}
+                        className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        placeholder="Tutorial title"
+                      />
+                      <DarkInput
+                        type="text"
+                        value={related.slug}
+                        onChange={(e) => updateArrayItem('relatedTutorials', index, { ...related, slug: e.target.value })}
+                        className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none font-mono text-sm"
+                        placeholder="tutorial-slug"
+                      />
+                      <DarkInput
+                        type="text"
+                        value={related.thumbnail}
+                        onChange={(e) => updateArrayItem('relatedTutorials', index, { ...related, thumbnail: e.target.value })}
+                        className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none font-mono text-sm"
+                        placeholder="Thumbnail URL"
+                      />
+                      <DarkInput
+                        type="text"
+                        value={related.duration}
+                        onChange={(e) => updateArrayItem('relatedTutorials', index, { ...related, duration: e.target.value })}
+                        className="w-full px-4 py-3 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        placeholder="10:45"
+                      />
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('relatedTutorials', { title: '', slug: '', thumbnail: '', duration: '' })}
+                    className="text-xs tracking-wider uppercase text-accent-brand hover:opacity-80 transition-opacity"
+                  >
+                    + Add Related Tutorial
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4 border-t border-border">
+              <SaveButton
+                onClick={handleSave}
+                className="flex items-center gap-2 px-6 py-3 bg-accent-brand text-accent-brand-foreground hover:opacity-90 transition-opacity"
+              >
+                <Save className="w-4 h-4" />
+                <span className="text-xs tracking-wider uppercase">Save Tutorial</span>
+              </SaveButton>
+              <CancelButton
+                onClick={handleCancel}
+                className="px-6 py-3 border border-border hover:border-foreground transition-colors text-xs tracking-wider uppercase"
+              >
+                Cancel
+              </CancelButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tutorials List */}
+      <div className="grid grid-cols-1 gap-3">
+        {tutorials.length === 0 ? (
+          <div className="text-center py-12 border border-dashed border-border">
+            <Play className="w-12 h-12 opacity-20 mx-auto mb-4" />
+            <p className="text-gray-400 mb-4">No tutorials yet</p>
+            <button
+              onClick={handleAdd}
+              className="text-xs tracking-wider uppercase text-accent-brand hover:opacity-80 transition-opacity"
+            >
+              Add your first tutorial
+            </button>
+          </div>
+        ) : (
+          tutorials.map((tutorial) => (
+            <div
+              key={tutorial.id}
+              className="flex items-center justify-between p-4 border transition-colors rounded-2xl bg-card/50 hover:bg-card border-border hover:border-accent-brand/50"
+            >
+              <div className="flex items-center gap-4">
+                {tutorial.thumbnail ? (
+                  <img
+                    src={tutorial.thumbnail}
+                    alt={tutorial.title}
+                    className="w-20 aspect-video rounded-lg object-cover bg-muted"
+                  />
+                ) : (
+                  <div className="w-20 aspect-video rounded-lg bg-muted flex items-center justify-center">
+                    <Play className="w-6 h-6 opacity-20" />
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium tracking-tight text-white">{tutorial.title}</h3>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-300 mt-1">
+                    <span className="px-2 py-0.5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-400">
+                      {categories.find(c => c.id === tutorial.category)?.name}
+                    </span>
+                    <span className="text-gray-500">•</span>
+                    <span className="text-gray-300">{tutorial.duration}</span>
+                    <span className="text-gray-500">•</span>
+                    <span className="text-gray-400">{tutorial.publishDate}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={tutorial.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                  title="View on YouTube"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <IconButton onClick={() => handleEdit(tutorial)}>
+                  <Edit2 className="w-4 h-4" />
+                </IconButton>
+                <IconButton onClick={() => handleDelete(tutorial.id)} variant="danger">
+                  <Trash2 className="w-4 h-4" />
+                </IconButton>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

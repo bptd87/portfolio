@@ -1,0 +1,1094 @@
+/* Nothing-Inspired Design System for Brandon PT Davis */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* ============================================
+     BRANDON PT DAVIS — NOTHING-INSPIRED SYSTEM
+     Modern • Bold • Image-First
+     ============================================ */
+  
+  /* Typography */
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-pixel: 'VT323', monospace;
+  --font-display: 'Playfair Display', serif;
+  --font-size: 16px;
+  
+  /* Light Mode Colors */
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  
+  /* Primary: Pure Black */
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  
+  /* Secondary: Light Gray */
+  --secondary: #f5f5f5;
+  --secondary-foreground: #000000;
+  
+  /* Section-Based Accent Colors - Light Mode */
+  --accent-scenic: #2563eb;        /* Deep Blue */
+  --accent-rendering: #9333ea;     /* Purple */
+  --accent-experiential: #f59e0b;  /* Amber */
+  --accent-news: #10b981;          /* Green */
+  --accent-app: #06b6d4;           /* Cyan */
+  --accent-default: #ef4444;       /* Red (Nothing's signature color) */
+  --accent-brand: #d97706;         /* Amber-600 (Brand accent) */
+  
+  /* Muted States */
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  
+  /* Accent */
+  --accent: #fafafa;
+  --accent-foreground: #000000;
+  
+  /* Destructive */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  
+  /* Borders & Inputs */
+  --border: rgba(0, 0, 0, 0.08);
+  --input: transparent;
+  --input-background: #fafafa;
+  --ring: rgba(0, 0, 0, 0.2);
+  
+  /* Border Radius - Mostly sharp with subtle rounding */
+  --radius: 0px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  
+  /* Spacing System - 4px base grid */
+  --space-xs: 0.5rem;    /* 8px */
+  --space-sm: 1rem;      /* 16px */
+  --space-md: 1.5rem;    /* 24px */
+  --space-lg: 3rem;      /* 48px */
+  --space-xl: 6rem;      /* 96px */
+  --space-2xl: 9rem;     /* 144px */
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dark {
+  /* Dark Mode Colors */
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+  
+  /* Primary: Pure White */
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  
+  /* Secondary: Dark Gray */
+  --secondary: #171717;
+  --secondary-foreground: #ffffff;
+  
+  /* Section-Based Accent Colors - Dark Mode (brighter) */
+  --accent-scenic: #3b82f6;        /* Bright Blue */
+  --accent-rendering: #a855f7;     /* Bright Purple */
+  --accent-experiential: #fbbf24;  /* Bright Amber */
+  --accent-news: #34d399;          /* Bright Green */
+  --accent-app: #22d3ee;           /* Bright Cyan */
+  --accent-default: #f87171;       /* Bright Red */
+  --accent-brand: #f59e0b;         /* Amber-500 (Brand accent - brighter) */
+  --accent-default: #f87171;       /* Bright Red */
+  
+  /* Muted States */
+  --muted: #171717;
+  --muted-foreground: #a3a3a3;
+  
+  /* Accent */
+  --accent: #262626;
+  --accent-foreground: #ffffff;
+  
+  /* Destructive */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  
+  /* Borders & Inputs */
+  --border: rgba(255, 255, 255, 0.08);
+  --input: transparent;
+  --input-background: #171717;
+  --ring: rgba(255, 255, 255, 0.2);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+  
+  /* Section Accent Colors */
+  --color-accent-scenic: var(--accent-scenic);
+  --color-accent-rendering: var(--accent-rendering);
+  --color-accent-experiential: var(--accent-experiential);
+  --color-accent-news: var(--accent-news);
+  --color-accent-app: var(--accent-app);
+  --color-accent-default: var(--accent-default);
+  --color-accent-brand: var(--accent-brand);
+  
+  /* Border Radius Scale */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: 12px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overflow-y: auto;
+  }
+  
+  #root {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Remove all scrollbar gutters */
+  * {
+    scrollbar-gutter: auto !important;
+  }
+  
+  /* Webkit browsers - make scrollbar overlay and transparent */
+  ::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+    background-clip: padding-box;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    background-clip: padding-box;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+    background-clip: padding-box;
+  }
+
+  /* Firefox - thin scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  }
+  
+  .dark * {
+    scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+  }
+  
+  /* Prevent images from causing horizontal overflow */
+  img, picture, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Fix for admin panel - ensure text is always visible */
+  .bg-card {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+  }
+  
+  .text-foreground {
+    color: var(--foreground) !important;
+  }
+  
+  .text-background {
+    color: var(--background) !important;
+  }
+  
+  .border-border {
+    border-color: var(--border) !important;
+  }
+  
+  .bg-foreground {
+    background-color: var(--foreground) !important;
+  }
+  
+  .bg-background {
+    background-color: var(--background) !important;
+  }
+  
+  /* Default to DM Sans */
+  h1, h2, h3, h4, h5, h6,
+  button, input, label, select, textarea,
+  p, a, span, div {
+    font-family: var(--font-sans);
+  }
+}
+
+/**
+ * Typography Hierarchy - DM Sans
+ */
+@layer base {
+  :where(:not(:has([class*=" text-\"])):not(:has([class^="text-\"]))) {
+    /* H1 - Hero Headlines */
+    h1 {
+      font-size: clamp(2.5rem, 8vw, 6rem);
+      font-weight: 700;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+
+    /* H2 - Section Titles */
+    h2 {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    /* H3 - Subsection Titles */
+    h3 {
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    /* H4 - Card Headings */
+    h4 {
+      font-size: 1.5rem;
+      font-weight: 500;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+    }
+
+    /* H5 - Small Headings */
+    h5 {
+      font-size: 1.125rem;
+      font-weight: 500;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    /* H6 - Micro Headings */
+    h6 {
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+    }
+
+    /* Body Text */
+    p {
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.6;
+      letter-spacing: -0.01em;
+    }
+
+    /* Labels */
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+
+    /* Buttons */
+    button {
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1.5;
+      letter-spacing: 0.025em;
+    }
+
+    /* Form Elements */
+    input, textarea, select {
+      font-size: 0.9375rem;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+  scroll-behavior: smooth;
+  /* Modern thin scrollbar for Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.dark html {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* Thin scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================
+   PIXEL FONT UTILITIES
+   For creative accents and technical details
+   ============================================ */
+
+.font-pixel {
+  font-family: var(--font-pixel) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.05em !important;
+  line-height: 1 !important;
+}
+
+.font-display {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  font-style: italic !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* ============================================
+   SECTION ACCENT UTILITIES
+   Color-coded by content type
+   ============================================ */
+
+@layer utilities {
+  /* Scenic Design - Blue */
+  .accent-scenic {
+    --section-accent: var(--accent-scenic);
+  }
+  
+  /* Rendering - Purple */
+  .accent-rendering {
+    --section-accent: var(--accent-rendering);
+  }
+  
+  /* Experiential - Amber */
+  .accent-experiential {
+    --section-accent: var(--accent-experiential);
+  }
+  
+  /* News - Green */
+  .accent-news {
+    --section-accent: var(--accent-news);
+  }
+  
+  /* App Studio - Cyan */
+  .accent-app {
+    --section-accent: var(--accent-app);
+  }
+  
+  /* Default - Red */
+  .accent-default {
+    --section-accent: var(--accent-default);
+  }
+  
+  /* Apply section accent to elements */
+  .text-section-accent {
+    color: var(--section-accent, var(--accent-default)) !important;
+  }
+  
+  .bg-section-accent {
+    background-color: var(--section-accent, var(--accent-default)) !important;
+  }
+  
+  .border-section-accent {
+    border-color: var(--section-accent, var(--accent-default)) !important;
+  }
+  
+  .ring-section-accent {
+    --tw-ring-color: var(--section-accent, var(--accent-default)) !important;
+  }
+}
+
+/* ============================================
+   IMAGE EFFECTS
+   Modern, bold imagery
+   ============================================ */
+
+/* Image overlay on hover */
+.img-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.img-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+
+.img-overlay:hover::after {
+  opacity: 1;
+}
+
+.dark .img-overlay::after {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
+
+/* Image zoom on hover */
+.img-zoom img {
+  transition: transform var(--transition-slow);
+}
+
+.img-zoom:hover img {
+  transform: scale(1.05);
+}
+
+/* ============================================
+   DEPTH & ELEVATION
+   ============================================ */
+
+.depth-sm {
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.dark .depth-sm {
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.depth-md {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.02);
+}
+
+.dark .depth-md {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.depth-lg {
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.06),
+    0 12px 32px rgba(0, 0, 0, 0.08),
+    0 24px 64px rgba(0, 0, 0, 0.04);
+}
+
+.dark .depth-lg {
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.5),
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    0 24px 64px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   INTERACTION PATTERNS
+   ============================================ */
+
+.lift-hover {
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.lift-hover:hover {
+  transform: translateY(-4px);
+}
+
+.scale-hover {
+  transition: transform var(--transition-base);
+}
+
+.scale-hover:hover {
+  transform: scale(1.02);
+}
+
+/* ============================================
+   GLASS MORPHISM
+   ============================================ */
+
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border);
+}
+
+.dark .glass {
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid var(--border);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass-dark {
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up var(--transition-slow) ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in var(--transition-base) ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left var(--transition-base) ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right var(--transition-base) ease-out;
+}
+
+/* Seamless Horizontal Scroll Animation */
+@keyframes scroll-seamless {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-seamless {
+  animation: scroll-seamless 60s linear infinite;
+}
+
+/* Shimmer Animation for Skeleton Loaders */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+/* ============================================
+   ARTICLE CONTENT
+   ============================================ */
+
+.article-content {
+  max-width: 68ch;
+  margin: 0 auto;
+  font-family: var(--font-sans);
+}
+
+.article-content p {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  opacity: 0.9;
+  margin-bottom: 1.5rem;
+}
+
+.article-content h2 {
+  font-family: var(--font-sans);
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.article-content h2:first-child {
+  margin-top: 0;
+}
+
+.article-content h3 {
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-top: 3rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.article-content h4 {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.article-content ul, .article-content ol {
+  margin: 1.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.article-content li {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  opacity: 0.85;
+  margin-bottom: 0.75rem;
+}
+
+.article-content a {
+  color: var(--accent-default);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  opacity: 0.7;
+  transition: var(--transition-base);
+}
+
+.article-content a:hover {
+  opacity: 1;
+}
+
+.article-content code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-size: 0.9em;
+  padding: 0.2em 0.4em;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+}
+
+.article-content blockquote {
+  border-left: 2px solid var(--accent-default);
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.article-content .not-prose {
+  max-width: none;
+}
+
+.article-content .not-prose * {
+  font-size: revert;
+  line-height: revert;
+  margin: revert;
+  opacity: revert;
+}
+
+.dark .article-content p {
+  opacity: 0.92;
+}
+
+.dark .article-content li {
+  opacity: 0.88;
+}
+
+/* ============================================
+   RESPONSIVE SPACING
+   ============================================ */
+
+@media (max-width: 768px) {
+  :root {
+    --space-lg: 2.5rem;
+    --space-xl: 4rem;
+    --space-2xl: 6rem;
+  }
+  
+  .article-content h2 {
+    font-size: 1.625rem;
+    margin-top: 3rem;
+  }
+  
+  .article-content h3 {
+    font-size: 1.375rem;
+    margin-top: 2.5rem;
+  }
+}
+
+/* ============================================
+   RICH TEXT EDITOR CONTENT
+   ============================================ */
+
+.rich-content strong,
+.rich-content b {
+  font-weight: inherit;
+  color: var(--accent-default);
+}
+
+.rich-content a {
+  color: var(--accent-default);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s;
+}
+
+.rich-content a:hover {
+  opacity: 0.8;
+}
+
+.rich-content em {
+  font-style: italic;
+}
+
+.rich-content h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.rich-content h3 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-top: 3rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.rich-content ul,
+.rich-content ol {
+  margin: 1.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.rich-content li {
+  margin-bottom: 0.75rem;
+}
+
+.rich-content blockquote {
+  border-left: 2px solid var(--accent-default);
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.rich-content pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+}
+
+.rich-content code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.2em 0.4em;
+  border-radius: var(--radius-sm);
+  font-family: 'Courier New', monospace;
+  font-size: 0.875em;
+}
+
+.rich-content pre code {
+  background: none;
+  padding: 0;
+}
+
+/* ============================================
+   PROSE - Long-form Content
+   ============================================ */
+
+.prose-custom {
+  max-width: 68ch;
+  font-family: var(--font-sans);
+}
+
+.prose-custom > * + * {
+  margin-top: 1.5rem;
+}
+
+.prose-custom p {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  opacity: 0.85;
+  margin-bottom: 1.5rem;
+}
+
+.prose-custom h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.prose-custom h2:first-child {
+  margin-top: 0;
+}
+
+.prose-custom h3 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-top: 3rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.prose-custom h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.prose-custom ul,
+.prose-custom ol {
+  margin: 1.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.prose-custom li {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  opacity: 0.85;
+  margin-bottom: 0.75rem;
+}
+
+.prose-custom a {
+  color: var(--accent-default);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.8;
+  transition: opacity var(--transition-base);
+}
+
+.prose-custom a:hover {
+  opacity: 1;
+}
+
+.prose-custom strong,
+.prose-custom em {
+  font-weight: 600;
+}
+
+.prose-custom blockquote {
+  border-left: 2px solid var(--accent-default);
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.dark .prose-custom p,
+.dark .prose-custom li {
+  opacity: 0.88;
+}
+
+@media (max-width: 768px) {
+  .prose-custom h2 {
+    font-size: 1.625rem;
+    margin-top: 3rem;
+  }
+
+  .prose-custom h3 {
+    font-size: 1.375rem;
+    margin-top: 2.5rem;
+  }
+
+  .prose-custom p,
+  .prose-custom li {
+    font-size: 1rem;
+  }
+}
+
+/* ============================================
+   CAROUSEL GALLERY STYLES
+   ============================================ */
+
+.carousel-gallery .slick-slider {
+  position: relative;
+}
+
+.carousel-gallery .slick-dots {
+  bottom: -40px;
+}
+
+.carousel-gallery .slick-dots li button:before {
+  color: var(--foreground);
+  opacity: 0.25;
+  font-size: 8px;
+}
+
+.carousel-gallery .slick-dots li.slick-active button:before {
+  color: var(--accent-default);
+  opacity: 1;
+}
+
+.carousel-gallery .slick-prev,
+.carousel-gallery .slick-next {
+  width: 48px;
+  height: 48px;
+  z-index: 10;
+}
+
+.carousel-gallery .slick-prev {
+  left: 20px;
+}
+
+.carousel-gallery .slick-next {
+  right: 20px;
+}
+
+.carousel-gallery .slick-prev:before,
+.carousel-gallery .slick-next:before {
+  font-size: 48px;
+  color: var(--foreground);
+  opacity: 0.5;
+  transition: opacity var(--transition-base);
+}
+
+.carousel-gallery .slick-prev:hover:before,
+.carousel-gallery .slick-next:hover:before {
+  opacity: 1;
+}
+
+.dark .carousel-gallery .slick-prev:before,
+.dark .carousel-gallery .slick-next:before {
+  color: var(--foreground);
+}
