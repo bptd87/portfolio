@@ -376,6 +376,9 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
               alt={article.title}
               className="absolute inset-0 w-full h-full object-cover"
               loading="eager"
+              crossOrigin="anonymous"
+              onLoad={(e) => console.log('✅ IMAGE LOADED:', e.currentTarget.src, 'Size:', e.currentTarget.naturalWidth, 'x', e.currentTarget.naturalHeight)}
+              onError={(e) => console.error('❌ IMAGE FAILED TO LOAD:', e.currentTarget.src, 'Error:', e)}
             />
             
             {/* Back Button - Top Left */}
