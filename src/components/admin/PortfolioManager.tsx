@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Plus, Save, X, Trash2, Pencil, Layout, Image, Users, Tags, Upload, FileJson } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { projects as hardcodedProjects } from '../../data/projects';
 import { useCategories } from '../../hooks/useCategories';
 import { PrimaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
 import { InfoBanner } from './InfoBanner';
@@ -94,17 +95,30 @@ export function PortfolioManager() {
     setLoading(true);
     try {
       const token = sessionStorage.getItem('admin_token');
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`, {
-        headers: { 'Authorization': `Bearer ${publicAnonKey}`, 'X-Admin-Token': token || '' },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data.projects || []);
+      
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`,
+        {
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-Admin-Token': token || '',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.warn('Edge Function API failed, using local data');
+        setProjects(hardcodedProjects);
+        toast.info('Loaded projects from local files');
       } else {
-        toast.error('Failed to load projects.');
+        const data = await response.json();
+        setProjects(data);
+        toast.success(`Loaded ${data.length} projects`);
       }
     } catch (error) {
-      toast.error('An error occurred while loading projects.');
+      console.warn('Error loading projects:', error);
+      setProjects(hardcodedProjects);
+      toast.info('Loaded projects from local files');
     } finally {
       setLoading(false);
     }

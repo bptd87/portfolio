@@ -195,9 +195,9 @@ export function RenderingEditor({
               placeholder="e.g. Cinema 4D, Vectorworks..."
               className="flex-1 px-4 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none"
             />
-            <button type="button"
-              onClick={addSoftware}
+            <button 
               type="button"
+              onClick={addSoftware}
               className="px-3 bg-secondary border border-border hover:bg-accent-brand hover:text-white transition-colors"
             >
               <Plus className="w-4 h-4" />

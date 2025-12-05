@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
-import { NewsBlock } from '../../data/news';
+import { NewsBlock, newsItems as hardcodedNews } from '../../data/news';
 import { NewsBlockEditor } from './NewsBlockEditor';
 import { ImageUploader } from './ImageUploader';
 import { FocusPointPicker } from './FocusPointPicker';
@@ -69,9 +69,16 @@ export function NewsManager() {
           return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
         setNewsItems(sortedNews);
+      } else {
+        console.warn('API failed, using local data as fallback');
+        const sorted = [...hardcodedNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setNewsItems(sorted as any);
       }
     } catch (err) {
-      } finally {
+      console.warn('API error, using local data as fallback:', err);
+      const sorted = [...hardcodedNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setNewsItems(sorted as any);
+    } finally {
       setLoading(false);
     }
   };

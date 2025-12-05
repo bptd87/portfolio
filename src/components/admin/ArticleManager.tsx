@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Plus, Edit2, Trash2, Save, X, Layout, Image, FileText, Search, Eye } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { blogPosts } from '../../data/blog-posts';
 import { BlockEditor, ContentBlock } from './BlockEditor';
 import { ImageUploader } from './ImageUploader';
 import { ArticleSEOTools } from './ArticleSEOTools';
@@ -84,10 +85,14 @@ export function ArticleManager() {
         const data = await response.json();
         setArticles(data.posts || []);
       } else {
-        toast.error('Failed to load articles.');
+        console.warn('API failed, using local data as fallback');
+        setArticles(blogPosts);
+        toast.info('Loaded articles from local files (API unavailable)');
       }
     } catch (error) {
-      toast.error('An error occurred while loading articles.');
+      console.warn('API error, using local data as fallback:', error);
+      setArticles(blogPosts);
+      toast.info('Loaded articles from local files (API unavailable)');
     } finally {
       setLoading(false);
     }

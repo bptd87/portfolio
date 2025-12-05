@@ -58,7 +58,6 @@ export function DataSync() {
         return;
       }
       
-      + '...');
       let postsSuccess = 0;
       let projectsSuccess = 0;
       let newsSuccess = 0;
@@ -102,8 +101,6 @@ export function DataSync() {
         const result = await response.json();
         if (result.success) {
           postsSuccess++;
-          } else {
-          );
         }
       }
 
@@ -163,9 +160,7 @@ export function DataSync() {
         const result = await response.json();
         if (result.success) {
           projectsSuccess++;
-          ' : ''}`);
-        } else {
-          }
+        }
       }
 
       // Sync news items
