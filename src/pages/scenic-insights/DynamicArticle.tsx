@@ -362,13 +362,23 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       {article.coverImage && article.coverImage.trim() !== '' ? (
         <>
           {/* Full-width image */}
-          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-neutral-900 z-0">
+          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-neutral-900 z-0" style={{ minHeight: '50vh' }}>
             <img
               src={article.coverImage}
               alt={article.title}
               className="absolute inset-0 w-full h-full object-cover z-0"
               loading="eager"
               crossOrigin="anonymous"
+              style={{ 
+                display: 'block !important' as any,
+                visibility: 'visible !important' as any,
+                opacity: '1 !important' as any,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%'
+              }}
             />
             
             {/* Back Button - Top Left */}
