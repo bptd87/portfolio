@@ -434,14 +434,14 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
             </div>
 
             {/* Thumbnail strip */}
-            <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
               {filteredProjects.map((project, index) => (
                 <motion.button
                   key={project.id}
                   onClick={() => handleProjectClick(index)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
+                  className={`flex-shrink-0 w-28 h-20 rounded overflow-hidden border transition-all ${
                     index === currentProjectIndex
-                      ? 'border-white/60 ring-2 ring-white/20'
+                      ? 'border-white/60 ring-1 ring-white/20'
                       : 'border-white/20 hover:border-white/40'
                   }`}
                   whileHover={{ scale: 1.05 }}
