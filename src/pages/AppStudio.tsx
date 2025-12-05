@@ -144,7 +144,7 @@ export function AppStudio({ onNavigate }: AppStudioProps) {
     : APPS.filter(app => app.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 pt-32 pb-24">
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 pt-32 pb-24 overflow-x-hidden">
       
       {/* Hero Section with Robot Coffee Image */}
       <section className="px-6 lg:px-12 pb-16">

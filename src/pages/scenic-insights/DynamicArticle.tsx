@@ -362,7 +362,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       {article.coverImage && article.coverImage.trim() !== '' && !article.coverImage.startsWith('blob:') && (
         <>
           {/* Full-width image */}
-          <section className="relative w-full h-[60vh] md:h-[70vh] overflow-hidden">
+          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden">
             <ImageWithFallback
               src={article.coverImage}
               alt={article.title}
