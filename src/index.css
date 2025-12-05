@@ -521,6 +521,11 @@
     padding: 0 !important;
   }
 
+  /* Prevent horizontal scroll on all containers */
+  main, section, div[class*="min-h-screen"], div[class*="max-w-"] {
+    overflow-x: hidden !important;
+  }
+
   * {
     scrollbar-gutter: auto !important;
   }

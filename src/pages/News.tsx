@@ -138,9 +138,9 @@ export function News({ onNavigate }: NewsProps) {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12">
+    <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12 overflow-x-hidden">
       {/* Header */}
-      <div className="max-w-[1400px] mx-auto mb-12">
+      <div className="max-w-[1400px] mx-auto mb-12 w-full">
         <div className="font-pixel text-xs tracking-[0.3em] text-foreground/60 mb-4">
           NEWS & UPDATES
         </div>
