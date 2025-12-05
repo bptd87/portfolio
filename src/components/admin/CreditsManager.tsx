@@ -52,6 +52,7 @@ export function CreditsManager({ credits, onChange }: CreditsManagerProps) {
           Creative Team
         </label>
         <button
+          type="button"
           onClick={handleAdd}
           className="flex items-center gap-1 px-2 py-1 text-xs border border-border hover:border-accent-brand transition-colors"
         >
@@ -86,6 +87,7 @@ export function CreditsManager({ credits, onChange }: CreditsManagerProps) {
             </div>
             <div className="flex flex-col gap-1">
               <button
+                type="button"
                 onClick={() => handleMove(index, 'up')}
                 disabled={index === 0}
                 className="p-1 opacity-40 hover:opacity-100 disabled:opacity-20"
@@ -93,6 +95,7 @@ export function CreditsManager({ credits, onChange }: CreditsManagerProps) {
                 <MoveUp className="w-4 h-4" />
               </button>
               <button
+                type="button"
                 onClick={() => handleMove(index, 'down')}
                 disabled={index === creditsArray.length - 1}
                 className="p-1 opacity-40 hover:opacity-100 disabled:opacity-20"
@@ -101,6 +104,7 @@ export function CreditsManager({ credits, onChange }: CreditsManagerProps) {
               </button>
             </div>
             <button
+              type="button"
               onClick={() => handleRemove(index)}
               className="p-1 opacity-40 hover:opacity-100 hover:text-destructive"
             >

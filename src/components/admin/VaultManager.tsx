@@ -627,7 +627,7 @@ export function VaultManager() {
                   <h3 className="text-lg font-semibold text-white">
                     {editingAsset ? 'Edit Asset' : 'Add New Asset'}
                   </h3>
-                  <button onClick={resetAssetForm} className="text-gray-400 hover:text-white">
+                  <button type="button" onClick={resetAssetForm} className="text-gray-400 hover:text-white">
                     <X className="w-5 h-5" />
                   </button>
                 </div>

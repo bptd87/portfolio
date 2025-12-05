@@ -216,7 +216,21 @@ export function CollaboratorsManager() {
       const responseText = await response.text();
       if (response.ok) {
         await fetchCollaborators();
-        setEditing(null);
+        // Keep form open and reset to new blank entry for quick adding
+        setEditing({
+          id: '',
+          name: '',
+          type: 'person',
+          role: '',
+          bio: '',
+          website: '',
+          linkedin: '',
+          instagram: '',
+          avatar: '',
+          featured: false,
+          projects: []
+        });
+        alert('Collaborator saved! Form ready for next entry.');
       } else {
         alert(`Failed to save collaborator (${response.status}): ${responseText.substring(0, 200)}`);
       }

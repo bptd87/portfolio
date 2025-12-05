@@ -647,7 +647,7 @@ export function ResumeManager() {
                     <td className="p-2"><input type="text" value={prod.company} onChange={e => handleProductionChange('upcoming', idx, 'company', e.target.value)} className={AdminTokens.input.base} /></td>
                     <td className="p-2"><input type="text" value={prod.year} onChange={e => handleProductionChange('upcoming', idx, 'year', e.target.value)} className={AdminTokens.input.base} /></td>
                     <td className="p-2">
-                      <button onClick={() => handleRemoveProduction('upcoming', idx)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                      <button type="button" onClick={() => handleRemoveProduction('upcoming', idx)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}
@@ -694,7 +694,7 @@ export function ResumeManager() {
                     <td className="p-2"><input type="text" value={prod.company} onChange={e => handleProductionChange('recent', idx, 'company', e.target.value)} className={AdminTokens.input.base} /></td>
                     <td className="p-2"><input type="text" value={prod.year} onChange={e => handleProductionChange('recent', idx, 'year', e.target.value)} className={AdminTokens.input.base} /></td>
                     <td className="p-2">
-                      <button onClick={() => handleRemoveProduction('recent', idx)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                      <button type="button" onClick={() => handleRemoveProduction('recent', idx)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}
@@ -721,6 +721,7 @@ export function ResumeManager() {
                     <td className="p-2">
                       <div className="flex flex-col gap-1">
                         <button 
+                          type="button"
                           onClick={() => handleMoveProduction('assistant', idx, 'up')} 
                           disabled={idx === 0}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
@@ -728,6 +729,7 @@ export function ResumeManager() {
                           <ChevronUp className="w-4 h-4" />
                         </button>
                         <button 
+                          type="button"
                           onClick={() => handleMoveProduction('assistant', idx, 'down')} 
                           disabled={idx === (cvData.assistantDesignProductions?.length || 0) - 1}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
@@ -741,7 +743,7 @@ export function ResumeManager() {
                     <td className="p-2"><input type="text" value={prod.company} onChange={e => handleProductionChange('assistant', idx, 'company', e.target.value)} className={AdminTokens.input.base} /></td>
                     <td className="p-2"><input type="text" value={prod.year} onChange={e => handleProductionChange('assistant', idx, 'year', e.target.value)} className={AdminTokens.input.base} /></td>
                     <td className="p-2">
-                      <button onClick={() => handleRemoveProduction('assistant', idx)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                      <button type="button" onClick={() => handleRemoveProduction('assistant', idx)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}

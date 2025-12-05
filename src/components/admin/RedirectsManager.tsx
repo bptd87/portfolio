@@ -181,7 +181,7 @@ export function RedirectsManager() {
             <AlertCircle className="w-4 h-4" />
             <span>Redirects are processed in order. Use relative paths (e.g., /old-page).</span>
           </div>
-          <button onClick={copyToClipboard} className="text-xs flex items-center gap-1 hover:text-accent-brand transition-colors">
+          <button type="button" onClick={copyToClipboard} className="text-xs flex items-center gap-1 hover:text-accent-brand transition-colors">
             <Copy className="w-3 h-3" /> Copy JSON
           </button>
         </div>
@@ -191,7 +191,7 @@ export function RedirectsManager() {
             <div className="p-12 text-center opacity-40">
               <FileJson className="w-12 h-12 mx-auto mb-4" />
               <p>No redirects configured</p>
-              <button onClick={addRedirect} className="mt-4 text-accent-brand hover:underline">Add your first redirect</button>
+              <button type="button" onClick={addRedirect} className="mt-4 text-accent-brand hover:underline">Add your first redirect</button>
             </div>
           ) : (
             redirects.map((redirect) => (

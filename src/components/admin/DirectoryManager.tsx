@@ -451,7 +451,7 @@ export function DirectoryManager() {
                 <h3 className="text-lg font-medium text-white">
                   {editingLink ? 'Edit Link' : 'Add New Link'}
                 </h3>
-                <button onClick={resetLinkForm} className="text-gray-400 hover:text-white">
+                <button type="button" onClick={resetLinkForm} className="text-gray-400 hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -530,6 +530,7 @@ export function DirectoryManager() {
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       <div className="flex flex-col gap-1">
                         <button
+                          type="button"
                           onClick={() => handleMoveLink(link, 'up')}
                           disabled={index === 0}
                           className="p-1 text-gray-500 hover:text-white disabled:opacity-30"
@@ -537,6 +538,7 @@ export function DirectoryManager() {
                           <ChevronUp className="w-4 h-4" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleMoveLink(link, 'down')}
                           disabled={index === sortedFilteredLinks.length - 1}
                           className="p-1 text-gray-500 hover:text-white disabled:opacity-30"
@@ -617,7 +619,7 @@ export function DirectoryManager() {
                 <h3 className="text-lg font-medium text-white">
                   {editingCategory ? 'Edit Category' : 'Add New Category'}
                 </h3>
-                <button onClick={resetCategoryForm} className="text-gray-400 hover:text-white">
+                <button type="button" onClick={resetCategoryForm} className="text-gray-400 hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>

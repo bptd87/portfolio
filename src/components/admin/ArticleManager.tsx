@@ -136,7 +136,10 @@ export function ArticleManager() {
 
       const response = await fetch(url, {
         method: isNew ? 'POST' : 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${publicAnonKey}`, // Token in Authorization header },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ ...formData, slug, lastModified: new Date().toISOString().split('T')[0] }),
       });
 
@@ -160,7 +163,7 @@ export function ArticleManager() {
       const token = sessionStorage.getItem('admin_token');
       const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/posts/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${publicAnonKey}`, // Token in Authorization header },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
         toast.success('Article deleted successfully!');

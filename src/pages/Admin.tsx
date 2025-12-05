@@ -27,7 +27,7 @@ interface AdminProps {
   onNavigate: (page: string) => void;
 }
 
-type ManagerView = 'dashboard' | 'articles' | 'portfolio' | 'news' | 'links' | 'directory' | 'vault' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'api-status' | 'analytics' | 'redirects' | 'media' | 'data-sync';
+type ManagerView = 'dashboard' | 'articles' | 'portfolio' | 'news' | 'links' | 'directory' | 'vault' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'api-status' | 'analytics' | 'redirects' | 'media' | 'data-sync' | 'contact';
 
 const navItems = [
   { id: 'dashboard', title: 'Dashboard' },
