@@ -265,16 +265,16 @@ export function Admin({ onNavigate }: AdminProps) {
                     Email
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
+                      className="w-full pl-11 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500 relative z-10"
                       placeholder="admin@example.com"
                       autoComplete="email"
                       required
                     />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none z-0" />
                   </div>
                 </div>
 
@@ -336,16 +336,16 @@ export function Admin({ onNavigate }: AdminProps) {
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
+                  className="w-full pl-11 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500 relative z-10"
                   placeholder="admin@example.com"
                   autoComplete="email"
                   required
                 />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none z-0" />
               </div>
             </div>
 
