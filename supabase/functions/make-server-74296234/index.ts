@@ -17,12 +17,18 @@ app.use(
   "/*",
   cors({
     origin: "*",
-    allowHeaders: ["Content-Type", "Authorization", "X-Admin-Token"],
+    allowHeaders: ["Content-Type", "Authorization", "X-Admin-Token", "apikey", "x-client-info"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
+    credentials: false,
   }),
 );
+
+// Explicit OPTIONS handler for all routes
+app.options("/*", (c) => {
+  return c.text("", 204);
+});
 
 // Custom Not Found Handler to debug path issues
 app.notFound((c) => {
