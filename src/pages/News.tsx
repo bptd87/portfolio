@@ -215,7 +215,7 @@ export function News({ onNavigate }: NewsProps) {
       </div>
 
       {/* Timeline */}
-      <div className="max-w-[1200px] mx-auto">
+      <div className="max-w-[1200px] mx-auto w-full px-4 md:px-0">
         {filteredNews.length === 0 ? (
           <div className="text-center py-24">
             <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-12 inline-block">

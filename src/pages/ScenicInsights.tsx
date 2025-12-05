@@ -100,13 +100,13 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
   const getBentoSize = (index: number) => {
     const pattern = index % 6;
     switch (pattern) {
-      case 0: return 'col-span-1 row-span-2'; // Tall
-      case 1: return 'col-span-2 row-span-1'; // Wide
-      case 2: return 'col-span-1 row-span-1'; // Standard
-      case 3: return 'col-span-1 row-span-1'; // Standard
-      case 4: return 'col-span-2 row-span-2'; // Featured
-      case 5: return 'col-span-1 row-span-1'; // Standard
-      default: return 'col-span-1 row-span-1';
+      case 0: return 'col-span-1 lg:row-span-2'; // Tall on desktop only
+      case 1: return 'col-span-1 lg:col-span-2 lg:row-span-1'; // Wide on desktop only
+      case 2: return 'col-span-1 lg:row-span-1'; // Standard
+      case 3: return 'col-span-1 lg:row-span-1'; // Standard
+      case 4: return 'col-span-1 lg:col-span-2 lg:row-span-2'; // Featured on desktop only
+      case 5: return 'col-span-1 lg:row-span-1'; // Standard
+      default: return 'col-span-1 lg:row-span-1';
     }
   };
 
