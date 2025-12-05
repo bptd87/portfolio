@@ -164,7 +164,7 @@ function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; ac
   };
 
   return (
-    <nav className="hidden xl:block fixed left-8 top-1/2 -translate-y-1/2 w-48 z-10">
+    <nav className="hidden xl:block fixed left-8 top-1/2 -translate-y-1/2 w-48 z-40">
       <div className="border-l border-foreground/10 pl-4">
         <span className="font-pixel text-[9px] tracking-[0.3em] opacity-40 uppercase block mb-4">Contents</span>
         <ul className="space-y-2">
@@ -362,27 +362,17 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       {article.coverImage && article.coverImage.trim() !== '' ? (
         <>
           {/* Full-width image */}
-          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-neutral-900 z-50" style={{ minHeight: '50vh' }}>
+          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-visible bg-neutral-900" style={{ minHeight: '50vh' }}>
             <img
               src={article.coverImage}
               alt={article.title}
-              className="absolute inset-0 w-full h-full object-cover z-0"
+              className="absolute inset-0 w-full h-full object-cover"
               loading="eager"
               crossOrigin="anonymous"
-              style={{ 
-                display: 'block !important' as any,
-                visibility: 'visible !important' as any,
-                opacity: '1 !important' as any,
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%'
-              }}
             />
             
             {/* Back Button - Top Left */}
-            <div className="absolute top-6 left-6 z-50">
+            <div className="absolute top-6 left-6 z-10">
               <button
                 type="button"
                 onClick={() => onNavigate('scenic-insights')}
