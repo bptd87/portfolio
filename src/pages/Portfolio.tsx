@@ -439,9 +439,9 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
                 <motion.button
                   key={project.id}
                   onClick={() => handleProjectClick(index)}
-                  className={`flex-shrink-0 w-28 h-20 rounded overflow-hidden border transition-all ${
+                  className={`flex-shrink-0 w-28 h-20 rounded overflow-hidden border-2 transition-all ${
                     index === currentProjectIndex
-                      ? 'border-white/60 ring-1 ring-white/20'
+                      ? 'border-white/80'
                       : 'border-white/20 hover:border-white/40'
                   }`}
                   whileHover={{ scale: 1.05 }}
