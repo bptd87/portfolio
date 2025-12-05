@@ -40,9 +40,9 @@ export function BlogCard({
   
   // Nothing.tech variant - Glass transparency, modern aesthetic
   if (variant === 'nothing') {
-    const isFeatured = className.includes('col-span-2 row-span-2');
-    const isTall = className.includes('row-span-2');
-    const isWide = className.includes('col-span-2');
+    const isFeatured = className.includes('lg:col-span-2') && className.includes('lg:row-span-2');
+    const isTall = className.includes('lg:row-span-2');
+    const isWide = className.includes('lg:col-span-2');
     
     return (
       <motion.article
@@ -50,7 +50,7 @@ export function BlogCard({
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: index * 0.05 }}
-        className={`group cursor-pointer block h-full lg:${className}`}
+        className={`group cursor-pointer block h-full ${className}`}
         onClick={onClick}
       >
         <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 hover:border-white/30 hover:shadow-2xl hover:shadow-white/5 transition-all duration-300">
