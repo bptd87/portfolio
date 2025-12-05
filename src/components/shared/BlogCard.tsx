@@ -45,11 +45,7 @@ export function BlogCard({
     const isWide = className.includes('lg:col-span-2');
     
     return (
-      <motion.article
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.4, delay: index * 0.05 }}
+      <article
         className={`group cursor-pointer block h-full ${className}`}
         onClick={onClick}
       >
@@ -147,7 +143,7 @@ export function BlogCard({
             </div>
           </div>
         </div>
-      </motion.article>
+      </article>
     );
   }
 

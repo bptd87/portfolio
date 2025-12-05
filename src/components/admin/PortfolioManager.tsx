@@ -100,25 +100,27 @@ export function PortfolioManager() {
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`,
         {
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token || '',
+            'Authorization': `Bearer ${token || publicAnonKey}`,
           },
         }
       );
 
       if (!response.ok) {
-        console.warn('Edge Function API failed, using local data');
+        console.error('Edge Function API failed:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Response:', errorText);
         setProjects(hardcodedProjects);
-        toast.info('Loaded projects from local files');
+        toast.error('Failed to load projects from server, using local data');
       } else {
         const data = await response.json();
-        setProjects(data);
-        toast.success(`Loaded ${data.length} projects`);
+        const projectsList = data.success ? data.projects : data;
+        setProjects(projectsList);
+        toast.success(`Loaded ${projectsList.length} projects from server`);
       }
     } catch (error) {
-      console.warn('Error loading projects:', error);
+      console.error('Error loading projects:', error);
       setProjects(hardcodedProjects);
-      toast.info('Loaded projects from local files');
+      toast.error('Error connecting to server, using local data');
     } finally {
       setLoading(false);
     }

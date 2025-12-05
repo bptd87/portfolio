@@ -49,13 +49,15 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
         }
         
         const result = await response.json();
+        console.log('📰 Articles API response:', result);
         if (result.success && result.posts) {
-          if (result.posts.length > 0) {
-            }
+          console.log(`✅ Loaded ${result.posts.length} articles`);
           setBlogPosts(result.posts);
         } else {
-          }
+          console.warn('❌ No posts in API response');
+        }
       } catch (err) {
+        console.error('❌ Error fetching articles:', err);
         } finally {
         setLoading(false);
       }
@@ -92,21 +94,30 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
+  console.log('📊 Posts stats:', {
+    total: blogPosts.length,
+    filtered: filteredPosts.length,
+    sorted: sortedPosts.length,
+    activeCategory,
+    activeTag,
+    searchQuery
+  });
+
   const handlePostClick = (postSlug: string) => {
     onNavigate(`articles/${postSlug}`);
   };
 
-  // Bento grid sizing pattern - similar to Portfolio
+  // Bento grid sizing pattern - all single column on mobile, bento on desktop
   const getBentoSize = (index: number) => {
     const pattern = index % 6;
     switch (pattern) {
-      case 0: return 'col-span-1 lg:row-span-2'; // Tall on desktop only
-      case 1: return 'col-span-1 lg:col-span-2 lg:row-span-1'; // Wide on desktop only
-      case 2: return 'col-span-1 lg:row-span-1'; // Standard
-      case 3: return 'col-span-1 lg:row-span-1'; // Standard
-      case 4: return 'col-span-1 lg:col-span-2 lg:row-span-2'; // Featured on desktop only
-      case 5: return 'col-span-1 lg:row-span-1'; // Standard
-      default: return 'col-span-1 lg:row-span-1';
+      case 0: return 'lg:row-span-2'; // Tall on desktop only
+      case 1: return 'lg:col-span-2'; // Wide on desktop only
+      case 2: return ''; // Standard everywhere
+      case 3: return ''; // Standard everywhere
+      case 4: return 'lg:col-span-2 lg:row-span-2'; // Featured on desktop only
+      case 5: return ''; // Standard everywhere
+      default: return '';
     }
   };
 
@@ -216,31 +227,37 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
               </button>
             </div>
           ) : (
-            <motion.div 
-              layout
-              className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-[320px] lg:auto-rows-[280px]"
-            >
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:auto-rows-[280px]">
               {sortedPosts.map((post, index) => (
-                <BlogCard
+                <motion.div
                   key={post.id}
-                  title={post.title}
-                  excerpt={post.excerpt}
-                  date={new Date(post.date).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                  category={post.category}
-                  readTime={post.readTime}
-                  image={post.coverImage}
-                  focusPoint={post.focusPoint}
-                  onClick={() => handlePostClick(post.id)}
-                  index={index}
-                  variant="nothing"
-                  className={getBentoSize(index)}
-                />
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  className={`h-[400px] lg:h-auto ${getBentoSize(index)}`}
+                >
+                  <BlogCard
+                    title={post.title}
+                    excerpt={post.excerpt}
+                    date={new Date(post.date).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                    category={post.category}
+                    readTime={post.readTime}
+                    image={post.coverImage}
+                    focusPoint={post.focusPoint}
+                    onClick={() => handlePostClick(post.id)}
+                    index={index}
+                    variant="nothing"
+                    className=""
+                  />
+                </motion.div>
               ))}
-            </motion.div>
+            </div>
           )}
         </div>
       </section>

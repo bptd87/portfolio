@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Mail, MapPin, Send, Linkedin, Instagram, Youtube, ExternalLink } from 'lucide-react';
+import { Mail, MapPin, Send, Linkedin, Instagram, Youtube, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
 import { SOCIAL_LINKS } from '../data/social-links';
+import { publicAnonKey } from '../utils/supabase/info';
 import contactIllustration from 'figma:asset/713a974ae3548a5674493504146826237eb95429.png';
 
 export function Contact() {
@@ -10,11 +11,50 @@ export function Contact() {
     projectType: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Add actual form submission logic
-    alert('Thanks for reaching out! I\'ll get back to you soon.');
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      const response = await fetch(`https://zuycsuajiuqsvopiioer.supabase.co/functions/v1/make-server-74296234/api/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${publicAnonKey}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSubmitStatus({ 
+          type: 'success', 
+          message: 'Thanks for reaching out! I\'ll get back to you soon.' 
+        });
+        // Clear form
+        setFormData({
+          name: '',
+          email: '',
+          projectType: '',
+          message: ''
+        });
+      } else {
+        throw new Error(data.error || 'Failed to send message');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      setSubmitStatus({ 
+        type: 'error', 
+        message: 'Sorry, there was an error sending your message. Please try emailing me directly.' 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -179,14 +219,31 @@ export function Contact() {
                   />
                 </div>
 
+                {/* Submit Status */}
+                {submitStatus && (
+                  <div className={`flex items-center gap-3 p-4 rounded-2xl ${
+                    submitStatus.type === 'success' 
+                      ? 'bg-green-500/20 border border-green-500/30 text-green-200' 
+                      : 'bg-red-500/20 border border-red-500/30 text-red-200'
+                  }`}>
+                    {submitStatus.type === 'success' ? (
+                      <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                    )}
+                    <p className="text-sm">{submitStatus.message}</p>
+                  </div>
+                )}
+
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full px-6 py-4 bg-black dark:bg-white text-white dark:text-black rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm tracking-wider uppercase"
+                  disabled={isSubmitting}
+                  className="w-full px-6 py-4 bg-black dark:bg-white text-white dark:text-black rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm tracking-wider uppercase disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ fontFamily: 'VT323, monospace' }}
                 >
                   <Send className="w-4 h-4" />
-                  Send Message
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </div>

@@ -57,8 +57,7 @@ export function NewsManager() {
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news`,
         {
           headers: { 
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': token 
+            'Authorization': `Bearer ${token || publicAnonKey}`,
           },
         }
       );
@@ -69,15 +68,18 @@ export function NewsManager() {
           return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
         setNewsItems(sortedNews);
+        toast.success(`Loaded ${sortedNews.length} news items from server`);
       } else {
-        console.warn('API failed, using local data as fallback');
+        console.error('API failed, using local data as fallback');
         const sorted = [...hardcodedNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setNewsItems(sorted as any);
+        toast.error('Failed to load news, using local data');
       }
     } catch (err) {
-      console.warn('API error, using local data as fallback:', err);
+      console.error('API error, using local data as fallback:', err);
       const sorted = [...hardcodedNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setNewsItems(sorted as any);
+      toast.error('Error loading news, using local data');
     } finally {
       setLoading(false);
     }

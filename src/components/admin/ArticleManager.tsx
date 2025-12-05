@@ -79,20 +79,22 @@ export function ArticleManager() {
     try {
       const token = sessionStorage.getItem('admin_token');
       const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/posts`, {
-        headers: { 'Authorization': `Bearer ${publicAnonKey}`, 'X-Admin-Token': token },
+        headers: { 'Authorization': `Bearer ${token || publicAnonKey}` },
       });
       if (response.ok) {
         const data = await response.json();
-        setArticles(data.posts || []);
+        const articlesList = data.success ? data.posts : data.posts || data;
+        setArticles(articlesList);
+        toast.success(`Loaded ${articlesList.length} articles from server`);
       } else {
-        console.warn('API failed, using local data as fallback');
+        console.error('API failed, using local data as fallback');
         setArticles(blogPosts);
-        toast.info('Loaded articles from local files (API unavailable)');
+        toast.error('Failed to load articles, using local data');
       }
     } catch (error) {
-      console.warn('API error, using local data as fallback:', error);
+      console.error('API error, using local data as fallback:', error);
       setArticles(blogPosts);
-      toast.info('Loaded articles from local files (API unavailable)');
+      toast.error('Error loading articles, using local data');
     } finally {
       setLoading(false);
     }
