@@ -8162,22 +8162,22 @@ html {
 
 /* Drop cap styling with dynamic accent color */
 .drop-cap-paragraph::first-letter {
-  font-size: 3.75rem;
+  font-size: 3.25rem;
   font-family: var(--font-display);
   font-weight: 400;
   font-style: italic;
-  line-height: 0.85;
+  line-height: 1;
   float: left;
   margin-right: 0.5rem;
-  margin-top: 0.25rem;
+  margin-top: -0.05rem;
   color: var(--drop-cap-color, var(--foreground));
 }
 
 @media (min-width: 768px) {
   .drop-cap-paragraph::first-letter {
-    font-size: 4.25rem;
+    font-size: 3.75rem;
     margin-right: 0.625rem;
-    margin-top: 0.2rem;
+    margin-top: -0.1rem;
   }
 }
 
