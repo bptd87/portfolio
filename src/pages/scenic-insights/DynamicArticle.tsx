@@ -356,6 +356,14 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
     );
   }
 
+  // Debug logging for cover image
+  console.log('🖼️ Article coverImage:', article.coverImage);
+  console.log('🖼️ Cover image check:', {
+    exists: !!article.coverImage,
+    notEmpty: article.coverImage ? article.coverImage.trim() !== '' : false,
+    value: article.coverImage
+  });
+
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* Hero Section with Cover Image - Image separate from text */}
