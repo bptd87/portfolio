@@ -227,7 +227,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-[400px] lg:auto-rows-[280px]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 auto-rows-[450px] lg:auto-rows-[350px]">
               {sortedPosts.map((post, index) => (
                 <motion.div
                   key={post.id}
