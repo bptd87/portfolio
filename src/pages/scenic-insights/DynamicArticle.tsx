@@ -358,19 +358,19 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
 
   // Debug logging for cover image
   console.log('🖼️ Article coverImage:', article.coverImage);
-  console.log('🖼️ Cover image check:', {
-    exists: !!article.coverImage,
-    notEmpty: article.coverImage ? article.coverImage.trim() !== '' : false,
-    value: article.coverImage
-  });
+  console.log('🖼️ Cover image exists:', !!article.coverImage);
+  console.log('🖼️ Cover image not empty:', article.coverImage ? article.coverImage.trim() !== '' : false);
+  console.log('🖼️ Conditional will render:', article.coverImage && article.coverImage.trim() !== '');
+  console.log('🖼️ Full article object:', article);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* Hero Section with Cover Image - Image separate from text */}
-      {article.coverImage && article.coverImage.trim() !== '' && (
+      {article.coverImage && article.coverImage.trim() !== '' ? (
         <>
+          {console.log('✅ RENDERING HERO SECTION WITH IMAGE:', article.coverImage)}
           {/* Full-width image */}
-          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden">
+          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-red-500">
             <ImageWithFallback
               src={article.coverImage}
               alt={article.title}
@@ -428,6 +428,59 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
               </div>
               
               {/* Share buttons inline */}
+              <ShareButtons 
+                title={article.title} 
+                url={typeof window !== 'undefined' ? window.location.href : ''} 
+              />
+            </div>
+
+            {/* Title */}
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl mb-6 italic leading-[1.05]">
+              {article.title}
+            </h1>
+
+            {/* Excerpt */}
+            <p className="text-foreground/60 text-lg md:text-xl leading-relaxed max-w-3xl">
+              {article.excerpt}
+            </p>
+          </div>
+        </>
+      ) : (
+        <>
+          {console.log('❌ NO COVER IMAGE - Rendering without hero section')}
+          {/* Article Header - No Image Version */}
+          <div className="max-w-4xl mx-auto px-6 md:px-12 pt-24 pb-8">
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={() => onNavigate('articles')}
+              className="group flex items-center gap-3 px-6 py-3 mb-8 bg-black dark:bg-white text-white dark:text-black rounded-full transition-all cursor-pointer hover:gap-4"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-pixel text-[10px] tracking-[0.2em]">BACK</span>
+            </button>
+
+            {/* Meta row with share buttons */}
+            <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+              <div className="flex items-center gap-4 flex-wrap">
+                <span 
+                  className="font-pixel text-[11px] tracking-[0.3em] uppercase font-medium"
+                  style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 1 : 0.6 }}
+                >
+                  {article.category.split(' & ')[0]}
+                </span>
+                <span 
+                  className="w-px h-3" 
+                  style={{ backgroundColor: article.categoryColor ? `${article.categoryColor}40` : 'currentColor', opacity: article.categoryColor ? 1 : 0.2 }}
+                />
+                <span 
+                  className="font-pixel text-[11px] tracking-[0.3em]"
+                  style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 0.8 : 0.6 }}
+                >
+                  {article.readTime}
+                </span>
+              </div>
+              
               <ShareButtons 
                 title={article.title} 
                 url={typeof window !== 'undefined' ? window.location.href : ''} 
