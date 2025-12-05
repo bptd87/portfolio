@@ -250,7 +250,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
                     readTime={post.readTime}
                     image={post.coverImage}
                     focusPoint={post.focusPoint}
-                    onClick={() => handlePostClick(post.id)}
+                    onClick={() => handlePostClick(post.slug || post.id)}
                     index={index}
                     variant="nothing"
                     className=""
