@@ -218,7 +218,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
           ) : (
             <motion.div 
               layout
-              className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:auto-rows-[280px]"
+              className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-[320px] lg:auto-rows-[280px]"
             >
               {sortedPosts.map((post, index) => (
                 <BlogCard
