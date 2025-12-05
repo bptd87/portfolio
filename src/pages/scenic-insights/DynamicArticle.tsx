@@ -164,7 +164,7 @@ function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; ac
   };
 
   return (
-    <nav className="hidden xl:block fixed left-8 top-1/2 -translate-y-1/2 w-48 z-40">
+    <nav className="hidden xl:block fixed left-8 top-1/2 -translate-y-1/2 w-48 z-10">
       <div className="border-l border-foreground/10 pl-4">
         <span className="font-pixel text-[9px] tracking-[0.3em] opacity-40 uppercase block mb-4">Contents</span>
         <ul className="space-y-2">
@@ -362,7 +362,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       {article.coverImage && article.coverImage.trim() !== '' ? (
         <>
           {/* Full-width image */}
-          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-neutral-900 z-0" style={{ minHeight: '50vh' }}>
+          <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden bg-neutral-900 z-50" style={{ minHeight: '50vh' }}>
             <img
               src={article.coverImage}
               alt={article.title}
@@ -382,10 +382,10 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
             />
             
             {/* Back Button - Top Left */}
-            <div className="absolute top-6 left-6 z-10">
+            <div className="absolute top-6 left-6 z-50">
               <button
                 type="button"
-                onClick={() => onNavigate('articles')}
+                onClick={() => onNavigate('scenic-insights')}
                 className="group flex items-center gap-3 px-6 py-3 backdrop-blur-xl bg-black/40 hover:bg-black/60 border border-white/10 rounded-full transition-all text-white cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
