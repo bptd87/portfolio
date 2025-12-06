@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Edit2, Trash2, Save, X, Layout, Image, FileText, Search, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Layout, Image, FileText, Search, Eye, EyeOff } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { blogPosts } from '../../data/blog-posts';
 import { BlockEditor, ContentBlock } from './BlockEditor';
+import { ImprovedBlockEditor } from './ImprovedBlockEditor';
+import { ArticlePreview } from './ArticlePreview';
 import { ImageUploader } from './ImageUploader';
 import { ArticleSEOTools } from './ArticleSEOTools';
 import { FocusPointPicker } from './FocusPointPicker';
@@ -23,9 +25,11 @@ import { toast } from 'sonner';
 const articleSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   category: z.string().min(1, 'Category is required'),
+  date: z.string().optional(),
   readTime: z.string().optional(),
   excerpt: z.string().min(1, 'Excerpt is required'),
   featured: z.boolean(),
+  status: z.enum(['draft', 'published']).optional(),
   coverImage: z.string().optional(),
   focusPoint: z.object({ x: z.number(), y: z.number() }).optional(),
   tags: z.array(z.string()).optional(),
@@ -41,19 +45,49 @@ type TabId = 'content' | 'basic' | 'media' | 'seo';
 // Wrapper component that properly watches content changes using useWatch
 function ContentTabWrapper({ methods, categories }: { methods: any; categories: any }) {
   const content = useWatch({ control: methods.control, name: 'content' }) || [];
+  const [showPreview, setShowPreview] = useState(false);
   
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Article Content</h4>
-        <ContentFormatter onContentFormatted={(blocks) => methods.setValue('content', [...content, ...blocks], { shouldDirty: true })} />
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200 h-full">
+      {/* Preview Toggle */}
+      <div className="flex items-center justify-between p-4 bg-secondary/10 rounded-lg border border-border">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-400">Editor Mode:</span>
+          <button
+            type="button"
+            onClick={() => setShowPreview(false)}
+            className={`px-3 py-1 text-sm rounded transition-colors ${
+              !showPreview ? 'bg-accent-brand text-white' : 'bg-secondary/30 hover:bg-secondary/50'
+            }`}
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowPreview(true)}
+            className={`px-3 py-1 text-sm rounded transition-colors ${
+              showPreview ? 'bg-accent-brand text-white' : 'bg-secondary/30 hover:bg-secondary/50'
+            }`}
+          >
+            Preview
+          </button>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-400">
+          {showPreview ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          <span>{showPreview ? 'Viewing as readers will see it' : 'Editing content'}</span>
+        </div>
       </div>
-      <BlockEditor 
-        blocks={content} 
-        onChange={(blocks) => {
-          methods.setValue('content', blocks, { shouldDirty: true, shouldTouch: true });
-        }} 
-      />
+
+      {showPreview ? (
+        <ArticlePreview blocks={content} />
+      ) : (
+        <ImprovedBlockEditor 
+          blocks={content} 
+          onChange={(blocks) => {
+            methods.setValue('content', blocks, { shouldDirty: true, shouldTouch: true });
+          }} 
+        />
+      )}
     </div>
   );
 }
@@ -84,7 +118,13 @@ export function ArticleManager() {
       if (response.ok) {
         const data = await response.json();
         const articlesList = data.success ? data.posts : data.posts || data;
-        setArticles(articlesList);
+        // Sort articles by date (newest first)
+        const sortedArticles = articlesList.sort((a: any, b: any) => {
+          const dateA = new Date(a.date || a.createdAt || 0);
+          const dateB = new Date(b.date || b.createdAt || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+        setArticles(sortedArticles);
         toast.success(`Loaded ${articlesList.length} articles from server`);
       } else {
         console.error('API failed, using local data as fallback');
@@ -104,7 +144,9 @@ export function ArticleManager() {
     methods.reset({
       title: '',
       category: categories.articles[0]?.name || '',
+      date: new Date().toISOString().split('T')[0],
       featured: false,
+      status: 'draft',
       tags: [],
       content: [],
     });
@@ -256,7 +298,14 @@ export function ArticleManager() {
                       <Select name="category" label="Category" required>
                         {categories.articles.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                       </Select>
+                      <Input name="date" label="Publication Date" type="date" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
                       <Input name="readTime" label="Read Time" placeholder="e.g., 5 min read" />
+                      <Select name="status" label="Status">
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                      </Select>
                     </div>
                     <Textarea name="excerpt" label="Excerpt" required rows={4} placeholder="Brief description of the article" />
                     <div className="pt-4 border-t border-border">

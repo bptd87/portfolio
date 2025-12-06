@@ -30,8 +30,8 @@ const projectSchema = z.object({
   location: z.string().optional(),
   clientName: z.string().optional(), // For Experiential
   client: z.string().optional(), // For Rendering
-  year: z.number().min(1900, 'Invalid year').max(new Date().getFullYear() + 1, 'Invalid year'),
-  month: z.number().min(1).max(12),
+  year: z.coerce.number().min(1900, 'Invalid year').max(new Date().getFullYear() + 1, 'Invalid year'),
+  month: z.coerce.number().min(1).max(12),
   featured: z.boolean(),
   published: z.boolean().optional(), // New field
   description: z.string().min(1, 'Description is required'),
@@ -378,7 +378,12 @@ export function PortfolioManager() {
                     <div className="grid grid-cols-2 gap-6">
                       <Input name="year" label="Year" type="number" required />
                       <Select name="month" label="Month" required>
-                        {Array.from({ length: 12 }, (_, i) => <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>)}
+                        <option value="">Select month...</option>
+                        {Array.from({ length: 12 }, (_, i) => (
+                          <option key={i + 1} value={String(i + 1)}>
+                            {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                          </option>
+                        ))}
                       </Select>
                     </div>
                   )}

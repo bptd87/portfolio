@@ -1,0 +1,538 @@
+(node:19632) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/brand/OneDrive/Desktop/brandonptdaviscom/eslint.config.js?mtime=1765014682034 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to D:\brand\OneDrive\Desktop\brandonptdaviscom\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\App.tsx
+  238:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\App.tsx:238:9
+  236 |
+  237 |       if (route || search) {
+> 238 |         navigateInternal(route + search);
+      |         ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  239 |       }
+  240 |     }
+  241 |   }, []);  react-hooks/set-state-in-effect
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\FullScreenSlideshow.tsx
+  30:7  error    Error: Cannot access variable before it is declared
+
+`handleNext` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\FullScreenSlideshow.tsx:30:7
+  28 |   useEffect(() => {
+  29 |     const timer = setInterval(() => {
+> 30 |       handleNext();
+     |       ^^^^^^^^^^ `handleNext` accessed before it is declared
+  31 |     }, 5000);
+  32 |
+  33 |     return () => clearInterval(timer);
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\FullScreenSlideshow.tsx:36:3
+  34 |   }, [currentIndex, projects.length]);
+  35 |
+> 36 |   const handleNext = () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 37 |     setDirection(1);
+     | ^^^^^^^^^^^^^^^^^^^^
+> 38 |     setCurrentIndex((prev) => (prev + 1) % projects.length);
+     | ^^^^^^^^^^^^^^^^^^^^
+> 39 |   };
+     | ^^^^^ `handleNext` is declared here
+  40 |
+  41 |   const handlePrev = () => {
+  42 |     setDirection(-1);  react-hooks/immutability
+  34:6  warning  React Hook useEffect has a missing dependency: 'handleNext'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/exhaustive-deps
+  63:6  warning  React Hook useEffect has missing dependencies: 'handleNext', 'handlePrev', and 'onProjectClick'. Either include them or remove the dependency array. If 'onProjectClick' changes too often, find the parent component that defines it and wrap that definition in useCallback                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\RedirectHandler.tsx
+  30:23  error    Empty block statement                                                                                                                                                                                                                              no-empty
+  88:6   warning  React Hook useEffect has a missing dependency: 'onNavigate'. Either include it or remove the dependency array. Outer scope values like 'window.location.pathname' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\AIImageEnhancers.tsx
+   37:19  error  Empty block statement  no-empty
+  104:19  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\AboutManager.tsx
+  43:6  warning  React Hook useEffect has a missing dependency: 'loadContent'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\AnalyticsManager.tsx
+  116:23  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\ArticlePreview.tsx
+   23:9    error  Unexpected lexical declaration in case block  no-case-declarations
+   24:9    error  Unexpected lexical declaration in case block  no-case-declarations
+   25:9    error  Unexpected lexical declaration in case block  no-case-declarations
+   26:9    error  Unexpected lexical declaration in case block  no-case-declarations
+   55:9    error  Unexpected lexical declaration in case block  no-case-declarations
+   56:9    error  Unexpected lexical declaration in case block  no-case-declarations
+   80:9    error  Unexpected lexical declaration in case block  no-case-declarations
+   81:9    error  Unexpected lexical declaration in case block  no-case-declarations
+  125:9    error  Unexpected lexical declaration in case block  no-case-declarations
+  126:9    error  Unexpected lexical declaration in case block  no-case-declarations
+  129:65   error  Unnecessary escape character: \/              no-useless-escape
+  129:123  error  Unnecessary escape character: \/              no-useless-escape
+  154:9    error  Unexpected lexical declaration in case block  no-case-declarations
+  155:9    error  Unexpected lexical declaration in case block  no-case-declarations
+  179:9    error  Unexpected lexical declaration in case block  no-case-declarations
+  196:9    error  Unexpected lexical declaration in case block  no-case-declarations
+  197:9    error  Unexpected lexical declaration in case block  no-case-declarations
+  203:9    error  Unexpected lexical declaration in case block  no-case-declarations
+  204:9    error  Unexpected lexical declaration in case block  no-case-declarations
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\BlockEditor.tsx
+  242:9   warning  The 'safeBlocks' conditional could make the dependencies of useCallback Hook (at line 279) change on every render. To fix this, wrap the initialization of 'safeBlocks' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  242:9   warning  The 'safeBlocks' conditional could make the dependencies of useCallback Hook (at line 286) change on every render. To fix this, wrap the initialization of 'safeBlocks' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  242:9   warning  The 'safeBlocks' conditional could make the dependencies of useCallback Hook (at line 298) change on every render. To fix this, wrap the initialization of 'safeBlocks' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  265:41  error    Empty block statement                                                                                                                                                                              no-empty
+  497:9   error    Unexpected lexical declaration in case block                                                                                                                                                       no-case-declarations
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\BlockRenderer.tsx
+   13:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   21:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   22:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   38:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   39:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   40:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   48:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   57:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   71:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   72:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   95:9  error  Unexpected lexical declaration in case block  no-case-declarations
+   96:9  error  Unexpected lexical declaration in case block  no-case-declarations
+  104:9  error  Unexpected lexical declaration in case block  no-case-declarations
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\CategoryManager.tsx
+  128:14  error  Empty block statement  no-empty
+  130:19  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\CollaboratorsManager.tsx
+   96:19  error  Empty block statement  no-empty
+  264:19  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\DataSync.tsx
+  186:18  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\DatabaseDebug.tsx
+  46:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\DirectoryManager.tsx
+  119:21  error  Empty block statement  no-empty
+  180:21  error  Empty block statement  no-empty
+  202:21  error  Empty block statement  no-empty
+  238:21  error  Empty block statement  no-empty
+  303:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\FocusPointPicker.tsx
+  17:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\FocusPointPicker.tsx:17:7
+  15 |   useEffect(() => {
+  16 |     if (focusPoint) {
+> 17 |       setLocalFocusPoint(focusPoint);
+     |       ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 |     }
+  19 |   }, [focusPoint]);
+  20 |  react-hooks/set-state-in-effect
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\ImageUploader.tsx
+  266:23  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\ImprovedBlockEditor.tsx
+   42:20  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\ImprovedBlockEditor.tsx:42:20
+  40 |   const addBlock = (type: BlockType) => {
+  41 |     const newBlock: ContentBlock = {
+> 42 |       id: `block-${Date.now()}-${Math.random()}`,
+     |                    ^^^^^^^^^^ Cannot call impure function
+  43 |       type,
+  44 |       content: '',
+  45 |       metadata: type === 'heading'                       react-hooks/purity
+   42:34  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\ImprovedBlockEditor.tsx:42:34
+  40 |   const addBlock = (type: BlockType) => {
+  41 |     const newBlock: ContentBlock = {
+> 42 |       id: `block-${Date.now()}-${Math.random()}`,
+     |                                  ^^^^^^^^^^^^^ Cannot call impure function
+  43 |       type,
+  44 |       content: '',
+  45 |       metadata: type === 'heading'   react-hooks/purity
+  402:9   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-case-declarations
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\LinksManager.tsx
+  107:21  error  Empty block statement  no-empty
+  204:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\MediaManager.tsx
+  90:6  warning  React Hook useEffect has a missing dependency: 'fetchMetadata'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\ProjectTemplateFields.tsx
+  112:23  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\ResumeManager.tsx
+  49:6  warning  React Hook useEffect has a missing dependency: 'loadResumeData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\RichTextEditor.tsx
+   34:6   warning  React Hook useEffect has a missing dependency: 'value'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  104:17  error    Empty block statement                                                                                     no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\TutorialsManager.tsx
+  323:52   error  Unnecessary escape character: \/  no-useless-escape
+  323:110  error  Unnecessary escape character: \/  no-useless-escape
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\UnifiedTextEditor.tsx
+  34:6  warning  React Hook useEffect has a missing dependency: 'value'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\admin\VaultManager.tsx
+  180:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\BlockRenderer.tsx
+   98:5    error  Error: This value cannot be modified
+
+Modifying a variable defined outside a component or hook is not allowed. Consider using an effect.
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\BlockRenderer.tsx:98:5
+   96 |     setLightboxImage({ url, caption, alt });
+   97 |     setLightboxOpen(true);
+>  98 |     document.body.style.overflow = 'hidden';
+      |     ^^^^^^^^^^^^^^^^^^^ value cannot be modified
+   99 |   };
+  100 |
+  101 |   const closeLightbox = () => {  react-hooks/immutability
+  123:89   error  Unnecessary escape character: \/                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-useless-escape
+  198:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  198:103  error  Unnecessary escape character: \/                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-useless-escape
+  199:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  223:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  224:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  225:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  242:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  243:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  246:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  253:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  284:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  285:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  320:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  321:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  322:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  351:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  354:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  355:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  367:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  368:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  376:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  377:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  403:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+  404:15   error  Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-case-declarations
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\ContentRenderer.tsx
+  134:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  135:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  136:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  138:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  156:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  157:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  158:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  159:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  162:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  187:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  189:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  190:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  258:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  259:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  274:13  error  Unexpected lexical declaration in case block  no-case-declarations
+  284:13  error  Unexpected lexical declaration in case block  no-case-declarations
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\GalleryBlock.tsx
+  25:5  error  Error: This value cannot be modified
+
+Modifying a variable defined outside a component or hook is not allowed. Consider using an effect.
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\GalleryBlock.tsx:25:5
+  23 |     setLightboxIndex(index);
+  24 |     setLightboxOpen(true);
+> 25 |     document.body.style.overflow = 'hidden';
+     |     ^^^^^^^^^^^^^^^^^^^ value cannot be modified
+  26 |   };
+  27 |
+  28 |   const closeLightbox = () => {  react-hooks/immutability
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\ImageSlideshow.tsx
+  21:3  error  React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\LikeButton.tsx
+  28:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\LikeButton.tsx:28:5
+  26 |   useEffect(() => {
+  27 |     const likedProjects = JSON.parse(localStorage.getItem('likedProjects') || '{}');
+> 28 |     setIsLiked(!!likedProjects[id]);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |   }, [id]);
+  30 |
+  31 |   const handleLike = async (e: React.MouseEvent) => {  react-hooks/set-state-in-effect
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\RelatedProjects.tsx
+  68:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\RelatedProjects.tsx:68:5
+  66 |       .map((item) => item.project);
+  67 |
+> 68 |     setRelatedProjects(scoredProjects);
+     |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  69 |   }, [currentProject, allProjects, maxResults]);
+  70 |
+  71 |   if (relatedProjects.length === 0) {  react-hooks/set-state-in-effect
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\shared\ShareButton.tsx
+  54:19  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\ui\sidebar.tsx
+  611:26  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\components\ui\sidebar.tsx:611:26
+  609 |   // Random width between 50 to 90%.
+  610 |   const width = React.useMemo(() => {
+> 611 |     return `${Math.floor(Math.random() * 40) + 50}%`;
+      |                          ^^^^^^^^^^^^^ Cannot call impure function
+  612 |   }, []);
+  613 |
+  614 |   return (  react-hooks/purity
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\hooks\useCategories.tsx
+  58:19  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\hooks\useImageMetadata.ts
+  23:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\hooks\useImageMetadata.ts:23:7
+  21 |     // 1. Check cache first
+  22 |     if (metadataCache[src]) {
+> 23 |       setMetadata(metadataCache[src]);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  24 |       return;
+  25 |     }
+  26 |  react-hooks/set-state-in-effect
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ArchitectureScaleConverter.tsx
+   69:5   error    Error: Cannot access variable before it is declared
+
+`calculateScale` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ArchitectureScaleConverter.tsx:69:5
+  67 |
+  68 |   useEffect(() => {
+> 69 |     calculateScale();
+     |     ^^^^^^^^^^^^^^ `calculateScale` accessed before it is declared
+  70 |   }, [realFeet, realInches, selectedScale, selectedPrinter]);
+  71 |
+  72 |   const calculateScale = () => {
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ArchitectureScaleConverter.tsx:72:3
+   70 |   }, [realFeet, realInches, selectedScale, selectedPrinter]);
+   71 |
+>  72 |   const calculateScale = () => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  73 |     const feet = parseFloat(realFeet) || 0;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  74 |     const inches = parseFloat(realInches) || 0;
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 101 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 102 |   };
+      | ^^^^^ `calculateScale` is declared here
+  103 |
+  104 |   const copyToClipboard = async () => {
+  105 |     if (!resultMM) return;  react-hooks/immutability
+   70:6   warning  React Hook useEffect has a missing dependency: 'calculateScale'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  136:19  error    Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\Collaborators.tsx
+  45:16  error  Empty block statement  no-empty
+  47:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\CommercialPaintFinder.tsx
+  172:7   error    Error: Cannot access variable before it is declared
+
+`findMatches` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\CommercialPaintFinder.tsx:172:7
+  170 |   useEffect(() => {
+  171 |     if (/^#[0-9A-F]{6}$/i.test(inputColor)) {
+> 172 |       findMatches(inputColor);
+      |       ^^^^^^^^^^^ `findMatches` accessed before it is declared
+  173 |     }
+  174 |   }, [inputColor, selectedBrand]);
+  175 |
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\CommercialPaintFinder.tsx:195:3
+  193 |   };
+  194 |
+> 195 |   const findMatches = (hex: string) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 196 |     const targetRgb = hexToRgb(hex);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 197 |     const targetLab = rgbToLab(targetRgb);
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 212 |     setMatches(results.slice(0, 15));
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 213 |   };
+      | ^^^^^ `findMatches` is declared here
+  214 |
+  215 |   const copyToClipboard = (text: string, id: string) => {
+  216 |     // Try modern Clipboard API first  react-hooks/immutability
+  174:6   warning  React Hook useEffect has a missing dependency: 'findMatches'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/exhaustive-deps
+  244:19  error    Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ExperientialProjectDetail.tsx
+   63:6   warning  React Hook useEffect has a missing dependency: 'fetchProject'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  121:21  error    Empty block statement                                                                                            no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\Home.tsx
+  128:23  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\Links.tsx
+  74:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ModelReferenceScaler.tsx
+  76:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ModelReferenceScaler.tsx:76:5
+  74 |   // Recalculate all image sizes when scale changes
+  75 |   useEffect(() => {
+> 76 |     setImages(prev => prev.map(img => {
+     |     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  77 |       // Only recalculate if this image has been scaled (has reference data)
+  78 |       if (img.referencePixels && img.referenceInches) {
+  79 |         // Calculate new target size based on new scale  react-hooks/set-state-in-effect
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\News.tsx
+  67:16  error  Empty block statement  no-empty
+  69:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\Portfolio.tsx
+   41:18  error    Empty block statement                                                                                        no-empty
+   43:16  error    Empty block statement                                                                                        no-empty
+   64:45  error    Empty block statement                                                                                        no-empty
+  132:6   warning  React Hook useMemo has a missing dependency: 'categories'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ProjectDetail.tsx
+  79:8  error  Parsing error: Declaration or statement expected
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ProjectDetailNew.tsx
+   48:19  error    Empty block statement                                                                                                                   no-empty
+   56:6   warning  React Hook useEffect has missing dependencies: 'fetchProject' and 'incrementViews'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  146:21  error    Empty block statement                                                                                                                   no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\RenderingProjectDetail.tsx
+  22:6  warning  React Hook useEffect has a missing dependency: 'fetchProject'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\RoscoPaintCalculator.tsx
+  351:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\RoscoPaintCalculator.tsx:351:7
+  349 |     if (targetColor && /^#[0-9A-F]{6}$/i.test(targetColor)) {
+  350 |       const recipe = calculateRecipe(targetColor);
+> 351 |       setResult(recipe);
+      |       ^^^^^^^^^ Avoid calling setState() directly within an effect
+  352 |     }
+  353 |   }, [targetColor]);
+  354 |  react-hooks/set-state-in-effect
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ScenicStudio.tsx
+  45:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\ScenicVault.tsx
+  187:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\Search.tsx
+  184:23  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\portfolio\DynamicProject.tsx
+   99:21  error    Empty block statement                                                                                                no-empty
+  126:6   warning  React Hook useEffect has a missing dependency: 'allImages.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\portfolio\ExperientialTemplate.tsx
+  83:6  warning  React Hook React.useEffect has missing dependencies: 'goToNext' and 'goToPrev'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\portfolio\RenderingTemplate.tsx
+  83:6  warning  React Hook useEffect has missing dependencies: 'goToNext' and 'goToPrev'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\projects\AllMySons.tsx
+  54:6  warning  React Hook useEffect has a missing dependency: 'productionPhotos.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\projects\MillionDollarQuartet.tsx
+  56:6  warning  React Hook useEffect has a missing dependency: 'productionPhotos.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\projects\MuchAdoAboutNothing.tsx
+  54:6  warning  React Hook useEffect has a missing dependency: 'productionPhotos.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\projects\RedLineCafe.tsx
+  42:21  error  Empty block statement  no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\pages\scenic-insights\DynamicArticle.tsx
+   90:19  error    Empty block statement                                                                                          no-empty
+  207:21  error    Empty block statement                                                                                          no-empty
+  221:6   warning  React Hook useEffect has a missing dependency: 'article'. Either include it or remove the dependency array     react-hooks/exhaustive-deps
+  257:21  error    Empty block statement                                                                                          no-empty
+  303:6   warning  React Hook useEffect has a missing dependency: 'categories'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  328:19  error    Empty block statement                                                                                          no-empty
+
+D:\brand\OneDrive\Desktop\brandonptdaviscom\src\supabase\functions\server\index.tsx
+  64:4  error  Parsing error: Declaration or statement expected
+
+✖ 167 problems (142 errors, 25 warnings)
+

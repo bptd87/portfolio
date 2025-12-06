@@ -52,12 +52,12 @@ export function ProjectDetail({ slug, onNavigate }: ProjectDetailProps) {
       if (!response.ok) throw new Error('Failed to fetch project');
 
       const data = await response.json();
-      
+
       // Check if the response has the expected structure
       if (!data.success || !data.project) {
         throw new Error('Invalid project data');
       }
-      
+
       setProject(data.project);
 
       // Fetch all projects to find next/previous
@@ -76,23 +76,23 @@ export function ProjectDetail({ slug, onNavigate }: ProjectDetailProps) {
         const allProjects = allProjectsData.success ? allProjectsData.projects : [];
         // Filter by same category
         const sameCategory = allProjects.filter((p: any) => p.category === data.project.category);
-        => p.title));
-        
+
+
         const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
         if (currentIndex > -1) {
           const nextIndex = (currentIndex + 1) % sameCategory.length;
           const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
-          
+
           setNextProject(sameCategory[nextIndex]);
           setPrevProject(sameCategory[prevIndex]);
         } else {
-          }
+        }
 
         // Use all projects as related projects (we'll filter in the UI)
         setRelatedProjects(allProjects);
       }
     } catch (error) {
-      } finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -126,7 +126,7 @@ export function ProjectDetail({ slug, onNavigate }: ProjectDetailProps) {
         }
       }
     } catch (error) {
-      }
+    }
   };
 
   const navigateToProject = (projectSlug: string) => {
@@ -208,7 +208,7 @@ export function ProjectDetail({ slug, onNavigate }: ProjectDetailProps) {
             {project.category} / {project.subcategory}
           </p>
           <h1 className="text-5xl md:text-6xl mb-8">{project.title}</h1>
-          
+
           {/* Project metadata */}
           <div className="flex flex-wrap gap-6 text-sm opacity-60 mb-8">
             {project.venue && (
@@ -317,7 +317,7 @@ export function ProjectDetail({ slug, onNavigate }: ProjectDetailProps) {
                   </div>
                 </div>
               )}
-              
+
               {/* Tags below production photos */}
               {project.tags && project.tags.length > 0 && (
                 <motion.div
@@ -586,7 +586,7 @@ export function ProjectDetail({ slug, onNavigate }: ProjectDetailProps) {
                   {/* YouTube video block */}
                   {block.type === 'youtube' && (
                     <YouTubeEmbed
-                      videoId={block.videoId}
+                      url={block.videoId}
                       title={block.title}
                     />
                   )}
@@ -716,31 +716,28 @@ export function ProjectDetail({ slug, onNavigate }: ProjectDetailProps) {
           <div className="flex gap-4 mb-8 border-b border-black/10 dark:border-white/10">
             <button
               onClick={() => setRelatedFilter('category')}
-              className={`pb-3 font-pixel text-[10px] tracking-[0.3em] transition-all ${
-                relatedFilter === 'category'
-                  ? 'text-accent-brand border-b-2 border-accent-brand'
-                  : 'text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70'
-              }`}
+              className={`pb-3 font-pixel text-[10px] tracking-[0.3em] transition-all ${relatedFilter === 'category'
+                ? 'text-accent-brand border-b-2 border-accent-brand'
+                : 'text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70'
+                }`}
             >
               SAME CATEGORY
             </button>
             <button
               onClick={() => setRelatedFilter('tags')}
-              className={`pb-3 font-pixel text-[10px] tracking-[0.3em] transition-all ${
-                relatedFilter === 'tags'
-                  ? 'text-accent-brand border-b-2 border-accent-brand'
-                  : 'text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70'
-              }`}
+              className={`pb-3 font-pixel text-[10px] tracking-[0.3em] transition-all ${relatedFilter === 'tags'
+                ? 'text-accent-brand border-b-2 border-accent-brand'
+                : 'text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70'
+                }`}
             >
               SIMILAR TAGS
             </button>
             <button
               onClick={() => setRelatedFilter('featured')}
-              className={`pb-3 font-pixel text-[10px] tracking-[0.3em] transition-all ${
-                relatedFilter === 'featured'
-                  ? 'text-accent-brand border-b-2 border-accent-brand'
-                  : 'text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70'
-              }`}
+              className={`pb-3 font-pixel text-[10px] tracking-[0.3em] transition-all ${relatedFilter === 'featured'
+                ? 'text-accent-brand border-b-2 border-accent-brand'
+                : 'text-black/40 dark:text-white/40 hover:text-black/70 dark:hover:text-white/70'
+                }`}
             >
               FEATURED PROJECTS
             </button>
@@ -803,16 +800,16 @@ export function ProjectDetail({ slug, onNavigate }: ProjectDetailProps) {
             }
             return true;
           }).length === 0 && (
-            <div className="text-center py-12 opacity-40">
-              <p className="text-sm">No related projects found</p>
-            </div>
-          )}
+              <div className="text-center py-12 opacity-40">
+                <p className="text-sm">No related projects found</p>
+              </div>
+            )}
         </motion.div>
       )}
 
       {/* Bottom Navigation Panel - Scenic Design Projects */}
       {(prevProject || nextProject) && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}

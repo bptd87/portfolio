@@ -61,32 +61,32 @@ const verifyAdminToken = async (c: any, next: any) => {
     c.req.raw.headers.forEach((value: string, key: string) => {
       allHeaders[key] = value;
     });
-    );
-    
+
+
     // Use custom header to avoid Supabase's automatic JWT validation
     const token = c.req.header('X-Admin-Token');
-    
+
     if (!token) {
       return c.json({ success: false, error: 'Unauthorized', code: 401, message: 'No admin token provided' }, 401);
     }
 
-    ) + '...');
+
 
     // Validate the token format (it should be base64 encoded "admin:timestamp")
     try {
       // Clean the token first (remove any whitespace or special characters that might have been added)
       const cleanToken = token.trim();
-      
+
       // Decode the token
       const decoded = atob(cleanToken);
-      + '...');
-      
+
+
       if (!decoded.startsWith('admin:')) {
-        );
+
         return c.json({ success: false, error: 'Unauthorized', code: 401, message: 'Invalid token format' }, 401);
       }
-      
-      } catch (err) {
+
+    } catch (err) {
       return c.json({ success: false, error: 'Unauthorized', code: 401, message: 'Could not decode token' }, 401);
     }
 
@@ -145,9 +145,9 @@ app.get("/make-server-74296234/api/settings", async (c) => {
 app.post("/make-server-74296234/api/admin/settings", verifyAdminToken, async (c) => {
   try {
     const settings = await c.req.json();
-    
+
     await kv.set('site_settings', settings);
-    
+
     return c.json({ success: true, settings });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -196,14 +196,14 @@ app.post("/make-server-74296234/api/admin/ai/generate", verifyAdminToken, async 
     });
 
     const data = await response.json();
-    
+
     if (data.error) {
       throw new Error(data.error.message);
     }
 
-    return c.json({ 
-      success: true, 
-      result: data.choices[0].message.content 
+    return c.json({
+      success: true,
+      result: data.choices[0].message.content
     });
 
   } catch (err) {
@@ -227,12 +227,12 @@ app.post("/make-server-74296234/api/admin/ai/seo-tags", verifyAdminToken, async 
       const tags = uniqueWords
         .filter(w => w.length > 3 && !stopWords.includes(w))
         .slice(0, 8); // Take top 8 words
-      
+
       // Add some generic design tags
       tags.push('scenic design', 'theatre', 'production');
-      
-      return c.json({ 
-        success: true, 
+
+      return c.json({
+        success: true,
         tags: [...new Set(tags)],
         note: 'Generated using local fallback (OpenAI key missing)'
       });
@@ -272,7 +272,7 @@ Generate SEO tags:`;
     });
 
     const data = await response.json();
-    
+
     if (data.error) {
       throw new Error(data.error.message);
     }
@@ -280,9 +280,9 @@ Generate SEO tags:`;
     const tagsText = data.choices[0].message.content.trim();
     const tags = tagsText.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0);
 
-    return c.json({ 
-      success: true, 
-      tags 
+    return c.json({
+      success: true,
+      tags
     });
 
   } catch (err) {
@@ -301,9 +301,9 @@ app.post("/make-server-74296234/api/admin/ai/seo-description", verifyAdminToken,
       // Fallback: Create a basic description
       const cleanExcerpt = excerpt ? excerpt.substring(0, 150) : content.substring(0, 150);
       const description = `Explore the scenic design project "${title}". ${cleanExcerpt}...`;
-      
-      return c.json({ 
-        success: true, 
+
+      return c.json({
+        success: true,
         description,
         note: 'Generated using local fallback (OpenAI key missing)'
       });
@@ -341,16 +341,16 @@ Generate SEO meta description:`;
     });
 
     const data = await response.json();
-    
+
     if (data.error) {
       throw new Error(data.error.message);
     }
 
     const description = data.choices[0].message.content.trim().replace(/^["']|["']$/g, '');
 
-    return c.json({ 
-      success: true, 
-      description 
+    return c.json({
+      success: true,
+      description
     });
 
   } catch (err) {
@@ -365,9 +365,9 @@ app.post("/make-server-74296234/api/admin/ai/analyze-image", async (c) => {
     // Verify token manually since we removed verifyAdminToken middleware for this endpoint to debug
     const authHeader = c.req.header('Authorization');
     if (!authHeader) {
-       // For now, allow public access if key is present, or check anon key
-       // In production, we should strictly verify.
-       // return c.json({ error: 'Unauthorized' }, 401);
+      // For now, allow public access if key is present, or check anon key
+      // In production, we should strictly verify.
+      // return c.json({ error: 'Unauthorized' }, 401);
     }
 
     const { imageUrl } = await c.req.json();
@@ -379,9 +379,9 @@ app.post("/make-server-74296234/api/admin/ai/analyze-image", async (c) => {
 
     const result = await analyzeImageWithOpenAI(imageUrl, apiKey);
 
-    return c.json({ 
-      success: true, 
-      result 
+    return c.json({
+      success: true,
+      result
     });
   } catch (err) {
     return c.json({ error: err.message }, 500);
@@ -389,9 +389,9 @@ app.post("/make-server-74296234/api/admin/ai/analyze-image", async (c) => {
 });
 
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-    return c.json({ success: false, error: errorMsg }, 500);
-  }
+  const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+  return c.json({ success: false, error: errorMsg }, 500);
+}
 });
 
 // ===== AI SEO READ TIME GENERATOR =====
@@ -410,9 +410,9 @@ app.post("/make-server-74296234/api/admin/ai/seo-read-time", verifyAdminToken, a
     // Format the read time
     const readTime = minutes === 1 ? '1 min read' : `${minutes} min read`;
 
-    return c.json({ 
-      success: true, 
-      readTime 
+    return c.json({
+      success: true,
+      readTime
     });
 
   } catch (err) {
@@ -442,7 +442,7 @@ app.post("/make-server-74296234/api/admin/upload", verifyAdminToken, async (c) =
     const bucketName = 'make-74296234-images';
     const { data: buckets } = await supabase.storage.listBuckets();
     const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
-    
+
     if (!bucketExists) {
       await supabase.storage.createBucket(bucketName, {
         public: false,
@@ -458,7 +458,7 @@ app.post("/make-server-74296234/api/admin/upload", verifyAdminToken, async (c) =
     const extension = sanitizedName.split('.').pop()?.toLowerCase() || 'jpg';
     const filename = `${timestamp}-${randomStr}.${extension}`;
     const filePath = `images/${filename}`;
-    
+
     // Convert File to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
@@ -484,8 +484,8 @@ app.post("/make-server-74296234/api/admin/upload", verifyAdminToken, async (c) =
       return c.json({ success: false, error: 'Failed to generate signed URL' }, 500);
     }
 
-    return c.json({ 
-      success: true, 
+    return c.json({
+      success: true,
       url: urlData.signedUrl,
       path: filePath,
       metadata: {
@@ -521,7 +521,7 @@ app.post("/make-server-74296234/api/upload", verifyAdminToken, async (c) => {
     const bucketName = 'make-74296234-images';
     const { data: buckets } = await supabase.storage.listBuckets();
     const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
-    
+
     if (!bucketExists) {
       await supabase.storage.createBucket(bucketName, {
         public: false,
@@ -537,7 +537,7 @@ app.post("/make-server-74296234/api/upload", verifyAdminToken, async (c) => {
     const extension = sanitizedName.split('.').pop()?.toLowerCase() || 'jpg';
     const filename = `${timestamp}-${randomStr}.${extension}`;
     const filePath = `images/${filename}`;
-    
+
     // Convert File to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
@@ -563,8 +563,8 @@ app.post("/make-server-74296234/api/upload", verifyAdminToken, async (c) => {
       return c.json({ success: false, error: 'Failed to generate signed URL' }, 500);
     }
 
-    return c.json({ 
-      success: true, 
+    return c.json({
+      success: true,
       url: urlData.signedUrl,
       path: filePath,
       metadata: {
@@ -594,70 +594,70 @@ app.post("/make-server-74296234/api/admin/posts", verifyAdminToken, async (c) =>
     const post = await c.req.json();
     + '...',
       hasContent: !!post.content,
-      contentBlocks: post.content?.length || 0,
-      category: post.category,
+        contentBlocks: post.content?.length || 0,
+          category: post.category,
     });
-    
-    const postId = post.id || `post-${Date.now()}`;
-    // Check if post already exists
-    const existing = await kv.get(`blog_post:${postId}`);
-    
-    if (existing) {
-      // Update existing post instead of creating duplicate
-      try {
-        await kv.set(`blog_post:${postId}`, {
-          ...existing,
-          ...post,
-          id: postId,
-          updatedAt: new Date().toISOString(),
-        });
-        return c.json({ success: true, postId, updated: true });
-      } catch (kvError) {
-        throw kvError;
-      }
-    }
-    
-    try {
-      await kv.set(`blog_post:${postId}`, {
-        ...post,
-        id: postId,
-        createdAt: post.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-      return c.json({ success: true, postId });
-    } catch (kvError) {
+
+const postId = post.id || `post-${Date.now()}`;
+// Check if post already exists
+const existing = await kv.get(`blog_post:${postId}`);
+
+if (existing) {
+  // Update existing post instead of creating duplicate
+  try {
+    await kv.set(`blog_post:${postId}`, {
+      ...existing,
+      ...post,
+      id: postId,
+      updatedAt: new Date().toISOString(),
+    });
+    return c.json({ success: true, postId, updated: true });
+  } catch (kvError) {
+    throw kvError;
+  }
+}
+
+try {
+  await kv.set(`blog_post:${postId}`, {
+    ...post,
+    id: postId,
+    createdAt: post.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+  return c.json({ success: true, postId });
+} catch (kvError) {
       ,
-        stack: kvError instanceof Error ? kvError.stack : undefined,
+  stack: kvError instanceof Error ? kvError.stack : undefined,
       });
-      throw kvError;
+throw kvError;
     }
   } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-    return c.json({ 
-      success: false,
-      error: errorMsg,
-      message: 'Failed to save article. Please check server logs for details.'
-    }, 500);
-  }
+  const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+  return c.json({
+    success: false,
+    error: errorMsg,
+    message: 'Failed to save article. Please check server logs for details.'
+  }, 500);
+}
 });
 
 app.put("/make-server-74296234/api/admin/posts/:id", verifyAdminToken, async (c) => {
   try {
     const postId = c.req.param('id');
     const updates = await c.req.json();
-    
+
     const existing = await kv.get(`blog_post:${postId}`);
     if (!existing) {
       return c.json({ error: 'Post not found' }, 404);
     }
-    
+
     await kv.set(`blog_post:${postId}`, {
       ...existing,
       ...updates,
       id: postId,
       updatedAt: new Date().toISOString(),
     });
-    
+
     return c.json({ success: true });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -696,17 +696,17 @@ app.get("/make-server-74296234/api/posts/:slug", async (c) => {
     // Search all posts for matching slug
     const allPosts = await kv.getByPrefix('blog_post:');
     const post = allPosts.find((p: any) => p.slug === slug || p.id === slug);
-    
+
     if (!post) {
       return c.json({ error: 'Post not found' }, 404);
     }
-    
+
     // Look up category color
     let categoryColor = '#3B82F6'; // Default blue
     try {
       const categories = await kv.get('categories_articles');
       if (categories && Array.isArray(categories)) {
-        const matchingCat = categories.find((cat: any) => 
+        const matchingCat = categories.find((cat: any) =>
           cat.name === post.category || cat.slug === post.category?.toLowerCase().replace(/\s+/g, '-')
         );
         if (matchingCat?.color) {
@@ -714,8 +714,8 @@ app.get("/make-server-74296234/api/posts/:slug", async (c) => {
         }
       }
     } catch (e) {
-      }
-    
+    }
+
     return c.json({ success: true, post: { ...post, categoryColor } });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -729,32 +729,32 @@ app.post("/make-server-74296234/api/posts/related", async (c) => {
     const { category, tags, excludeId } = await c.req.json();
     // Get all posts
     const allPosts = await kv.getByPrefix('blog_post:');
-    
+
     // Score posts by relevance
     const scoredPosts = allPosts
       .filter((p: any) => p.id !== excludeId) // Exclude current post
       .map((post: any) => {
         let score = 0;
-        
+
         // Same category = 10 points
         if (post.category === category) {
           score += 10;
         }
-        
+
         // Shared tags = 5 points each
         if (post.tags && tags) {
           const sharedTags = post.tags.filter((tag: string) => tags.includes(tag));
           score += sharedTags.length * 5;
         }
-        
+
         return { ...post, relevanceScore: score };
       })
       .filter((p: any) => p.relevanceScore > 0) // Only include posts with some relevance
       .sort((a: any, b: any) => b.relevanceScore - a.relevanceScore); // Sort by score
-    
+
     // Return top 3 most relevant posts
     const relatedPosts = scoredPosts.slice(0, 3);
-    
+
     return c.json({ success: true, posts: relatedPosts });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -782,18 +782,18 @@ app.get("/make-server-74296234/api/projects", async (c) => {
     const sortedProjects = projects.sort((a, b) => {
       const yearA = a.year ?? 0;
       const yearB = b.year ?? 0;
-      
+
       // First sort by year (newest first)
       if (yearA !== yearB) {
         return yearB - yearA;
       }
-      
+
       // If year is the same, sort by month (newest first)
       const monthA = a.month ?? 0;
       const monthB = b.month ?? 0;
       return monthB - monthA;
     });
-    
+
     return c.json({ success: true, projects: sortedProjects });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -809,18 +809,18 @@ app.post("/make-server-74296234/api/projects/:id/view", async (c) => {
     if (!project) {
       return c.json({ error: 'Project not found' }, 404);
     }
-    
+
     // Initialize engagement if it doesn't exist
     const views = (project.views || 0) + 1;
     const likes = project.likes || 0;
-    
+
     await kv.set(`project:${projectId}`, {
       ...project,
       views,
       likes,
       updatedAt: new Date().toISOString()
     });
-    
+
     return c.json({ success: true, views, likes });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -836,18 +836,18 @@ app.post("/make-server-74296234/api/projects/:id/like", async (c) => {
     if (!project) {
       return c.json({ error: 'Project not found' }, 404);
     }
-    
+
     // Initialize engagement if it doesn't exist
     const likes = (project.likes || 0) + 1;
     const views = project.views || 0;
-    
+
     await kv.set(`project:${projectId}`, {
       ...project,
       likes,
       views,
       updatedAt: new Date().toISOString()
     });
-    
+
     return c.json({ success: true, likes, views });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -863,18 +863,18 @@ app.post("/make-server-74296234/api/projects/:id/unlike", async (c) => {
     if (!project) {
       return c.json({ error: 'Project not found' }, 404);
     }
-    
+
     // Don't go below 0
     const likes = Math.max((project.likes || 0) - 1, 0);
     const views = project.views || 0;
-    
+
     await kv.set(`project:${projectId}`, {
       ...project,
       likes,
       views,
       updatedAt: new Date().toISOString()
     });
-    
+
     return c.json({ success: true, likes, views });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -889,11 +889,11 @@ app.get("/make-server-74296234/api/projects/:slug", async (c) => {
     // Search all projects for matching slug
     const allProjects = await kv.getByPrefix('project:');
     const project = allProjects.find((p: any) => p.slug === slug || p.id === slug);
-    
+
     if (!project) {
       return c.json({ error: 'Project not found' }, 404);
     }
-    
+
     return c.json({ success: true, project });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -905,7 +905,7 @@ app.post("/make-server-74296234/api/admin/projects", verifyAdminToken, async (c)
   try {
     const project = await c.req.json();
     const projectId = project.id || `project-${Date.now()}`;
-    
+
     // Check if project already exists
     const existing = await kv.get(`project:${projectId}`);
     if (existing) {
@@ -918,14 +918,14 @@ app.post("/make-server-74296234/api/admin/projects", verifyAdminToken, async (c)
       });
       return c.json({ success: true, projectId, updated: true });
     }
-    
+
     await kv.set(`project:${projectId}`, {
       ...project,
       id: projectId,
       createdAt: project.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    
+
     return c.json({ success: true, projectId });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -937,7 +937,7 @@ app.put("/make-server-74296234/api/admin/projects/:id", verifyAdminToken, async 
   try {
     const projectId = c.req.param('id');
     const updates = await c.req.json();
-    
+
     // Wrap kv.get with better error handling
     let existing;
     try {
@@ -946,7 +946,7 @@ app.put("/make-server-74296234/api/admin/projects/:id", verifyAdminToken, async 
       const kvErrorMsg = kvError instanceof Error ? kvError.message : String(kvError);
       // Check if it's a Cloudflare/Supabase service error
       if (kvErrorMsg.includes('Temporarily unavailable') || kvErrorMsg.includes('Cloudflare') || kvErrorMsg.includes('<!DOCTYPE html>')) {
-        return c.json({ 
+        return c.json({
           error: 'Database temporarily unavailable',
           message: 'Supabase is experiencing a temporary service outage. Please wait 30-60 seconds and try again.',
           isServiceError: true
@@ -954,11 +954,11 @@ app.put("/make-server-74296234/api/admin/projects/:id", verifyAdminToken, async 
       }
       throw kvError; // Re-throw if it's not a service error
     }
-    
+
     if (!existing) {
       return c.json({ error: 'Project not found' }, 404);
     }
-    
+
     // Wrap kv.set with better error handling
     try {
       await kv.set(`project:${projectId}`, {
@@ -970,7 +970,7 @@ app.put("/make-server-74296234/api/admin/projects/:id", verifyAdminToken, async 
     } catch (kvError) {
       const kvErrorMsg = kvError instanceof Error ? kvError.message : String(kvError);
       if (kvErrorMsg.includes('Temporarily unavailable') || kvErrorMsg.includes('Cloudflare') || kvErrorMsg.includes('<!DOCTYPE html>')) {
-        return c.json({ 
+        return c.json({
           error: 'Database temporarily unavailable',
           message: 'Supabase is experiencing a temporary service outage. Please wait 30-60 seconds and try again.',
           isServiceError: true
@@ -978,7 +978,7 @@ app.put("/make-server-74296234/api/admin/projects/:id", verifyAdminToken, async 
       }
       throw kvError;
     }
-    
+
     return c.json({ success: true });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1028,11 +1028,11 @@ app.get("/make-server-74296234/api/news/:slug", async (c) => {
     // Search all news for matching slug
     const allNews = await kv.getByPrefix('news:');
     const newsItem = allNews.find((n: any) => n.slug === slug || n.id === slug);
-    
+
     if (!newsItem) {
       return c.json({ error: 'News not found' }, 404);
     }
-    
+
     return c.json(newsItem); // Return the newsItem directly instead of wrapped
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1044,7 +1044,7 @@ app.post("/make-server-74296234/api/admin/news", verifyAdminToken, async (c) => 
   try {
     const newsItem = await c.req.json();
     const newsId = newsItem.id || `news-${Date.now()}`;
-    
+
     // Check if news already exists
     const existing = await kv.get(`news:${newsId}`);
     if (existing) {
@@ -1057,14 +1057,14 @@ app.post("/make-server-74296234/api/admin/news", verifyAdminToken, async (c) => 
       });
       return c.json({ success: true, newsId, updated: true });
     }
-    
+
     await kv.set(`news:${newsId}`, {
       ...newsItem,
       id: newsId,
       createdAt: newsItem.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    
+
     return c.json({ success: true, newsId });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1076,19 +1076,19 @@ app.put("/make-server-74296234/api/admin/news/:id", verifyAdminToken, async (c) 
   try {
     const newsId = c.req.param('id');
     const updates = await c.req.json();
-    
+
     const existing = await kv.get(`news:${newsId}`);
     if (!existing) {
       return c.json({ error: 'News item not found' }, 404);
     }
-    
+
     await kv.set(`news:${newsId}`, {
       ...existing,
       ...updates,
       id: newsId,
       updatedAt: new Date().toISOString(),
     });
-    
+
     return c.json({ success: true });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1124,14 +1124,14 @@ app.post("/make-server-74296234/api/collaborators", verifyAdminToken, async (c) 
   try {
     const collaborator = await c.req.json();
     const collaboratorId = collaborator.id || `collab-${Date.now()}`;
-    
+
     await kv.set(`collaborator:${collaboratorId}`, {
       ...collaborator,
       id: collaboratorId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    
+
     return c.json({ success: true, collaboratorId });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1144,19 +1144,19 @@ app.put("/make-server-74296234/api/collaborators/:id", verifyAdminToken, async (
   try {
     const collaboratorId = c.req.param('id');
     const updates = await c.req.json();
-    
+
     const existing = await kv.get(`collaborator:${collaboratorId}`);
     if (!existing) {
       return c.json({ error: 'Collaborator not found' }, 404);
     }
-    
+
     await kv.set(`collaborator:${collaboratorId}`, {
       ...existing,
       ...updates,
       id: collaboratorId,
       updatedAt: new Date().toISOString(),
     });
-    
+
     return c.json({ success: true });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1169,7 +1169,7 @@ app.delete("/make-server-74296234/api/collaborators/:id", verifyAdminToken, asyn
   try {
     const collaboratorId = c.req.param('id');
     await kv.del(`collaborator:${collaboratorId}`);
-    
+
     return c.json({ success: true });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1235,14 +1235,14 @@ This is for a theatrical scenic designer's collaborators page. Focus on professi
     });
 
     const data = await response.json();
-    
+
     if (data.error) {
       throw new Error(data.error.message);
     }
 
     const result = JSON.parse(data.choices[0].message.content);
-    return c.json({ 
-      success: true, 
+    return c.json({
+      success: true,
       ...result
     });
 
@@ -1284,10 +1284,12 @@ app.get("/make-server-74296234/kv/social-profile", async (c) => {
   try {
     const profile = await kv.get('social-profile');
     if (!profile) {
-      return c.json({ value: {
-        name: 'Brandon PT Davis',
-        bio: 'Scenic Designer & Technical Director',
-      }});
+      return c.json({
+        value: {
+          name: 'Brandon PT Davis',
+          bio: 'Scenic Designer & Technical Director',
+        }
+      });
     }
     return c.json({ value: profile });
   } catch (err) {
@@ -1352,17 +1354,17 @@ app.post("/make-server-74296234/links", async (c) => {
   try {
     const body = await c.req.json();
     const links = await kv.get('bio-links') || [];
-    
+
     const newLink = {
       id: crypto.randomUUID(),
       ...body,
       enabled: body.enabled ?? true,
       order: body.order || (Array.isArray(links) ? links.length + 1 : 1),
     };
-    
+
     const updatedLinks = Array.isArray(links) ? [...links, newLink] : [newLink];
     await kv.set('bio-links', updatedLinks);
-    
+
     return c.json(newLink);
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1376,17 +1378,17 @@ app.put("/make-server-74296234/links/:id", async (c) => {
     const id = c.req.param('id');
     const body = await c.req.json();
     const links = await kv.get('bio-links') || [];
-    
+
     if (!Array.isArray(links)) {
       return c.json({ error: 'Invalid links data' }, 500);
     }
-    
-    const updatedLinks = links.map(link => 
+
+    const updatedLinks = links.map(link =>
       link.id === id ? { ...link, ...body } : link
     );
-    
+
     await kv.set('bio-links', updatedLinks);
-    
+
     const updatedLink = updatedLinks.find(link => link.id === id);
     return c.json(updatedLink);
   } catch (err) {
@@ -1400,14 +1402,14 @@ app.delete("/make-server-74296234/links/:id", async (c) => {
   try {
     const id = c.req.param('id');
     const links = await kv.get('bio-links') || [];
-    
+
     if (!Array.isArray(links)) {
       return c.json({ error: 'Invalid links data' }, 500);
     }
-    
+
     const updatedLinks = links.filter(link => link.id !== id);
     await kv.set('bio-links', updatedLinks);
-    
+
     return c.json({ success: true });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1421,12 +1423,12 @@ app.get("/make-server-74296234/api/tutorials", async (c) => {
   try {
     // Public endpoint - no auth required
     const tutorials = await kv.getByPrefix('tutorial:');
-    
+
     // Sort by publish date (newest first)
     const sortedTutorials = tutorials.sort((a: any, b: any) => {
       return new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime();
     });
-    
+
     return c.json({ tutorials: sortedTutorials });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1439,18 +1441,18 @@ app.post("/make-server-74296234/api/tutorials", async (c) => {
   try {
     const adminToken = c.req.header('X-Admin-Token');
     const importSecret = c.req.header('X-Import-Secret');
-    
+
     if (!adminToken && importSecret !== 'temp-secret-123') {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
     const tutorial = await c.req.json();
-    
+
     // Validate required fields
     if (!tutorial.id || !tutorial.slug || !tutorial.title) {
       return c.json({ error: 'Missing required fields' }, 400);
     }
-    
+
     await kv.set(`tutorial:${tutorial.id}`, tutorial);
     return c.json({ success: true, tutorial });
   } catch (err) {
@@ -1468,11 +1470,11 @@ app.put("/make-server-74296234/api/tutorials", async (c) => {
     }
 
     const tutorial = await c.req.json();
-    
+
     if (!tutorial.id) {
       return c.json({ error: 'Tutorial ID is required' }, 400);
     }
-    
+
     await kv.set(`tutorial:${tutorial.id}`, tutorial);
     return c.json({ success: true, tutorial });
   } catch (err) {
@@ -1507,7 +1509,7 @@ app.get("/make-server-74296234/api/tutorial-categories", async (c) => {
     }
 
     const categories = await kv.get('tutorial-categories');
-    
+
     // Default categories if none exist
     const defaultCategories = [
       { id: 'quick-tips', name: 'Quick Tips', description: 'Short, focused tutorials on specific techniques' },
@@ -1516,7 +1518,7 @@ app.get("/make-server-74296234/api/tutorial-categories", async (c) => {
       { id: 'workflow', name: 'Resources & Workflow', description: 'Productivity and workflow optimization' },
       { id: '2d-drafting', name: '2D Drafting & Docs', description: 'Technical drawings and documentation' },
     ];
-    
+
     return c.json({ categories: categories || defaultCategories });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -1559,7 +1561,7 @@ app.post("/make-server-74296234/storage/ensure-buckets", async (c) => {
 
     // List existing buckets
     const { data: existingBuckets, error: listError } = await supabase.storage.listBuckets();
-    
+
     if (listError) {
       return c.json({ error: `Failed to list buckets: ${listError.message}` }, 500);
     }
@@ -1595,7 +1597,7 @@ app.post("/make-server-74296234/storage/ensure-buckets", async (c) => {
       created,
       skipped,
       errors,
-      message: success 
+      message: success
         ? `All buckets ready (${created.length} created, ${skipped.length} already existed)`
         : `Some buckets failed to create: ${errors.join(', ')}`
     };
@@ -1660,7 +1662,7 @@ app.post("/make-server-74296234/api/admin/generate-tags", verifyAdminToken, asyn
 
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openaiKey) {
-      return c.json({ 
+      return c.json({
         error: 'OpenAI API key not configured. Please add your API key in the environment variables.',
         tags: []
       }, 400);
@@ -1710,7 +1712,7 @@ app.post("/make-server-74296234/api/admin/generate-tags", verifyAdminToken, asyn
 
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.text();
-      return c.json({ 
+      return c.json({
         error: `OpenAI API error: ${openaiResponse.status}`,
         details: errorData,
         tags: []
@@ -1719,7 +1721,7 @@ app.post("/make-server-74296234/api/admin/generate-tags", verifyAdminToken, asyn
 
     const openaiData = await openaiResponse.json();
     const content = openaiData.choices?.[0]?.message?.content || '';
-    
+
     // Extract JSON array from response
     let tags: string[] = [];
     try {
@@ -1747,7 +1749,7 @@ app.post("/make-server-74296234/api/admin/generate-tags", verifyAdminToken, asyn
 
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-    return c.json({ 
+    return c.json({
       error: errorMsg,
       tags: []
     }, 500);
@@ -2271,9 +2273,9 @@ app.get("/make-server-74296234/api/admin/categories", verifyAdminToken, async (c
     const portfolioCategories = await kv.get('categories_portfolio');
     const articlesCategories = await kv.get('categories_articles');
     const newsCategories = await kv.get('categories_news');
-    
-    return c.json({ 
-      success: true, 
+
+    return c.json({
+      success: true,
       categories: {
         portfolio: (portfolioCategories && portfolioCategories.length > 0) ? portfolioCategories : DEFAULT_PORTFOLIO_CATEGORIES,
         articles: (articlesCategories && articlesCategories.length > 0) ? articlesCategories : DEFAULT_ARTICLE_CATEGORIES,
@@ -2290,21 +2292,21 @@ app.post("/make-server-74296234/api/admin/categories/:type", verifyAdminToken, a
   try {
     const type = c.req.param('type');
     const category = await c.req.json();
-    
+
     if (!['portfolio', 'articles', 'news'].includes(type)) {
       return c.json({ success: false, error: 'Invalid category type' }, 400);
     }
-    
+
     // Load existing categories
     const key = `categories_${type}`;
     const categories = await kv.get(key) || [];
-    
+
     // Add new category
     categories.push(category);
-    
+
     // Save back to database
     await kv.set(key, categories);
-    
+
     return c.json({ success: true, category });
   } catch (err) {
     return c.json({ success: false, error: err instanceof Error ? err.message : 'Unknown error' }, 500);
@@ -2316,15 +2318,15 @@ app.put("/make-server-74296234/api/admin/categories/:type", verifyAdminToken, as
   try {
     const type = c.req.param('type');
     const category = await c.req.json();
-    
+
     if (!['portfolio', 'articles', 'news'].includes(type)) {
       return c.json({ success: false, error: 'Invalid category type' }, 400);
     }
-    
+
     // Load existing categories
     const key = `categories_${type}`;
     const categories = await kv.get(key) || [];
-    
+
     // Find and update the category
     const index = categories.findIndex((c: any) => c.id === category.id);
     if (index !== -1) {
@@ -2332,10 +2334,10 @@ app.put("/make-server-74296234/api/admin/categories/:type", verifyAdminToken, as
     } else {
       return c.json({ success: false, error: 'Category not found' }, 404);
     }
-    
+
     // Save back to database
     await kv.set(key, categories);
-    
+
     return c.json({ success: true, category });
   } catch (err) {
     return c.json({ success: false, error: err instanceof Error ? err.message : 'Unknown error' }, 500);
@@ -2347,21 +2349,21 @@ app.delete("/make-server-74296234/api/admin/categories/:type/:id", verifyAdminTo
   try {
     const type = c.req.param('type');
     const categoryId = c.req.param('id');
-    
+
     if (!['portfolio', 'articles', 'news'].includes(type)) {
       return c.json({ success: false, error: 'Invalid category type' }, 400);
     }
-    
+
     // Load existing categories
     const key = `categories_${type}`;
     const categories = await kv.get(key) || [];
-    
+
     // Filter out the category to delete
     const updatedCategories = categories.filter((c: any) => c.id !== categoryId);
-    
+
     // Save back to database
     await kv.set(key, updatedCategories);
-    
+
     return c.json({ success: true });
   } catch (err) {
     return c.json({ success: false, error: err instanceof Error ? err.message : 'Unknown error' }, 500);

@@ -160,75 +160,87 @@ export function RenderingEditor({
   return (
     <div className="space-y-8">
       {/* Header Info */}
-      <div className="bg-accent-brand/5 border border-accent-brand/20 p-4">
-        <p className="text-xs tracking-wider uppercase opacity-60 mb-2">Rendering & Visualization Template</p>
-        <p className="text-sm opacity-80">
-          Showcase high-fidelity renderings, 3D visualizations, and flythroughs.
+      <div className="bg-accent-brand/10 border-l-4 border-accent-brand p-6 rounded-r-lg">
+        <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
+          <Layers className="w-5 h-5" />
+          Rendering & Visualization Portfolio
+        </h3>
+        <p className="text-sm opacity-80 leading-relaxed mb-2">
+          Images first, narrative second. Add gallery images below to showcase your work.
+        </p>
+        <p className="text-xs opacity-60">
+          💡 Tip: Use 1-column layout for full-width impact. Group images into galleries (e.g., "Final Renders", "Process Shots").
         </p>
       </div>
 
-      {/* Client & Software */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs tracking-wider uppercase opacity-60 mb-2">
-            Client / Project Name
-          </label>
-          <input
-            type="text"
-            value={data.client || ''}
-            onChange={(e) => onChange({ ...data, client: e.target.value })}
-            placeholder="e.g., Architectural Client, Theater Company"
-            className="w-full px-4 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs tracking-wider uppercase opacity-60 mb-2">
-            Software Used
-          </label>
-          <div className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={softwareInput}
-              onChange={(e) => setSoftwareInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSoftware())}
-              placeholder="e.g. Cinema 4D, Vectorworks..."
-              className="flex-1 px-4 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none"
-            />
-            <button 
-              type="button"
-              onClick={addSoftware}
-              className="px-3 bg-secondary border border-border hover:bg-accent-brand hover:text-white transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {(data.softwareUsed || []).map((soft, i) => (
-              <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-secondary border border-border text-xs">
-                {soft}
-                <button type="button" onClick={() => removeSoftware(soft)} className="hover:text-destructive"><X className="w-3 h-3" /></button>
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Project Overview */}
-      <div className="mt-4">
-        <label className="block text-xs tracking-wider uppercase opacity-60 mb-2">
-          Project Overview (Narrative)
+      {/* NARRATIVE - Most Important */}
+      <div className="border-2 border-accent-brand/30 rounded-lg p-6 bg-accent-brand/5">
+        <label className="block text-sm font-medium mb-3 flex items-center gap-2">
+          <span className="text-accent-brand">★</span>
+          Project Narrative (Lead with Story)
         </label>
         <textarea
           value={data.projectOverview || ''}
           onChange={(e) => onChange({ ...data, projectOverview: e.target.value })}
-          placeholder="Describe the visualization goals, challenges, and narrative..."
-          rows={6}
-          className="w-full px-4 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none resize-none"
+          placeholder="Tell the story of this visualization... What was the vision? What challenges did you solve? What makes this work special? Write in a narrative voice that engages readers.\n\nExample: 'This project began with a simple question: how do you visualize a space that doesn\'t exist yet? Working closely with the architect, we developed a rendering approach that...'" 
+          rows={8}
+          className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:border-accent-brand focus:outline-none focus:ring-2 focus:ring-accent-brand/20 resize-none font-serif text-base leading-relaxed"
         />
+        <p className="text-xs opacity-50 mt-2">This appears prominently below the hero image. Make it compelling and personal.</p>
       </div>
 
-      {/* Process & Wireframes */}
+      {/* Technical Details - Secondary Info */}
+      <div className="border border-border rounded-lg p-6 bg-card">
+        <h4 className="text-sm font-medium opacity-60 mb-4 uppercase tracking-wide">Technical Details</h4>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs opacity-60 mb-2">
+              Client / Project Name
+            </label>
+            <input
+              type="text"
+              value={data.client || ''}
+              onChange={(e) => onChange({ ...data, client: e.target.value })}
+              placeholder="e.g., Architectural Client, Theater Company"
+              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:border-accent-brand focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs opacity-60 mb-2">
+              Software Used
+            </label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={softwareInput}
+                onChange={(e) => setSoftwareInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSoftware())}
+                placeholder="Cinema 4D, Vectorworks..."
+                className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:border-accent-brand focus:outline-none text-sm"
+              />
+              <button 
+                type="button"
+                onClick={addSoftware}
+                className="px-4 bg-accent-brand text-white rounded-lg hover:opacity-90 transition-opacity"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(data.softwareUsed || []).map((soft, i) => (
+                <span key={i} className="inline-flex items-center gap-2 px-3 py-1 bg-secondary border border-border rounded-full text-xs">
+                  {soft}
+                  <button type="button" onClick={() => removeSoftware(soft)} className="hover:text-destructive transition-colors">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="border-t border-border pt-6">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -295,28 +307,32 @@ export function RenderingEditor({
         </div>
       </div>
 
-      {/* Galleries Section */}
-      <div className="border-t border-border pt-6">
-        <div className="flex items-center justify-between mb-4">
+      {/* IMAGE GALLERIES - Visual Content First */}
+      <div className="border-t-2 border-border pt-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-sm tracking-wider uppercase opacity-60">Additional Galleries</h3>
-            <p className="text-xs opacity-40 mt-1">
-              Group extra images by phase (e.g., Final Renders, Details)
+            <h3 className="text-lg font-medium mb-1 flex items-center gap-2">
+              <ImageIcon className="w-5 h-5 text-accent-brand" />
+              Image Galleries
+            </h3>
+            <p className="text-sm opacity-60">
+              First image in first gallery becomes the hero image. Use 1-column for full-width impact.
             </p>
           </div>
           <button type="button"
             onClick={addGallery}
-            className="flex items-center gap-2 px-3 py-1.5 bg-accent-brand text-white hover:opacity-90 transition-opacity text-xs tracking-wider uppercase"
+            className="flex items-center gap-2 px-4 py-2 bg-accent-brand text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
           >
-            <Plus className="w-3 h-3" />
+            <Plus className="w-4 h-4" />
             Add Gallery
           </button>
         </div>
 
         {(!data.galleries || data.galleries.length === 0) && (
-          <div className="text-center py-8 border border-dashed border-border opacity-40">
-            <ImageIcon className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">No galleries yet.</p>
+          <div className="text-center py-16 border-2 border-dashed border-border rounded-lg bg-secondary/20">
+            <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-30" />
+            <p className="text-base font-medium mb-2">No galleries yet</p>
+            <p className="text-sm opacity-60 max-w-md mx-auto">Add your first gallery to showcase renders. The first image will be your hero image.</p>
           </div>
         )}
 

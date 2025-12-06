@@ -1,0 +1,133 @@
+﻿node.exe : 
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~
+    + CategoryInfo          : NotS 
+   pecified: (:String) [], Remote  
+  Exception
+    + FullyQualifiedErrorId : Nati 
+   veCommandError
+ 
+src/index.css
+   [2m426:3[22m   
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector 
+"::file-selector-button", first 
+used at line 239   
+[2mno-duplicate-selectors[22m
+   [2m460:3[22m   
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector 
+"::-webkit-datetime-edit", first 
+used at line 452  
+[2mno-duplicate-selectors[22m
+   [2m505:3[22m   
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector 
+"::file-selector-button", first 
+used at line 239   
+[2mno-duplicate-selectors[22m
+   [2m532:3[22m   
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector "body", first 
+used at line 257                   
+  [2mno-duplicate-selectors[22m
+   [2m537:3[22m   
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector "*", first used 
+at line 521                        
+[2mno-duplicate-selectors[22m
+   [2m563:3[22m   
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector "body", first 
+used at line 257                   
+  [2mno-duplicate-selectors[22m
+   [2m623:3[22m   
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector "*", first used 
+at line 521                        
+[2mno-duplicate-selectors[22m
+   [2m787:5[22m   
+[31m[31mΓ£û[39m  Unexpected 
+deprecated property "clip"         
+                                   
+[2mproperty-no-deprecated[22m
+  [2m2197:20[22m  
+[31m[31mΓ£û[39m  Expected 
+"3.40282e+38" to be "3.40282e+38"  
+                                   
+  [2mnumber-max-precision[22m
+  [2m2607:38[22m  
+[31m[31mΓ£û[39m  Expected 
+"-0.00817466" to be "-0.0082"      
+                                   
+  [2mnumber-max-precision[22m
+  [2m2607:49[22m  
+[31m[31mΓ£û[39m  Expected 
+"-0.0394435" to be "-0.0394"       
+                                   
+  [2mnumber-max-precision[22m
+  [2m2611:38[22m  
+[31m[31mΓ£û[39m  Expected 
+"-0.00817466" to be "-0.0082"      
+                                   
+  [2mnumber-max-precision[22m
+  [2m2611:49[22m  
+[31m[31mΓ£û[39m  Expected 
+"-0.0394435" to be "-0.0394"       
+                                   
+  [2mnumber-max-precision[22m
+  [2m8445:3[22m   
+[31m[31mΓ£û[39m  Unexpected 
+unknown property 
+"background-opacity"               
+                  
+[2mproperty-no-unknown[22m
+  [2m9026:1[22m   
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector 
+".font-display", first used at 
+line 7976           
+[2mno-duplicate-selectors[22m
+  [2m9030:1[22m   
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector ".font-pixel", 
+first used at line 7969            
+ [2mno-duplicate-selectors[22m
+
+src/styles/globals.css
+    [2m6:1[22m  
+[31m[31mΓ£û[39m  Unexpected 
+unknown at-rule "@custom-variant"  
+             
+[2mat-rule-no-unknown[22m
+  [2m104:3[22m  
+[31m[31mΓ£û[39m  Unexpected 
+duplicate "--accent-default"       
+             [2mdeclaration-block-
+no-duplicate-custom-properties[22m
+  [2m125:1[22m  
+[31m[31mΓ£û[39m  Unexpected 
+unknown at-rule "@theme"           
+             
+[2mat-rule-no-unknown[22m
+  [2m203:3[22m  
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector "*", first used 
+at line 162  
+[2mno-duplicate-selectors[22m
+  [2m240:3[22m  
+[31m[31mΓ£û[39m  Unexpected 
+duplicate selector "*", first used 
+at line 162  
+[2mno-duplicate-selectors[22m
+
+[31mΓ£û[39m 21 problems ([31m21 
+errors[39m, [33m0 warnings[39m)
+  1 error potentially fixable with 
+the "--fix" option.
+

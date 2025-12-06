@@ -1,6 +1,10 @@
-const { createClient } = require('@supabase/supabase-js');
-const fs = require('fs');
-const path = require('path');
+import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration
 const SITE_URL = 'https://brandonptdavis.com';
@@ -69,7 +73,7 @@ async function generateSitemap() {
     }
 
     const data = await response.json();
-    
+
     if (data.success && data.projects) {
       console.log(`   Found ${data.projects.length} projects.`);
       data.projects.forEach(project => {
@@ -93,7 +97,7 @@ async function generateSitemap() {
     const blogContent = fs.readFileSync(BLOG_DATA_PATH, 'utf8');
     const blogMatches = [...blogContent.matchAll(/id:\s*'([^']+)'/g)];
     console.log(`   Found ${blogMatches.length} blog posts.`);
-    
+
     blogMatches.forEach(match => {
       const slug = match[1];
       urls.push({

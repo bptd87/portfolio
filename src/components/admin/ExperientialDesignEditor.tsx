@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Plus, X, Trash2, ChevronUp, ChevronDown, Star } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
+import { ImprovedBlockEditor } from './ImprovedBlockEditor';
+import { ContentBlock } from './BlockEditor';
 
 interface KeyFeature {
   title: string;
@@ -29,43 +31,32 @@ interface Testimonial {
   role: string;
 }
 
-interface ContentBlock {
-  type: 'text' | 'image' | 'gallery' | 'heading' | 'youtube';
-  content?: string;
-  src?: string;
-  caption?: string;
-  images?: string[];
-  captions?: string[];
-  layout?: 'grid' | 'masonry';
-  videoId?: string;
-  title?: string;
-}
-
+// Local interfaces for Experiential specific structured data
 interface ExperientialProject {
   // Agency stats
   clientName?: string;
   role?: string;
   duration?: string;
-  
+
   // Main content
   challenge?: string;
   solution?: string;
-  
+
   // Key features
   keyFeatures?: KeyFeature[];
-  
+
   // Process timeline
   process?: ProcessStep[];
-  
+
   // Team
   team?: TeamMember[];
-  
+
   // Metrics
   metrics?: Metric[];
-  
+
   // Testimonial
   testimonial?: Testimonial;
-  
+
   // Additional content blocks
   content?: ContentBlock[];
 }
@@ -77,8 +68,8 @@ interface ExperientialDesignEditorProps {
   onSetCover?: (url: string) => void;
 }
 
-export function ExperientialDesignEditor({ 
-  data, 
+export function ExperientialDesignEditor({
+  data,
   onChange,
   currentCover,
   onSetCover,
@@ -86,8 +77,8 @@ export function ExperientialDesignEditor({
   const [expandedSections, setExpandedSections] = useState<string[]>(['stats', 'challenge']);
 
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => 
-      prev.includes(section) 
+    setExpandedSections(prev =>
+      prev.includes(section)
         ? prev.filter(s => s !== section)
         : [...prev, section]
     );
@@ -130,9 +121,9 @@ export function ExperientialDesignEditor({
   const moveProcessStep = (index: number, direction: 'up' | 'down') => {
     const newProcess = [...(data.process || [])];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    
+
     if (targetIndex < 0 || targetIndex >= newProcess.length) return;
-    
+
     [newProcess[index], newProcess[targetIndex]] = [newProcess[targetIndex], newProcess[index]];
     onChange({ ...data, process: newProcess });
   };
@@ -171,61 +162,6 @@ export function ExperientialDesignEditor({
     onChange({ ...data, metrics: newMetrics });
   };
 
-  // Content blocks handlers
-  const addContentBlock = (type: ContentBlock['type']) => {
-    const newBlock: ContentBlock = { type };
-    if (type === 'gallery') {
-      newBlock.images = [];
-      newBlock.captions = [];
-      newBlock.layout = 'grid';
-    }
-    const newContent = [...(data.content || []), newBlock];
-    onChange({ ...data, content: newContent });
-  };
-
-  const updateContentBlock = (index: number, updates: Partial<ContentBlock>) => {
-    const newContent = [...(data.content || [])];
-    newContent[index] = { ...newContent[index], ...updates };
-    onChange({ ...data, content: newContent });
-  };
-
-  const removeContentBlock = (index: number) => {
-    const newContent = (data.content || []).filter((_, i) => i !== index);
-    onChange({ ...data, content: newContent });
-  };
-
-  const addImageToGallery = (blockIndex: number) => {
-    const block = data.content?.[blockIndex];
-    if (block?.type === 'gallery') {
-      const newImages = [...(block.images || []), ''];
-      const newCaptions = [...(block.captions || []), ''];
-      updateContentBlock(blockIndex, { images: newImages, captions: newCaptions });
-    }
-  };
-
-  const updateGalleryImage = (blockIndex: number, imageIndex: number, field: 'url' | 'caption', value: string) => {
-    const block = data.content?.[blockIndex];
-    if (block?.type === 'gallery') {
-      if (field === 'url') {
-        const newImages = [...(block.images || [])];
-        newImages[imageIndex] = value;
-        updateContentBlock(blockIndex, { images: newImages });
-      } else {
-        const newCaptions = [...(block.captions || [])];
-        newCaptions[imageIndex] = value;
-        updateContentBlock(blockIndex, { captions: newCaptions });
-      }
-    }
-  };
-
-  const removeGalleryImage = (blockIndex: number, imageIndex: number) => {
-    const block = data.content?.[blockIndex];
-    if (block?.type === 'gallery') {
-      const newImages = (block.images || []).filter((_, i) => i !== imageIndex);
-      const newCaptions = (block.captions || []).filter((_, i) => i !== imageIndex);
-      updateContentBlock(blockIndex, { images: newImages, captions: newCaptions });
-    }
-  };
 
   return (
     <div className="space-y-8">
@@ -246,7 +182,7 @@ export function ExperientialDesignEditor({
           <span className="text-xs tracking-wider uppercase font-medium">Hero Stats (Client, Role, Timeline)</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('stats') ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {expandedSections.includes('stats') && (
           <div className="border border-t-0 border-accent-brand/20 p-4 space-y-4">
             <div className="grid grid-cols-3 gap-4">
@@ -294,7 +230,7 @@ export function ExperientialDesignEditor({
           <span className="text-xs tracking-wider uppercase font-medium">The Challenge</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('challenge') ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {expandedSections.includes('challenge') && (
           <div className="border border-t-0 border-accent-brand/20 p-4">
             <textarea
@@ -317,7 +253,7 @@ export function ExperientialDesignEditor({
           <span className="text-xs tracking-wider uppercase font-medium">Our Approach / Solution</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('solution') ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {expandedSections.includes('solution') && (
           <div className="border border-t-0 border-accent-brand/20 p-4">
             <textarea
@@ -340,7 +276,7 @@ export function ExperientialDesignEditor({
           <span className="text-xs tracking-wider uppercase font-medium">Key Features ({(data.keyFeatures || []).length})</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('features') ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {expandedSections.includes('features') && (
           <div className="border border-t-0 border-accent-brand/20 p-4 space-y-4">
             {(data.keyFeatures || []).map((feature, index) => (
@@ -390,7 +326,7 @@ export function ExperientialDesignEditor({
           <span className="text-xs tracking-wider uppercase font-medium">Process Timeline ({(data.process || []).length} steps)</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('process') ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {expandedSections.includes('process') && (
           <div className="border border-t-0 border-accent-brand/20 p-4 space-y-4">
             {(data.process || []).map((step, index) => (
@@ -466,7 +402,7 @@ export function ExperientialDesignEditor({
           <span className="text-xs tracking-wider uppercase font-medium">Team & Collaborators ({(data.team || []).length})</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('team') ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {expandedSections.includes('team') && (
           <div className="border border-t-0 border-accent-brand/20 p-4 space-y-3">
             {(data.team || []).map((member, index) => (
@@ -513,7 +449,7 @@ export function ExperientialDesignEditor({
           <span className="text-xs tracking-wider uppercase font-medium">Impact & Results Metrics ({(data.metrics || []).length})</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('metrics') ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {expandedSections.includes('metrics') && (
           <div className="border border-t-0 border-accent-brand/20 p-4 space-y-3">
             <p className="text-xs text-gray-400 mb-3">These display as large dramatic numbers with labels</p>
@@ -561,15 +497,15 @@ export function ExperientialDesignEditor({
           <span className="text-xs tracking-wider uppercase font-medium">Client Testimonial</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('testimonial') ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {expandedSections.includes('testimonial') && (
           <div className="border border-t-0 border-accent-brand/20 p-4 space-y-4">
             <div>
               <label className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Quote</label>
               <textarea
                 value={data.testimonial?.quote || ''}
-                onChange={(e) => onChange({ 
-                  ...data, 
+                onChange={(e) => onChange({
+                  ...data,
                   testimonial: { ...(data.testimonial || { quote: '', author: '', role: '' }), quote: e.target.value }
                 })}
                 placeholder="The testimonial quote (without quotation marks)"
@@ -583,8 +519,8 @@ export function ExperientialDesignEditor({
                 <input
                   type="text"
                   value={data.testimonial?.author || ''}
-                  onChange={(e) => onChange({ 
-                    ...data, 
+                  onChange={(e) => onChange({
+                    ...data,
                     testimonial: { ...(data.testimonial || { quote: '', author: '', role: '' }), author: e.target.value }
                   })}
                   placeholder="e.g., Jennifer Martinez"
@@ -596,8 +532,8 @@ export function ExperientialDesignEditor({
                 <input
                   type="text"
                   value={data.testimonial?.role || ''}
-                  onChange={(e) => onChange({ 
-                    ...data, 
+                  onChange={(e) => onChange({
+                    ...data,
                     testimonial: { ...(data.testimonial || { quote: '', author: '', role: '' }), role: e.target.value }
                   })}
                   placeholder="e.g., VP of Brand Experience"
@@ -618,161 +554,14 @@ export function ExperientialDesignEditor({
           <span className="text-xs tracking-wider uppercase font-medium">Additional Content Blocks ({(data.content || []).length})</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('content') ? 'rotate-180' : ''}`} />
         </button>
-        
+
         {expandedSections.includes('content') && (
-          <div className="border border-t-0 border-accent-brand/20 p-4 space-y-4">
-            <p className="text-xs text-gray-400 mb-3">Add headings, text, images, galleries, and videos</p>
-            
-            {/* Content blocks */}
-            {(data.content || []).map((block, blockIndex) => (
-              <div key={blockIndex} className="p-4 bg-background border border-border space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs tracking-wider uppercase opacity-60">{block.type}</span>
-                  <button type="button"
-                    onClick={() => removeContentBlock(blockIndex)}
-                    className="p-1 opacity-60 hover:opacity-100 hover:text-destructive transition-all"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {block.type === 'heading' && (
-                  <input
-                    type="text"
-                    value={block.content || ''}
-                    onChange={(e) => updateContentBlock(blockIndex, { content: e.target.value })}
-                    placeholder="Section heading (uppercase)"
-                    className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm"
-                  />
-                )}
-
-                {block.type === 'text' && (
-                  <textarea
-                    value={block.content || ''}
-                    onChange={(e) => updateContentBlock(blockIndex, { content: e.target.value })}
-                    placeholder="Text content. Use double line breaks for paragraphs."
-                    rows={4}
-                    className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none resize-none text-sm"
-                  />
-                )}
-
-                {block.type === 'image' && (
-                  <>
-                    <ImageUploader
-                      value={block.src || ''}
-                      onChange={(url) => updateContentBlock(blockIndex, { src: url })}
-                      label="Upload or drag image here"
-                    />
-                    <input
-                      type="text"
-                      value={block.caption || ''}
-                      onChange={(e) => updateContentBlock(blockIndex, { caption: e.target.value })}
-                      placeholder="Image caption (optional)"
-                      className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm"
-                    />
-                  </>
-                )}
-
-                {block.type === 'gallery' && (
-                  <>
-                    <div className="space-y-2">
-                      {(block.images || []).map((img, imgIndex) => (
-                        <div key={imgIndex} className="flex items-start gap-2">
-                          <div className="flex-1 space-y-2">
-                            <ImageUploader
-                              value={img}
-                              onChange={(url) => updateGalleryImage(blockIndex, imgIndex, 'url', url)}
-                              label={`Image ${imgIndex + 1}`}
-                            />
-                            <input
-                              type="text"
-                              value={block.captions?.[imgIndex] || ''}
-                              onChange={(e) => updateGalleryImage(blockIndex, imgIndex, 'caption', e.target.value)}
-                              placeholder="Caption"
-                              className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm"
-                            />
-                          </div>
-                          <button type="button"
-                            onClick={() => removeGalleryImage(blockIndex, imgIndex)}
-                            className="p-2 opacity-60 hover:opacity-100 hover:text-destructive transition-all mt-8"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <button type="button"
-                      onClick={() => addImageToGallery(blockIndex)}
-                      className="w-full flex items-center justify-center gap-2 p-2 border border-dashed border-border hover:border-accent-brand transition-colors text-xs"
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Image to Gallery
-                    </button>
-                    <select
-                      value={block.layout || 'grid'}
-                      onChange={(e) => updateContentBlock(blockIndex, { layout: e.target.value as 'grid' | 'masonry' })}
-                      className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm"
-                    >
-                      <option value="grid">Grid Layout</option>
-                      <option value="masonry">Masonry Layout</option>
-                    </select>
-                  </>
-                )}
-
-                {block.type === 'youtube' && (
-                  <>
-                    <input
-                      type="text"
-                      value={block.videoId || ''}
-                      onChange={(e) => updateContentBlock(blockIndex, { videoId: e.target.value })}
-                      placeholder="YouTube Video ID (e.g., dQw4w9WgXcQ)"
-                      className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm"
-                    />
-                    <input
-                      type="text"
-                      value={block.title || ''}
-                      onChange={(e) => updateContentBlock(blockIndex, { title: e.target.value })}
-                      placeholder="Video title (optional)"
-                      className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm"
-                    />
-                  </>
-                )}
-              </div>
-            ))}
-
-            {/* Add block buttons */}
-            <div className="grid grid-cols-5 gap-2">
-              <button type="button"
-                onClick={() => addContentBlock('heading')}
-                className="p-2 border border-dashed border-border hover:border-accent-brand transition-colors text-xs"
-              >
-                + Heading
-              </button>
-              <button type="button"
-                onClick={() => addContentBlock('text')}
-                className="p-2 border border-dashed border-border hover:border-accent-brand transition-colors text-xs"
-              >
-                + Text
-              </button>
-              <button type="button"
-                onClick={() => addContentBlock('image')}
-                className="p-2 border border-dashed border-border hover:border-accent-brand transition-colors text-xs"
-              >
-                + Image
-              </button>
-              <button type="button"
-                onClick={() => addContentBlock('gallery')}
-                className="p-2 border border-dashed border-border hover:border-accent-brand transition-colors text-xs"
-              >
-                + Gallery
-              </button>
-              <button type="button"
-                onClick={() => addContentBlock('youtube')}
-                className="p-2 border border-dashed border-border hover:border-accent-brand transition-colors text-xs"
-              >
-                + YouTube
-              </button>
-            </div>
+          <div className="border border-t-0 border-accent-brand/20 p-4 min-h-[500px]">
+            {/* Rich Block Editor */}
+            <ImprovedBlockEditor
+              blocks={data.content || []}
+              onChange={(newBlocks) => onChange({ ...data, content: newBlocks })}
+            />
           </div>
         )}
       </div>

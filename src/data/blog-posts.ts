@@ -224,7 +224,7 @@ export const blogPosts: BlogPost[] = [
 
 // Helper functions with memoization for performance
 let _featuredPostsCache: BlogPost[] | null = null;
-let _recentPostsCache: Map<number, BlogPost[]> = new Map();
+const _recentPostsCache: Map<number, BlogPost[]> = new Map();
 let _sortedPosts: BlogPost[] | null = null;
 
 const getSortedPosts = () => {

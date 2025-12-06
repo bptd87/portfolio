@@ -7,6 +7,7 @@ import { LikeButton } from '../components/shared/LikeButton';
 import { ShareButton } from '../components/shared/ShareButton';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { ContentRenderer } from '../components/shared/ContentRenderer';
 
 interface ExperientialProjectDetailProps {
   slug: string;
@@ -28,7 +29,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
     if (!project) return [];
     const heroImages = project.process?.filter((step: any) => step.image).map((step: any) => step.image) || [];
     const images = [...heroImages];
-    
+
     // Add images from content blocks
     project.experientialContent?.forEach((block: any) => {
       if (block.type === 'image' && block.src) {
@@ -50,7 +51,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
   // Carousel auto-advance
   useEffect(() => {
     if (displayImages.length <= 1) return;
-    
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % displayImages.length);
     }, 4000);
@@ -76,7 +77,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
 
       if (!response.ok) throw new Error('Failed to fetch project');
       const data = await response.json();
-      
+
       if (!data.success || !data.project) throw new Error('Invalid project data');
       setProject(data.project);
       setViews(data.project.views || 0);
@@ -109,7 +110,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
         const allProjects = allProjectsData.success ? allProjectsData.projects : [];
         const sameCategory = allProjects.filter((p: any) => p.category === 'Experiential Design');
         const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
-        
+
         if (currentIndex > -1) {
           const nextIndex = (currentIndex + 1) % sameCategory.length;
           const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
@@ -118,7 +119,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
         }
       }
     } catch (error) {
-      } finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -157,7 +158,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
 
   return (
     <>
-      <SEO 
+      <SEO
         metadata={{
           title: project.seoTitle || `${project.title} - Experiential Design | Brandon PT Davis`,
           description: project.seoDescription || project.description,
@@ -189,7 +190,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
                 />
               </motion.div>
             </AnimatePresence>
-            
+
             {/* Navigation Arrows */}
             {displayImages.length > 1 && (
               <>
@@ -217,11 +218,10 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
                   <button
                     key={index}
                     onClick={() => setCurrentIndex(index)}
-                    className={`h-1 rounded-full transition-all duration-300 ${
-                      index === currentIndex 
-                        ? 'bg-white w-8' 
+                    className={`h-1 rounded-full transition-all duration-300 ${index === currentIndex
+                        ? 'bg-white w-8'
                         : 'bg-white/30 w-2 hover:bg-white/50'
-                    }`}
+                      }`}
                     aria-label={`Go to image ${index + 1}`}
                   />
                 ))}
@@ -281,7 +281,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
             {/* Engagement Stats */}
             <div className="flex items-center gap-8 mt-12">
               <LikeButton projectId={project.id} />
-              <ShareButton 
+              <ShareButton
                 url={`${window.location.origin}/portfolio/${project.slug}`}
                 title={project.title}
               />
@@ -415,65 +415,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
           {/* Additional Content Blocks */}
           {project.experientialContent && project.experientialContent.length > 0 && (
             <section className="mb-24 md:mb-32">
-              {project.experientialContent.map((block: any, index: number) => {
-                if (block.type === 'heading') {
-                  return (
-                    <h2 key={index} className="font-pixel text-xs tracking-[0.3em] text-white/40 mb-12 uppercase mt-20 text-center">
-                      {block.content}
-                    </h2>
-                  );
-                }
-                if (block.type === 'text') {
-                  return (
-                    <div key={index} className="prose prose-invert prose-lg max-w-none mb-12">
-                      {block.content.split('\n\n').map((paragraph: string, pIndex: number) => (
-                        <p key={pIndex} className="text-neutral-400 leading-relaxed mb-6 text-justify font-light">
-                          {paragraph}
-                        </p>
-                      ))}
-                    </div>
-                  );
-                }
-                if (block.type === 'image') {
-                  return (
-                    <div key={index} className="mb-16 rounded-3xl overflow-hidden border border-white/10">
-                      <ImageWithFallback
-                        src={block.src}
-                        alt={block.caption || ''}
-                        className="w-full h-auto"
-                      />
-                      {block.caption && (
-                        <p className="text-sm text-neutral-500 mt-4 text-center font-display italic">{block.caption}</p>
-                      )}
-                    </div>
-                  );
-                }
-                if (block.type === 'gallery' && block.images) {
-                  return (
-                    <div key={index} className={`grid ${block.layout === 'grid' ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'} gap-6 mb-16`}>
-                      {block.images.map((image: string, imgIndex: number) => (
-                        <div 
-                          key={imgIndex} 
-                          className="cursor-pointer rounded-3xl overflow-hidden border border-white/10 group" 
-                          onClick={() => setSelectedPhoto(allImages.indexOf(image))}
-                        >
-                          <div className="overflow-hidden">
-                            <ImageWithFallback
-                              src={image}
-                              alt={block.captions?.[imgIndex] || ''}
-                              className="w-full h-auto transition-transform duration-500 group-hover:scale-105"
-                            />
-                          </div>
-                          {block.captions?.[imgIndex] && (
-                            <p className="p-4 text-sm text-neutral-500 font-display italic bg-neutral-900/50">{block.captions[imgIndex]}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  );
-                }
-                return null;
-              })}
+              <ContentRenderer blocks={project.experientialContent} />
             </section>
           )}
 

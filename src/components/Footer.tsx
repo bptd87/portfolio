@@ -9,7 +9,7 @@ export function Footer({ onNavigate }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-foreground dark:bg-black text-background dark:text-white relative overflow-hidden">
+    <footer className="bg-background dark:bg-foreground text-foreground dark:text-background relative overflow-hidden">
       {/* Subtle Grid Pattern */}
       <div
         className="absolute inset-0 opacity-5 dark:opacity-10"
@@ -35,7 +35,7 @@ export function Footer({ onNavigate }: FooterProps) {
             {/* Search Bar */}
             <button
               onClick={() => onNavigate('search')}
-              className="group flex items-center gap-3 w-full max-w-xs mb-6 px-4 py-3 rounded-full border border-current/20 hover:border-current/40 bg-current/5 hover:bg-current/10 transition-all"
+              className="group relative flex items-center gap-3 w-full max-w-xs mb-6 px-4 py-3 rounded-full border border-current/20 hover:border-current/40 bg-background dark:bg-foreground hover:bg-current/10 transition-all z-10"
             >
               <Search className="w-4 h-4 opacity-40 group-hover:opacity-60 transition-opacity" />
               <span className="font-sans text-sm opacity-40 group-hover:opacity-60 transition-opacity">Search the site...</span>

@@ -5,7 +5,7 @@ import { ImageGalleryManager, ImageUploader } from './ImageUploader';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { RichTextEditor } from './RichTextEditor';
 
-export type BlockType = 'paragraph' | 'heading' | 'image' | 'quote' | 'list' | 'code' | 'gallery' | 'spacer' | 'video' | 'accordion' | 'file' | 'divider';
+export type BlockType = 'paragraph' | 'heading' | 'image' | 'quote' | 'list' | 'code' | 'gallery' | 'spacer' | 'video' | 'accordion' | 'file' | 'divider' | 'callout';
 
 export interface ContentBlock {
   id: string;
@@ -18,6 +18,8 @@ export interface ContentBlock {
     fileType?: string; // for file blocks
     alt?: string; // for images
     caption?: string; // for images
+    align?: 'left' | 'center' | 'right' | 'full'; // for images
+    size?: 'small' | 'medium' | 'large' | 'full'; // for images
     listType?: 'bullet' | 'numbered'; // for lists
     language?: string; // for code blocks
     images?: Array<{ url: string; caption?: string }>; // for gallery
@@ -26,6 +28,7 @@ export interface ContentBlock {
     height?: string; // for spacer ('small' | 'medium' | 'large')
     videoType?: 'youtube' | 'vimeo' | 'custom'; // for video
     items?: Array<{ question: string; answer: string }>; // for accordion
+    calloutType?: 'info' | 'warning' | 'success' | 'error'; // for callout
   };
 }
 

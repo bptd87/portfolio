@@ -290,7 +290,7 @@ export const newsItems: NewsItem[] = [
 
 // Helper functions with memoization for performance
 let _sortedNews: NewsItem[] | null = null;
-let _recentNewsCache: Map<number, NewsItem[]> = new Map();
+const _recentNewsCache: Map<number, NewsItem[]> = new Map();
 
 const getSortedNews = () => {
   if (!_sortedNews) {

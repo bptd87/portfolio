@@ -1,3 +1,4 @@
+/* stylelint-disable */
 /* Nothing-Inspired Design System for Brandon PT Davis */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
@@ -10,68 +11,94 @@
      BRANDON PT DAVIS — NOTHING-INSPIRED SYSTEM
      Modern • Bold • Image-First
      ============================================ */
-  
+
   /* Typography */
-  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'DM Sans', -apple-system, blinkmacsystemfont, sans-serif;
   --font-pixel: 'VT323', monospace;
   --font-display: 'Playfair Display', serif;
   --font-size: 16px;
-  
+
   /* Light Mode Colors */
-  --background: #ffffff;
-  --foreground: #000000;
-  --card: #ffffff;
-  --card-foreground: #000000;
-  
+  --background: #fff;
+  --foreground: #000;
+  --card: #fff;
+  --card-foreground: #000;
+
   /* Primary: Pure Black */
-  --primary: #000000;
-  --primary-foreground: #ffffff;
-  
+  --primary: #000;
+  --primary-foreground: #fff;
+
   /* Secondary: Light Gray */
   --secondary: #f5f5f5;
-  --secondary-foreground: #000000;
-  
+  --secondary-foreground: #000;
+
   /* Section-Based Accent Colors - Light Mode */
-  --accent-scenic: #2563eb;        /* Deep Blue */
-  --accent-rendering: #9333ea;     /* Purple */
-  --accent-experiential: #f59e0b;  /* Amber */
-  --accent-news: #10b981;          /* Green */
-  --accent-app: #06b6d4;           /* Cyan */
-  --accent-default: #ef4444;       /* Red (Nothing's signature color) */
-  --accent-brand: #d97706;         /* Amber-600 (Brand accent) */
-  
+  --accent-scenic: #2563eb;
+
+  /* Deep Blue */
+  --accent-rendering: #9333ea;
+
+  /* Purple */
+  --accent-experiential: #f59e0b;
+
+  /* Amber */
+  --accent-news: #10b981;
+
+  /* Green */
+  --accent-app: #06b6d4;
+
+  /* Cyan */
+  --accent-default: #ef4444;
+
+  /* Red (Nothing's signature color) */
+  --accent-brand: #d97706;
+
+  /* Amber-600 (Brand accent) */
+
   /* Muted States */
   --muted: #f5f5f5;
   --muted-foreground: #737373;
-  
+
   /* Accent */
   --accent: #fafafa;
-  --accent-foreground: #000000;
-  
+  --accent-foreground: #000;
+
   /* Destructive */
   --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  
+  --destructive-foreground: #fff;
+
   /* Borders & Inputs */
-  --border: rgba(0, 0, 0, 0.08);
+  --border: rgb(0 0 0 / 8%);
   --input: transparent;
   --input-background: #fafafa;
-  --ring: rgba(0, 0, 0, 0.2);
-  
+  --ring: rgb(0 0 0 / 20%);
+
   /* Border Radius - Mostly sharp with subtle rounding */
   --radius: 0px;
   --radius-sm: 2px;
   --radius-md: 4px;
   --radius-lg: 8px;
-  
+
   /* Spacing System - 4px base grid */
-  --space-xs: 0.5rem;    /* 8px */
-  --space-sm: 1rem;      /* 16px */
-  --space-md: 1.5rem;    /* 24px */
-  --space-lg: 3rem;      /* 48px */
-  --space-xl: 6rem;      /* 96px */
-  --space-2xl: 9rem;     /* 144px */
-  
+  --space-xs: 0.5rem;
+
+  /* 8px */
+  --space-sm: 1rem;
+
+  /* 16px */
+  --space-md: 1.5rem;
+
+  /* 24px */
+  --space-lg: 3rem;
+
+  /* 48px */
+  --space-xl: 6rem;
+
+  /* 96px */
+  --space-2xl: 9rem;
+
+  /* 144px */
+
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -81,45 +108,59 @@
 .dark {
   /* Dark Mode Colors */
   --background: #0a0a0a;
-  --foreground: #ffffff;
+  --foreground: #fff;
   --card: #0a0a0a;
-  --card-foreground: #ffffff;
-  
+  --card-foreground: #fff;
+
   /* Primary: Pure White */
-  --primary: #ffffff;
-  --primary-foreground: #000000;
-  
+  --primary: #fff;
+  --primary-foreground: #000;
+
   /* Secondary: Dark Gray */
   --secondary: #171717;
-  --secondary-foreground: #ffffff;
-  
+  --secondary-foreground: #fff;
+
   /* Section-Based Accent Colors - Dark Mode (brighter) */
-  --accent-scenic: #3b82f6;        /* Bright Blue */
-  --accent-rendering: #a855f7;     /* Bright Purple */
-  --accent-experiential: #fbbf24;  /* Bright Amber */
-  --accent-news: #34d399;          /* Bright Green */
-  --accent-app: #22d3ee;           /* Bright Cyan */
-  --accent-default: #f87171;       /* Bright Red */
-  --accent-brand: #f59e0b;         /* Amber-500 (Brand accent - brighter) */
-  --accent-default: #f87171;       /* Bright Red */
-  
+  --accent-scenic: #3b82f6;
+
+  /* Bright Blue */
+  --accent-rendering: #a855f7;
+
+  /* Bright Purple */
+  --accent-experiential: #fbbf24;
+
+  /* Bright Amber */
+  --accent-news: #34d399;
+
+  /* Bright Green */
+  --accent-app: #22d3ee;
+
+  /* Bright Cyan */
+  --accent-default: #f87171;
+
+  /* Bright Red */
+  --accent-brand: #f59e0b;
+
+  /* Amber-500 (Brand accent - brighter) */
+
+
   /* Muted States */
   --muted: #171717;
   --muted-foreground: #a3a3a3;
-  
+
   /* Accent */
   --accent: #262626;
-  --accent-foreground: #ffffff;
-  
+  --accent-foreground: #fff;
+
   /* Destructive */
   --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  
+  --destructive-foreground: #fff;
+
   /* Borders & Inputs */
-  --border: rgba(255, 255, 255, 0.08);
+  --border: rgb(255 255 255 / 8%);
   --input: transparent;
   --input-background: #171717;
-  --ring: rgba(255, 255, 255, 0.2);
+  --ring: rgb(255 255 255 / 20%);
 }
 
 @theme inline {
@@ -141,7 +182,7 @@
   --color-input: var(--input);
   --color-input-background: var(--input-background);
   --color-ring: var(--ring);
-  
+
   /* Section Accent Colors */
   --color-accent-scenic: var(--accent-scenic);
   --color-accent-rendering: var(--accent-rendering);
@@ -150,7 +191,7 @@
   --color-accent-app: var(--accent-app);
   --color-accent-default: var(--accent-default);
   --color-accent-brand: var(--accent-brand);
-  
+
   /* Border Radius Scale */
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -161,12 +202,18 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+
+    @supports (scrollbar-gutter: auto) {
+      scrollbar-gutter: auto !important;
+    }
   }
 
-  html, body {
+  html,
+  body {
     overflow-x: hidden;
     width: 100%;
     max-width: 100%;
@@ -178,16 +225,19 @@
 
   body {
     @apply bg-background text-foreground;
+
     font-family: var(--font-sans);
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    min-height: 100vh;
+    text-rendering: optimizelegibility;
+    /* stylelint-disable */
     min-height: -webkit-fill-available;
+    min-height: 100vh;
+    /* stylelint-enable */
     overflow-y: auto;
   }
-  
+
   #root {
     overflow-x: hidden;
     width: 100%;
@@ -198,10 +248,8 @@
   }
 
   /* Remove all scrollbar gutters */
-  * {
-    scrollbar-gutter: auto !important;
-  }
-  
+
+
   /* Webkit browsers - make scrollbar overlay and transparent */
   ::-webkit-scrollbar {
     width: 14px;
@@ -213,73 +261,93 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgb(255 255 255 / 30%);
     border-radius: 10px;
     border: 3px solid transparent;
     background-clip: padding-box;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgb(255 255 255 / 50%);
     background-clip: padding-box;
   }
 
   .dark ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgb(255 255 255 / 40%);
     background-clip: padding-box;
   }
 
   .dark ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgb(255 255 255 / 60%);
     background-clip: padding-box;
   }
 
   /* Firefox - thin scrollbar */
   * {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    @supports (scrollbar-width: thin) {
+      scrollbar-width: thin;
+      scrollbar-color: rgb(255 255 255 / 30%) transparent;
+    }
   }
-  
+
   .dark * {
-    scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+    @supports (scrollbar-width: thin) {
+      scrollbar-color: rgb(255 255 255 / 40%) transparent;
+    }
   }
-  
+
   /* Prevent images from causing horizontal overflow */
-  img, picture, video, canvas, svg {
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
     max-width: 100%;
     height: auto;
   }
-  
+
   /* Fix for admin panel - ensure text is always visible */
   .bg-card {
     background-color: var(--card) !important;
     color: var(--card-foreground) !important;
   }
-  
+
   .text-foreground {
     color: var(--foreground) !important;
   }
-  
+
   .text-background {
     color: var(--background) !important;
   }
-  
+
   .border-border {
     border-color: var(--border) !important;
   }
-  
+
   .bg-foreground {
     background-color: var(--foreground) !important;
   }
-  
+
   .bg-background {
     background-color: var(--background) !important;
   }
-  
+
   /* Default to DM Sans */
-  h1, h2, h3, h4, h5, h6,
-  button, input, label, select, textarea,
-  p, a, span, div {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  button,
+  input,
+  label,
+  select,
+  textarea,
+  p,
+  a,
+  span,
+  div {
     font-family: var(--font-sans);
   }
 }
@@ -288,7 +356,8 @@
  * Typography Hierarchy - DM Sans
  */
 @layer base {
-  :where(:not(:has([class*=" text-\"])):not(:has([class^="text-\"]))) {
+  :where(:not(:has([class*=" text-"]), :has([class^="text-"]))) {
+
     /* H1 - Hero Headlines */
     h1 {
       font-size: clamp(2.5rem, 8vw, 6rem);
@@ -363,7 +432,9 @@
     }
 
     /* Form Elements */
-    input, textarea, select {
+    input,
+    textarea,
+    select {
       font-size: 0.9375rem;
       font-weight: 400;
       line-height: 1.5;
@@ -375,16 +446,22 @@
 html {
   font-size: var(--font-size);
   scroll-behavior: smooth;
+
   /* Modern thin scrollbar for Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  @supports (scrollbar-width: thin) {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(0 0 0 / 20%) transparent;
+  }
 }
 
 .dark html {
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  @supports (scrollbar-width: thin) {
+    scrollbar-color: rgb(255 255 255 / 20%) transparent;
+  }
 }
 
 /* Thin scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+/* stylelint-disable property-no-vendor-prefix */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -395,20 +472,20 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgb(0 0 0 / 20%);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgb(0 0 0 / 30%);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(255 255 255 / 20%);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgb(255 255 255 / 30%);
 }
 
 /* ============================================
@@ -436,49 +513,50 @@ html {
    ============================================ */
 
 @layer utilities {
+
   /* Scenic Design - Blue */
   .accent-scenic {
     --section-accent: var(--accent-scenic);
   }
-  
+
   /* Rendering - Purple */
   .accent-rendering {
     --section-accent: var(--accent-rendering);
   }
-  
+
   /* Experiential - Amber */
   .accent-experiential {
     --section-accent: var(--accent-experiential);
   }
-  
+
   /* News - Green */
   .accent-news {
     --section-accent: var(--accent-news);
   }
-  
+
   /* App Studio - Cyan */
   .accent-app {
     --section-accent: var(--accent-app);
   }
-  
+
   /* Default - Red */
   .accent-default {
     --section-accent: var(--accent-default);
   }
-  
+
   /* Apply section accent to elements */
   .text-section-accent {
     color: var(--section-accent, var(--accent-default)) !important;
   }
-  
+
   .bg-section-accent {
     background-color: var(--section-accent, var(--accent-default)) !important;
   }
-  
+
   .border-section-accent {
     border-color: var(--section-accent, var(--accent-default)) !important;
   }
-  
+
   .ring-section-accent {
     --tw-ring-color: var(--section-accent, var(--accent-default)) !important;
   }
@@ -499,11 +577,9 @@ html {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.3) 100%
-  );
+  background: linear-gradient(180deg,
+      transparent 0%,
+      rgb(0 0 0 / 30%) 100%);
   opacity: 0;
   transition: opacity var(--transition-base);
   pointer-events: none;
@@ -514,11 +590,9 @@ html {
 }
 
 .dark .img-overlay::after {
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.6) 100%
-  );
+  background: linear-gradient(180deg,
+      transparent 0%,
+      rgb(0 0 0 / 60%) 100%);
 }
 
 /* Image zoom on hover */
@@ -535,43 +609,43 @@ html {
    ============================================ */
 
 .depth-sm {
-  box-shadow: 
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 2px 4px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 4%),
+    0 2px 4px rgb(0 0 0 / 2%);
 }
 
 .dark .depth-sm {
-  box-shadow: 
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 30%),
+    0 2px 4px rgb(0 0 0 / 20%);
 }
 
 .depth-md {
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.05),
-    0 4px 12px rgba(0, 0, 0, 0.04),
-    0 8px 24px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 5%),
+    0 4px 12px rgb(0 0 0 / 4%),
+    0 8px 24px rgb(0 0 0 / 2%);
 }
 
 .dark .depth-md {
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.4),
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 40%),
+    0 4px 12px rgb(0 0 0 / 30%),
+    0 8px 24px rgb(0 0 0 / 20%);
 }
 
 .depth-lg {
-  box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.06),
-    0 12px 32px rgba(0, 0, 0, 0.08),
-    0 24px 64px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 4px 8px rgb(0 0 0 / 6%),
+    0 12px 32px rgb(0 0 0 / 8%),
+    0 24px 64px rgb(0 0 0 / 4%);
 }
 
 .dark .depth-lg {
-  box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.5),
-    0 12px 32px rgba(0, 0, 0, 0.4),
-    0 24px 64px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 4px 8px rgb(0 0 0 / 50%),
+    0 12px 32px rgb(0 0 0 / 40%),
+    0 24px 64px rgb(0 0 0 / 30%);
 }
 
 /* ============================================
@@ -599,27 +673,27 @@ html {
    ============================================ */
 
 .glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px) saturate(180%);
+  background: rgb(255 255 255 / 80%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--border);
 }
 
 .dark .glass {
-  background: rgba(10, 10, 10, 0.8);
+  background: rgb(10 10 10 / 80%);
   border: 1px solid var(--border);
 }
 
 .glass-dark {
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
+  background: rgb(0 0 0 / 70%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgb(255 255 255 / 10%);
 }
 
 .dark .glass-dark {
-  background: rgba(0, 0, 0, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(0 0 0 / 80%);
+  border: 1px solid rgb(255 255 255 / 10%);
 }
 
 /* ============================================
@@ -631,6 +705,7 @@ html {
     opacity: 0;
     transform: translateY(24px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -638,8 +713,13 @@ html {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slide-in-left {
@@ -647,6 +727,7 @@ html {
     opacity: 0;
     transform: translateX(-24px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -658,6 +739,7 @@ html {
     opacity: 0;
     transform: translateX(24px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -685,6 +767,7 @@ html {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
@@ -699,6 +782,7 @@ html {
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -759,7 +843,8 @@ html {
   line-height: 1.4;
 }
 
-.article-content ul, .article-content ol {
+.article-content ul,
+.article-content ol {
   margin: 1.75rem 0;
   padding-left: 1.5rem;
 }
@@ -785,7 +870,7 @@ html {
 }
 
 .article-content code {
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-family: 'SF Mono', Monaco, Inconsolata, monospace;
   font-size: 0.9em;
   padding: 0.2em 0.4em;
   background: var(--secondary);
@@ -823,18 +908,18 @@ html {
    RESPONSIVE SPACING
    ============================================ */
 
-@media (max-width: 768px) {
+@media (width <=768px) {
   :root {
     --space-lg: 2.5rem;
     --space-xl: 4rem;
     --space-2xl: 6rem;
   }
-  
+
   .article-content h2 {
     font-size: 1.625rem;
     margin-top: 3rem;
   }
-  
+
   .article-content h3 {
     font-size: 1.375rem;
     margin-top: 2.5rem;
@@ -914,7 +999,7 @@ html {
 }
 
 .rich-content code {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgb(0 0 0 / 5%);
   padding: 0.2em 0.4em;
   border-radius: var(--radius-sm);
   font-family: 'Courier New', monospace;
@@ -935,7 +1020,7 @@ html {
   font-family: var(--font-sans);
 }
 
-.prose-custom > * + * {
+.prose-custom>*+* {
   margin-top: 1.5rem;
 }
 
@@ -1020,7 +1105,7 @@ html {
   opacity: 0.88;
 }
 
-@media (max-width: 768px) {
+@media (width <=768px) {
   .prose-custom h2 {
     font-size: 1.625rem;
     margin-top: 3rem;
@@ -1049,13 +1134,13 @@ html {
   bottom: -40px;
 }
 
-.carousel-gallery .slick-dots li button:before {
+.carousel-gallery .slick-dots li button::before {
   color: var(--foreground);
   opacity: 0.25;
   font-size: 8px;
 }
 
-.carousel-gallery .slick-dots li.slick-active button:before {
+.carousel-gallery .slick-dots li.slick-active button::before {
   color: var(--accent-default);
   opacity: 1;
 }
@@ -1075,20 +1160,20 @@ html {
   right: 20px;
 }
 
-.carousel-gallery .slick-prev:before,
-.carousel-gallery .slick-next:before {
+.carousel-gallery .slick-prev::before,
+.carousel-gallery .slick-next::before {
   font-size: 48px;
   color: var(--foreground);
   opacity: 0.5;
   transition: opacity var(--transition-base);
 }
 
-.carousel-gallery .slick-prev:hover:before,
-.carousel-gallery .slick-next:hover:before {
+.carousel-gallery .slick-prev:hover::before,
+.carousel-gallery .slick-next:hover::before {
   opacity: 1;
 }
 
-.dark .carousel-gallery .slick-prev:before,
-.dark .carousel-gallery .slick-next:before {
+.dark .carousel-gallery .slick-prev::before,
+.dark .carousel-gallery .slick-next::before {
   color: var(--foreground);
 }

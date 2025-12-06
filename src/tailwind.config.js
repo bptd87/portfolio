@@ -68,6 +68,8 @@ export default {
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         serif: ['var(--font-serif)', 'Georgia', 'serif'],
+        display: ['Playfair Display', 'serif'],
+        pixel: ['VT323', 'monospace'],
       },
     },
   },

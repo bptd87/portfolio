@@ -515,7 +515,7 @@ export const projects: Project[] = [
 
 // Helper functions with memoization for performance
 let _featuredCache: Project[] | null = null;
-let _recentCache: Map<number, Project[]> = new Map();
+const _recentCache: Map<number, Project[]> = new Map();
 
 export const getFeaturedProjects = () => {
   if (!_featuredCache) {

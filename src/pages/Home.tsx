@@ -1,11 +1,22 @@
+/* eslint-disable react/forbid-dom-props */
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown, BookOpen, Wrench } from 'lucide-react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { API_BASE_URL, API_BASE_URL_ALT } from '../utils/api';
+// ImageWithFallback removed (unused)
+import { API_BASE_URL } from '../utils/api';
 import { publicAnonKey } from '../utils/supabase/info';
+import heroPattern from '../assets/b3f1f9dfbb66813f626ca74d8c8b4acc67e7bdd8.png';
+
 import { useSiteSettings } from '../hooks/useSiteSettings';
+import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import heroPattern from 'figma:asset/b3f1f9dfbb66813f626ca74d8c8b4acc67e7bdd8.png';
+import { RevealText, FadeInUp, ParallaxImage } from '../components/shared/Motion';
+
+const heroStyle: React.CSSProperties = {
+  backgroundImage: `url(${heroPattern})`,
+  backgroundRepeat: 'repeat-x',
+  backgroundSize: 'auto 100%',
+  left: 0,
+};
 
 interface HomeProps {
   onNavigate?: (page: string) => void;
@@ -66,30 +77,26 @@ export function Home({ onNavigate }: HomeProps) {
         const projectsResponse = await fetch(`${API_BASE_URL}/api/projects`, {
           headers: { 'Authorization': `Bearer ${publicAnonKey}` }
         });
-        
+
         if (!projectsResponse.ok) {
           const errorText = await projectsResponse.text();
           throw new Error(`Projects API returned ${projectsResponse.status}: ${errorText}`);
         }
-        
+
         const projectsResult = await projectsResponse.json();
         if (projectsResult.success && projectsResult.projects && projectsResult.projects.length > 0) {
           // Filter for featured projects only AND published projects
           const featuredProjectsData = projectsResult.projects.filter((project: any) => project.featured === true && project.published !== false);
-          const projectsArray = featuredProjectsData.sort((a, b) => {
+          const projectsArray = featuredProjectsData.sort((a: any, b: any) => {
             // Sort by date if available, otherwise by title
             if (a.year && b.year) {
               return parseInt(b.year) - parseInt(a.year);
             }
             return (a.title || '').localeCompare(b.title || '');
           });
-          
-          if (projectsArray.length > 0) {
-            }
-          // Take up to 8 featured projects for the frame-to-frame experience
+
           setFeaturedProjects(projectsArray.slice(0, 8));
-        } else {
-          }
+        }
 
         // Fetch latest news from API instead of KV store
         const newsResponse = await fetch(`${API_BASE_URL}/api/news`, {
@@ -97,15 +104,14 @@ export function Home({ onNavigate }: HomeProps) {
         });
         const newsResult = await newsResponse.json();
         if (newsResult.success && newsResult.news && newsResult.news.length > 0) {
-          const newsArray = newsResult.news.sort((a, b) => {
+          const newsArray = newsResult.news.sort((a: any, b: any) => {
             // Sort by date, most recent first
             return new Date(b.date).getTime() - new Date(a.date).getTime();
           });
-          
+
           // Take most recent 5 news items for the carousel
           setLatestNews(newsArray.slice(0, 5));
-        } else {
-          }
+        }
 
         // Fetch collaborators for marquee
         try {
@@ -116,7 +122,7 @@ export function Home({ onNavigate }: HomeProps) {
           if (collabResult.collaborators && collabResult.collaborators.length > 0) {
             const names = collabResult.collaborators.map((c: any) => c.name);
             setCollaborators(names);
-            }
+          }
         } catch (collabError) {
           setCollaborators([
             'South Coast Repertory',
@@ -129,12 +135,25 @@ export function Home({ onNavigate }: HomeProps) {
           ]);
         }
       } catch (error) {
-        } finally {
+      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
+
+  }, []);
+
+  // Scroll locking is now handled by App.tsx wrapper class
+
+  const [showScrollbar, setShowScrollbar] = useState(false);
+
+  useEffect(() => {
+    // Hide scrollbar during initial hero animation (cinematic entrance)
+    const timer = setTimeout(() => {
+      setShowScrollbar(true);
+    }, 2500);
+    return () => clearTimeout(timer);
   }, []);
 
   // Auto-slide news carousel
@@ -150,12 +169,12 @@ export function Home({ onNavigate }: HomeProps) {
 
   const getCategoryColor = (category: string) => {
     const lowerCategory = category?.toLowerCase() || '';
-    
+
     // Match full category names or short names
     if (lowerCategory.includes('scenic')) return 'accent-scenic';
     if (lowerCategory.includes('rendering') || lowerCategory.includes('visualization')) return 'accent-rendering';
     if (lowerCategory.includes('experiential')) return 'accent-experiential';
-    
+
     return 'accent-default';
   };
 
@@ -171,50 +190,56 @@ export function Home({ onNavigate }: HomeProps) {
   }
 
   return (
-    <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
-      {/* Frame 0: Hero with Seamless Pattern */}
+    <div
+      id="home-scroll-container"
+      className={`relative h-screen overflow-x-hidden bg-black text-white selection:bg-white selection:text-black snap-y snap-mandatory ${!showScrollbar ? "overflow-hidden hero-animating" : "overflow-y-auto"
+        }`}
+    >
+      <Navbar onNavigate={(page) => onNavigate?.(page)} currentPage="home" />{/* Frame 0: Hero with Seamless Pattern */}
       <section className="relative h-screen w-full snap-start snap-always overflow-hidden bg-black flex-shrink-0">
         {/* Animated Seamless Background */}
-        <div 
+        <div
           className="absolute inset-0 w-[200%] h-full animate-scroll-seamless"
-          style={{
-            backgroundImage: `url(${heroPattern})`,
-            backgroundRepeat: 'repeat-x',
-            backgroundSize: 'auto 100%',
-            left: 0,
-          }}
+          // eslint-disable-next-line react/forbid-dom-props
+          style={heroStyle}
         />
-        
+
         {/* Content Overlay */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
-          <div className="text-center max-w-4xl">
-            <h1 className="font-display text-white text-5xl md:text-7xl lg:text-8xl mb-8 italic leading-[0.95]">
-              {settings.heroTitle || 'Brandon PT Davis'}
-            </h1>
-            <p className="font-pixel text-white text-xl md:text-2xl lg:text-3xl tracking-[0.4em] mb-12">
-              {settings.heroSubtitle || 'ART × TECHNOLOGY × DESIGN'}
-            </p>
-            
+          <div className="text-center max-w-4xl p-4"> {/* Added padding to container for italics */}
+            <FadeInUp delay={0.2} enableInView={false}>
+              <h1
+                className="font-display text-white text-5xl md:text-7xl lg:text-8xl mb-8 italic leading-tight"
+              >
+                {settings.heroTitle || 'Brandon PT Davis'}
+              </h1>
+            </FadeInUp>
+            <div className="font-pixel text-white text-xl md:text-2xl lg:text-3xl tracking-[0.4em] mb-12">
+              <RevealText text={settings.heroSubtitle || 'ART × TECHNOLOGY × DESIGN'} delay={0.5} stagger={0.08} />
+            </div>
+
             {/* Scroll Down Arrow */}
-            <button
-              onClick={() => {
-                const homeContainer = document.querySelector('.h-screen.overflow-y-scroll');
-                if (homeContainer) {
-                  homeContainer.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
-                }
-              }}
-              className="absolute bottom-12 left-1/2 transform -translate-x-1/2 text-white/60 hover:text-white transition-colors animate-bounce"
-              aria-label="Scroll down"
-            >
-              <ChevronDown className="w-8 h-8" />
-            </button>
+            <FadeInUp delay={1.2}>
+              <button
+                onClick={() => {
+                  const homeContainer = document.getElementById('home-scroll-container');
+                  if (homeContainer) {
+                    homeContainer.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+                  }
+                }}
+                className="text-white/60 hover:text-white transition-colors animate-bounce"
+                aria-label="Scroll down"
+              >
+                <ChevronDown className="w-8 h-8" />
+              </button>
+            </FadeInUp>
           </div>
         </div>
       </section>
 
       {/* Interleaved: Projects, News, Project, Collabs, Project, Quick Links, Project, CTA */}
       {(() => {
-        const sections: JSX.Element[] = [];
+        const sections: React.ReactNode[] = [];
         let projectIdx = 0;
 
         // Helper to render a featured project
@@ -222,17 +247,15 @@ export function Home({ onNavigate }: HomeProps) {
           if (idx >= featuredProjects.length) return null;
           const project = featuredProjects[idx];
           return (
-            <section 
+            <section
               key={`project-${project.id}`}
-              className={`relative h-screen w-full snap-start flex-shrink-0 cursor-pointer group ${getCategoryColor(project.category)} ${
-                navigatingProject?.id === project.id ? 'z-50' : ''
-              }`}
+              className={`relative h-screen w-full snap-start flex-shrink-0 cursor-pointer group overflow-hidden ${getCategoryColor(project.category)} ${navigatingProject?.id === project.id ? 'z-50' : ''
+                }`}
               onClick={() => handleProjectClick(project)}
             >
-              <div className={`absolute inset-0 transition-transform duration-500 ease-out ${
-                navigatingProject?.id === project.id ? 'scale-105' : 'group-hover:scale-[1.02]'
-              }`}>
-                <ImageWithFallback
+              <div className={`absolute inset-0 transition-transform duration-500 ease-out ${navigatingProject?.id === project.id ? 'scale-105' : 'group-hover:scale-[1.02]'
+                }`}>
+                <ParallaxImage
                   src={project.cardImage || ''}
                   alt={project.title}
                   className="absolute inset-0 w-full h-full object-cover"
@@ -241,14 +264,13 @@ export function Home({ onNavigate }: HomeProps) {
                       ? `${project.focusPoint.x}% ${project.focusPoint.y}%`
                       : 'center center',
                   }}
+                  offset={60}
                 />
               </div>
-              <div className={`absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40 transition-opacity duration-300 ${
-                navigatingProject?.id === project.id ? 'opacity-0' : ''
-              }`} />
-              <div className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full md:w-[90%] md:max-w-md px-4 md:px-0 transition-all duration-300 ${
-                navigatingProject?.id === project.id ? 'opacity-0 translate-y-4' : ''
-              }`}>
+              <div className={`absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40 transition-opacity duration-300 ${navigatingProject?.id === project.id ? 'opacity-0' : ''
+                }`} />
+              <div className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full md:w-[90%] md:max-w-md px-4 md:px-0 transition-all duration-300 ${navigatingProject?.id === project.id ? 'opacity-0 translate-y-4' : ''
+                }`}>
                 <div className="group/card w-full backdrop-blur-xl bg-neutral-800/60 dark:bg-neutral-900/60 rounded-3xl overflow-hidden px-6 py-5 text-left hover:bg-neutral-800/80 dark:hover:bg-neutral-900/80 transition-all duration-300 border border-white/10">
                   <h2 className="font-display text-white text-2xl lg:text-3xl mb-2">
                     {project.title}
@@ -275,10 +297,10 @@ export function Home({ onNavigate }: HomeProps) {
                 news.coverImage ? (
                   <button
                     key={news.id}
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-                      newsIndex === currentNewsIndex ? 'opacity-100' : 'opacity-0'
-                    }`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${newsIndex === currentNewsIndex ? 'opacity-100' : 'opacity-0'
+                      }`}
                     style={{
+                      // eslint-disable-next-line react/forbid-dom-props
                       objectPosition: news.coverImageFocalPoint
                         ? `${news.coverImageFocalPoint.x}% ${news.coverImageFocalPoint.y}%`
                         : 'center center',
@@ -291,6 +313,7 @@ export function Home({ onNavigate }: HomeProps) {
                       alt={news.title}
                       className="w-full h-full object-cover pointer-events-none"
                       style={{
+                        // eslint-disable-next-line react/forbid-dom-props
                         objectPosition: news.coverImageFocalPoint
                           ? `${news.coverImageFocalPoint.x}% ${news.coverImageFocalPoint.y}%`
                           : 'center center',
@@ -300,16 +323,15 @@ export function Home({ onNavigate }: HomeProps) {
                 ) : (
                   <div
                     key={news.id}
-                    className={`absolute inset-0 w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-900 transition-opacity duration-1000 ${
-                      newsIndex === currentNewsIndex ? 'opacity-100' : 'opacity-0'
-                    }`}
+                    className={`absolute inset-0 w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-900 transition-opacity duration-1000 ${newsIndex === currentNewsIndex ? 'opacity-100' : 'opacity-0'
+                      }`}
                     onClick={() => onNavigate?.(`news/${news.slug || news.id}`)}
                     aria-label={news.title}
                   />
                 )
               ))}
               <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40" />
-              
+
               <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full md:w-[90%] md:max-w-md px-4 md:px-0">
                 <button
                   onClick={() => onNavigate?.(`news/${latestNews[currentNewsIndex].slug || latestNews[currentNewsIndex].id}`)}
@@ -333,11 +355,10 @@ export function Home({ onNavigate }: HomeProps) {
                       <button
                         key={indicatorIndex}
                         onClick={() => setCurrentNewsIndex(indicatorIndex)}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          indicatorIndex === currentNewsIndex
-                            ? 'w-8 bg-white'
-                            : 'w-1.5 bg-white/40 hover:bg-white/60'
-                        }`}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${indicatorIndex === currentNewsIndex
+                          ? 'w-8 bg-white'
+                          : 'w-1.5 bg-white/40 hover:bg-white/60'
+                          }`}
                         aria-label={`Go to news ${indicatorIndex + 1}`}
                       />
                     ))}
@@ -356,13 +377,9 @@ export function Home({ onNavigate }: HomeProps) {
           sections.push(
             <section key="collaboration" className="relative h-screen w-full snap-start flex-shrink-0 bg-black flex flex-col items-center justify-center overflow-hidden">
               <div
-                className="absolute inset-0 opacity-20"
-                style={{
-                  backgroundImage: `radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1px)`,
-                  backgroundSize: '32px 32px',
-                }}
+                className="absolute inset-0 opacity-20 bg-dots-white-sm"
               />
-              
+
               <div className="relative z-10 text-center mb-12 md:mb-16">
                 <h2 className="font-display text-white text-5xl md:text-6xl lg:text-8xl italic mb-4">
                   Collaboration
@@ -385,7 +402,7 @@ export function Home({ onNavigate }: HomeProps) {
                     </React.Fragment>
                   ))}
                 </div>
-                
+
                 <div className="flex animate-marquee-right whitespace-nowrap">
                   {[...collaborators, ...collaborators, ...collaborators].reverse().map((name, index) => (
                     <React.Fragment key={`row2-${index}`}>
@@ -421,13 +438,9 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 bg-muted dark:bg-neutral-900 flex flex-col items-center justify-center p-8 hover:bg-muted/80 dark:hover:bg-neutral-800 transition-all duration-500 overflow-hidden border-b md:border-b-0 md:border-r border-border dark:border-white/10"
             >
               <div
-                className="absolute inset-0 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity"
-                style={{
-                  backgroundImage: `linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)`,
-                  backgroundSize: '40px 40px',
-                }}
+                className="absolute inset-0 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity bg-grid-current"
               />
-              
+
               <div className="relative z-10 text-center">
                 <BookOpen className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground dark:text-white/60 mx-auto mb-6 group-hover:text-foreground dark:group-hover:text-white/80 transition-colors" />
                 <div className="font-pixel text-xs text-muted-foreground dark:text-white/40 tracking-[0.3em] mb-4">
@@ -450,13 +463,9 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 bg-background dark:bg-neutral-950 flex flex-col items-center justify-center p-8 hover:bg-muted dark:hover:bg-neutral-900 transition-all duration-500 overflow-hidden"
             >
               <div
-                className="absolute inset-0 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity"
-                style={{
-                  backgroundImage: `radial-gradient(circle, currentColor 1px, transparent 1px)`,
-                  backgroundSize: '24px 24px',
-                }}
+                className="absolute inset-0 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity bg-dots-current"
               />
-              
+
               <div className="relative z-10 text-center">
                 <Wrench className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground dark:text-white/60 mx-auto mb-6 group-hover:text-foreground dark:group-hover:text-white/80 transition-colors" />
                 <div className="font-pixel text-xs text-muted-foreground dark:text-white/40 tracking-[0.3em] mb-4">
@@ -487,11 +496,7 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 flex flex-col items-center justify-center p-8 bg-muted dark:bg-neutral-900 hover:bg-muted/80 dark:hover:bg-neutral-800 transition-all duration-500 border-b md:border-b-0 md:border-r border-border dark:border-white/10"
             >
               <div
-                className="absolute inset-0 opacity-5 dark:opacity-10"
-                style={{
-                  backgroundImage: `linear-gradient(45deg, currentColor 1px, transparent 1px)`,
-                  backgroundSize: '20px 20px',
-                }}
+                className="absolute inset-0 opacity-5 dark:opacity-10 bg-grid-sm-diagonal"
               />
               <div className="relative z-10 text-center">
                 <div className="font-pixel text-xs text-muted-foreground dark:text-white/40 tracking-[0.3em] mb-4">
@@ -511,11 +516,7 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 flex flex-col items-center justify-center p-8 bg-foreground dark:bg-white text-background dark:text-black hover:opacity-90 transition-all duration-500"
             >
               <div
-                className="absolute inset-0 opacity-5"
-                style={{
-                  backgroundImage: `radial-gradient(circle, currentColor 1px, transparent 1px)`,
-                  backgroundSize: '24px 24px',
-                }}
+                className="absolute inset-0 opacity-5 bg-dots-current"
               />
               <div className="relative z-10 text-center">
                 <div className="font-pixel text-xs opacity-60 tracking-[0.3em] mb-4">
@@ -538,11 +539,7 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 flex flex-col items-center justify-center p-8 bg-muted dark:bg-neutral-900 hover:bg-muted/80 dark:hover:bg-neutral-800 transition-all duration-500 border-t md:border-t-0 md:border-l border-border dark:border-white/10"
             >
               <div
-                className="absolute inset-0 opacity-5 dark:opacity-10"
-                style={{
-                  backgroundImage: `linear-gradient(-45deg, currentColor 1px, transparent 1px)`,
-                  backgroundSize: '20px 20px',
-                }}
+                className="absolute inset-0 opacity-5 dark:opacity-10 bg-grid-sm-diagonal-reverse"
               />
               <div className="relative z-10 text-center">
                 <div className="font-pixel text-xs text-muted-foreground dark:text-white/40 tracking-[0.3em] mb-4">
@@ -569,7 +566,7 @@ export function Home({ onNavigate }: HomeProps) {
 
       {/* Footer Section */}
       <section className="relative w-full snap-start flex-shrink-0">
-        <Footer onNavigate={onNavigate} />
+        <Footer onNavigate={onNavigate || (() => { })} />
       </section>
     </div>
   );

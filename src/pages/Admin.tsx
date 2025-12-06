@@ -228,7 +228,7 @@ export function Admin({ onNavigate }: AdminProps) {
       <SimpleErrorBoundary>
         <AdminLayout 
           activeView={activeView} 
-          onNavigate={setActiveView}
+          onNavigate={(view) => setActiveView(view as ManagerView)}
           onSiteNavigation={onNavigate}
           onLogout={handleLogout}
           pageTitle={getPageTitle()}

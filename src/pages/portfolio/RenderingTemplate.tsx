@@ -100,92 +100,94 @@ export function RenderingTemplate({ project }: RenderingTemplateProps) {
   };
 
   return (
-    <div className="space-y-12">
-      {/* Project Overview - Minimal header */}
-      <div className="max-w-4xl">
-        <p className="text-lg md:text-xl leading-relaxed mb-6">
-          {project.projectOverview || project.description}
-        </p>
-
-        {/* Client & Software Tags - Clean inline */}
-        {(project.client || (project.softwareUsed && project.softwareUsed.length > 0)) && (
-          <div className="flex flex-wrap items-center gap-2 text-sm opacity-60">
-            {project.client && (
-              <span className="flex items-center gap-1.5">
-                <Monitor className="w-3.5 h-3.5" />
-                {project.client}
-              </span>
-            )}
-            {project.softwareUsed && project.softwareUsed.length > 0 && (
-              <>
-                {project.client && <span>•</span>}
-                <span className="flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5" />
-                  {project.softwareUsed.join(', ')}
-                </span>
-              </>
-            )}
+    <div className="space-y-16">
+      {/* Narrative First - But brief */}
+      {project.projectOverview && (
+        <div className="max-w-3xl">
+          <div className="prose prose-lg dark:prose-invert max-w-none">
+            <p className="text-lg md:text-xl leading-relaxed opacity-80">
+              {project.projectOverview}
+            </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Technical Details - Minimal */}
+      {(project.client || (project.softwareUsed && project.softwareUsed.length > 0)) && (
+        <div className="flex flex-wrap items-center gap-6 text-sm opacity-50 pb-6 border-b border-border">
+          {project.client && (
+            <span className="flex items-center gap-2">
+              <Monitor className="w-4 h-4" />
+              {project.client}
+            </span>
+          )}
+          {project.softwareUsed && project.softwareUsed.length > 0 && (
+            <span className="flex items-center gap-2">
+              <Layers className="w-4 h-4" />
+              {project.softwareUsed.join(', ')}
+            </span>
+          )}
+        </div>
+      )}
 
 
-      {/* Content Galleries - Image First */}
+      {/* GALLERIES - Image focused, clean */}
       {project.galleries && project.galleries.length > 0 && (
-        <div className="space-y-16">
+        <div className="space-y-20">
           {project.galleries.map((gallery, galleryIndex) => {
-            // Determine grid columns based on layout preference
+            if (!gallery.images || gallery.images.length === 0) return null;
+
+            // Determine grid
             let gridClass = "grid gap-6";
             if (gallery.layout === '2-col') gridClass += " md:grid-cols-2";
             else if (gallery.layout === '3-col') gridClass += " md:grid-cols-2 lg:grid-cols-3";
-            else if (gallery.layout === 'masonry') gridClass = "columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6";
-            else gridClass += " grid-cols-1"; // 1-col default
+            else if (gallery.layout === 'masonry') gridClass = "columns-1 md:columns-2 lg:columns-3 gap-6";
+            else gridClass += " grid-cols-1"; // Full width
 
             return (
               <section key={galleryIndex}>
-                {/* Gallery Heading - Minimal */}
-                {gallery.heading && (
-                  <div className="mb-6">
-                    <h2 className="text-xs uppercase tracking-widest opacity-40 mb-3">
-                      {gallery.heading}
-                    </h2>
+                {/* Gallery heading */}
+                {(gallery.heading || gallery.description) && (
+                  <div className="mb-8">
+                    {gallery.heading && (
+                      <h2 className="text-xl md:text-2xl font-medium mb-3 tracking-tight">
+                        {gallery.heading}
+                      </h2>
+                    )}
                     {gallery.description && (
-                      <p className="text-base leading-relaxed opacity-70 max-w-3xl">
+                      <p className="text-base leading-relaxed opacity-60">
                         {gallery.description}
                       </p>
                     )}
                   </div>
                 )}
 
-                {/* Gallery Images - Clean presentation */}
-                {gallery.images && gallery.images.length > 0 && (
-                  <div className={gridClass}>
-                    {gallery.images.map((image, imageIndex) => (
-                      <div key={imageIndex} className={gallery.layout === 'masonry' ? 'break-inside-avoid' : ''}>
-                        <button
-                          onClick={() => openLightbox(galleryIndex, imageIndex)}
-                          className={`group w-full overflow-hidden transition-all duration-300 cursor-zoom-in block relative ${
-                            gallery.layout !== 'masonry' ? 'aspect-[16/9]' : ''
+                {/* Images */}
+                <div className={gridClass}>
+                  {gallery.images.map((image, imageIndex) => (
+                    <div key={imageIndex} className={gallery.layout === 'masonry' ? 'break-inside-avoid mb-6' : ''}>
+                      <button
+                        onClick={() => openLightbox(galleryIndex, imageIndex)}
+                        className={`group w-full overflow-hidden rounded-lg transition-all duration-300 cursor-zoom-in block relative bg-secondary ${
+                          gallery.layout !== 'masonry' ? 'aspect-video' : ''
+                        }`}
+                      >
+                        <img
+                          src={image.url}
+                          alt={image.caption || `${gallery.heading} - Image ${imageIndex + 1}`}
+                          className={`w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                            gallery.layout !== 'masonry' ? 'h-full absolute inset-0' : 'h-auto'
                           }`}
-                        >
-                          <img
-                            src={image.url}
-                            alt={image.caption || `${gallery.heading} - Image ${imageIndex + 1}`}
-                            className={`w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] ${
-                              gallery.layout !== 'masonry' ? 'h-full absolute inset-0' : 'h-auto'
-                            }`}
-                          />
-                          {/* Caption overlay on hover */}
-                          {image.caption && (
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                              <p className="text-white text-sm">{image.caption}</p>
-                            </div>
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                        />
+                        {image.caption && (
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <p className="text-white text-sm">{image.caption}</p>
+                          </div>
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </section>
             );
           })}
@@ -193,11 +195,11 @@ export function RenderingTemplate({ project }: RenderingTemplateProps) {
       )}
 
 
-      {/* Video Section - Clean embeds */}
+      {/* VIDEOS */}
       {project.videoUrls && project.videoUrls.length > 0 && (
-        <section>
-          <h2 className="text-xs uppercase tracking-widest opacity-40 mb-6 flex items-center gap-2">
-            <Play className="w-3.5 h-3.5" />
+        <section className="mt-20">
+          <h2 className="text-xl md:text-2xl font-medium mb-6 tracking-tight flex items-center gap-3">
+            <Play className="w-5 h-5 opacity-60" />
             Flythroughs & Animation
           </h2>
 

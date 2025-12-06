@@ -366,15 +366,14 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
             <img
               src={article.coverImage}
               alt={article.title}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover z-0"
               loading="eager"
               crossOrigin="anonymous"
             />
             
             {/* Back Button - Top Left */}
-            <div className="absolute top-6 left-6 z-10">
+            <div className="absolute top-6 left-6 z-50">
               <button
-                type="button"
                 onClick={() => onNavigate('scenic-insights')}
                 className="group flex items-center gap-3 px-6 py-3 backdrop-blur-xl bg-black/40 hover:bg-black/60 border border-white/10 rounded-full transition-all text-white cursor-pointer"
               >

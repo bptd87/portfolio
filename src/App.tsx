@@ -96,34 +96,17 @@ export default function App() {
     document.body.scrollTop = 0;
   }, [currentPage, currentProjectSlug, currentBlogSlug, currentTutorialSlug, currentNewsSlug]);
 
+  // Body scroll locking is now handled by the wrapper class in the render method
+  // and the specific Home component logic for double-safety
   useEffect(() => {
-    const root = document.documentElement;
-    const body = document.body;
-    if (currentPage === 'home') {
-      root.style.overflow = 'hidden';
-      root.style.height = '100vh';
-      body.style.overflow = 'hidden';
-      body.style.height = '100vh';
-    } else {
-      root.style.overflow = 'auto';
-      root.style.height = 'auto';
-      body.style.overflow = 'auto';
-      body.style.height = 'auto';
-    }
-    
-    return () => {
-      root.style.overflow = 'auto';
-      root.style.height = 'auto';
-      body.style.overflow = 'auto';
-      body.style.height = 'auto';
-    };
+    window.scrollTo(0, 0);
   }, [currentPage]);
 
   // Internal navigation logic (updates state only)
   const navigateInternal = (page: string, slugOrBlogSlug?: string) => {
     let actualPage = page;
-    let queryParams: Record<string, string> = {};
-    
+    const queryParams: Record<string, string> = {};
+
     if (page.includes('?')) {
       const [basePage, queryString] = page.split('?');
       actualPage = basePage;
@@ -137,7 +120,7 @@ export default function App() {
       const parts = actualPage.split('/');
       const basePage = parts[0];
       const slug = parts[parts.length - 1]; // Get the last part as slug
-      
+
       if (basePage === 'project') {
         setCurrentPage('project');
         setCurrentProjectSlug(slug);
@@ -161,7 +144,7 @@ export default function App() {
       setCurrentBlogSlug(null);
       setCurrentTutorialSlug(null);
       setCurrentNewsSlug(null);
-      
+
       if (actualPage === 'portfolio') {
         if (queryParams.filter) {
           setPortfolioFilter(queryParams.filter);
@@ -173,7 +156,7 @@ export default function App() {
       } else {
         setPortfolioFilter(undefined);
       }
-      
+
       if (actualPage === 'scenic-insights' || actualPage === 'articles') {
         // Normalize to scenic-insights internally
         setCurrentPage('scenic-insights');
@@ -200,7 +183,7 @@ export default function App() {
 
     // Construct URL for History API
     let targetPath = page;
-    
+
     // Handle special case: Home
     if (page === 'home') {
       targetPath = '/';
@@ -228,7 +211,7 @@ export default function App() {
       const path = window.location.pathname;
       const search = window.location.search;
       const route = path.startsWith('/') ? path.substring(1) : path;
-      
+
       // If root, go home
       if (!route && !search) {
         navigateInternal('home');
@@ -245,14 +228,14 @@ export default function App() {
   useEffect(() => {
     const path = window.location.pathname;
     const search = window.location.search;
-    
+
     // Only intervene if we are not at root or have query params
     if (path !== '/' || search) {
       // Remove leading slash for navigateInternal compatibility
       const route = path.startsWith('/') ? path.substring(1) : path;
-      
+
       if (route || search) {
-         navigateInternal(route + search);
+        navigateInternal(route + search);
       }
     }
   }, []);
@@ -280,7 +263,7 @@ export default function App() {
       case 'collaborators': return <Collaborators onNavigate={handleNavigation} />;
       case 'teaching-philosophy': return <TeachingPhilosophy onNavigate={handleNavigation} />;
       case 'contact': return <Contact />;
-      case 'scenic-insights': 
+      case 'scenic-insights':
       case 'articles':
         return <ScenicInsights onNavigate={handleNavigation} initialCategory={scenicInsightsCategory} initialTag={scenicInsightsTag} />;
       case 'studio': return <Studio onNavigate={handleNavigation} />;
@@ -324,27 +307,27 @@ export default function App() {
   return (
     <ThemeProvider>
       <Toaster richColors />
-      <AnalyticsTracker 
-        currentPage={currentPage} 
-        slug={currentProjectSlug || currentBlogSlug || currentTutorialSlug || currentNewsSlug} 
+      <AnalyticsTracker
+        currentPage={currentPage}
+        slug={currentProjectSlug || currentBlogSlug || currentTutorialSlug || currentNewsSlug}
       />
       <RedirectHandler onNavigate={handleNavigation} />
-      <div className="min-h-screen transition-colors duration-300 w-full overflow-x-hidden">
+      <div className={`transition-colors duration-300 w-full overflow-x-hidden ${currentPage === 'home' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
         <SEO metadata={seoData.metadata} structuredData={seoData.structuredData} />
         {currentPage !== 'admin' && (
-          <Navbar 
-            currentPage={currentPage === 'project' ? 'portfolio' : currentPage === 'blog' ? 'articles' : currentPage === 'scenic-insights' ? 'articles' : currentPage === 'tutorial' ? 'scenic-studio' : currentPage} 
+          <Navbar
+            currentPage={currentPage === 'project' ? 'portfolio' : currentPage === 'blog' ? 'articles' : currentPage === 'scenic-insights' ? 'articles' : currentPage === 'tutorial' ? 'scenic-studio' : currentPage}
             onNavigate={handleNavigation}
             breadcrumb={getBreadcrumb()}
             transparent={currentPage === 'home'}
           />
         )}
-        <main key={pageKey}>
+        <main key={pageKey} className={currentPage === 'home' ? 'h-full' : ''}>
           <Suspense fallback={<PageLoader />}>
             {renderPage()}
           </Suspense>
         </main>
-        {currentPage !== 'admin' && (
+        {currentPage !== 'admin' && currentPage !== 'home' && (
           <Footer onNavigate={handleNavigation} />
         )}
       </div>

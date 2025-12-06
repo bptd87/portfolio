@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { ChevronDown, X, ZoomIn } from 'lucide-react';
+import { ChevronDown, X, ZoomIn, Info, AlertTriangle, CheckCircle, XCircle, Download } from 'lucide-react';
 import { GalleryBlock } from './GalleryBlock';
 
-export type BlockType = 'paragraph' | 'heading' | 'image' | 'quote' | 'list' | 'code' | 'gallery' | 'spacer' | 'video' | 'accordion';
+export type BlockType = 'paragraph' | 'heading' | 'image' | 'quote' | 'list' | 'code' | 'gallery' | 'spacer' | 'video' | 'accordion' | 'callout' | 'divider' | 'file';
 
 export interface ContentBlock {
   id: string;
@@ -15,6 +15,8 @@ export interface ContentBlock {
     level?: number; // for headings (1-6)
     alt?: string; // for images
     caption?: string; // for images
+    align?: 'left' | 'center' | 'right' | 'full'; // for images
+    size?: 'small' | 'medium' | 'large' | 'full'; // for images
     listType?: 'bullet' | 'numbered'; // for lists
     language?: string; // for code blocks
     images?: Array<{ url: string; caption?: string }>; // for gallery
@@ -24,6 +26,9 @@ export interface ContentBlock {
     videoType?: 'youtube' | 'vimeo' | 'custom'; // for video
     items?: any[]; // for list (legacy) and accordion
     ordered?: boolean; // legacy list ordered
+    calloutType?: 'info' | 'warning' | 'success' | 'error'; // for callouts
+    fileName?: string; // for file downloads
+    fileSize?: string; // for file downloads
   };
 }
 
@@ -234,9 +239,26 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               );
 
             case 'image':
+              const imageAlign = block.metadata?.align || 'full';
+              const imageSize = block.metadata?.size || 'full';
+              
+              // Alignment classes
+              const alignmentClass = 
+                imageAlign === 'left' ? 'mr-auto' :
+                imageAlign === 'right' ? 'ml-auto' :
+                imageAlign === 'center' ? 'mx-auto' :
+                ''; // full width
+              
+              // Size classes
+              const sizeClass = 
+                imageSize === 'small' ? 'max-w-sm' :
+                imageSize === 'medium' ? 'max-w-2xl' :
+                imageSize === 'large' ? 'max-w-4xl' :
+                'max-w-full'; // full width
+              
               return (
                 <ScrollReveal key={block.id}>
-                  <figure className="my-16 group">
+                  <figure className={`my-16 group ${alignmentClass} ${sizeClass}`}>
                     <div className="relative overflow-hidden rounded-2xl cursor-pointer" onClick={() => openLightbox(block.content, block.metadata?.caption, block.metadata?.alt)}>
                       <ImageWithFallback
                         src={block.content}
@@ -349,6 +371,83 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 'h-32';
               
               return <div key={block.id} className={heightClass} />;
+
+            case 'callout':
+              const calloutType = block.metadata?.calloutType || 'info';
+              const calloutStyles = {
+                info: { 
+                  bg: 'bg-blue-500/10', 
+                  border: 'border-blue-500/50', 
+                  text: 'text-blue-400', 
+                  icon: Info 
+                },
+                warning: { 
+                  bg: 'bg-yellow-500/10', 
+                  border: 'border-yellow-500/50', 
+                  text: 'text-yellow-400', 
+                  icon: AlertTriangle 
+                },
+                success: { 
+                  bg: 'bg-green-500/10', 
+                  border: 'border-green-500/50', 
+                  text: 'text-green-400', 
+                  icon: CheckCircle 
+                },
+                error: { 
+                  bg: 'bg-red-500/10', 
+                  border: 'border-red-500/50', 
+                  text: 'text-red-400', 
+                  icon: XCircle 
+                },
+              };
+              const calloutStyle = calloutStyles[calloutType];
+              const CalloutIcon = calloutStyle.icon;
+
+              return (
+                <div key={block.id} className={`my-12 p-6 ${calloutStyle.bg} border-l-4 ${calloutStyle.border} rounded-r-xl`}>
+                  <div className="flex items-start gap-4">
+                    <CalloutIcon className={`w-6 h-6 ${calloutStyle.text} flex-shrink-0 mt-1`} />
+                    <div className={`flex-1 text-lg font-serif leading-[1.8] ${calloutStyle.text}`}>
+                      <div dangerouslySetInnerHTML={{ __html: block.content }} />
+                    </div>
+                  </div>
+                </div>
+              );
+
+            case 'divider':
+              return (
+                <hr 
+                  key={block.id} 
+                  className="my-16 border-t border-border/50" 
+                  style={{ borderColor: `${accent}33` }}
+                />
+              );
+
+            case 'file':
+              return (
+                <a
+                  key={block.id}
+                  href={block.content}
+                  download
+                  className="my-12 flex items-center gap-4 p-6 bg-foreground/5 border border-border rounded-xl hover:border-accent-brand transition-all duration-300 group"
+                >
+                  <div 
+                    className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
+                    style={{ backgroundColor: `${accent}20` }}
+                  >
+                    <Download className="w-7 h-7" style={{ color: accent }} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-sans font-medium text-lg mb-1">
+                      {block.metadata?.fileName || 'Download File'}
+                    </p>
+                    {block.metadata?.fileSize && (
+                      <p className="text-sm opacity-60">{block.metadata.fileSize}</p>
+                    )}
+                  </div>
+                  <Download className="w-5 h-5 opacity-0 group-hover:opacity-60 transition-opacity" />
+                </a>
+              );
 
             case 'accordion':
               return <AccordionBlock key={block.id} block={block} />;
