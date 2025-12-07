@@ -1,8 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, Instagram, Linkedin, Mail, FileText, Video, ArrowUpRight, Github, Twitter, Facebook, Youtube } from 'lucide-react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { ExternalLink, Instagram, Linkedin, Mail, FileText, Video, Github, Twitter, Facebook, Youtube, Newspaper, Image as ImageIcon, Link as LinkIcon, PenTool } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { apiCall } from '../utils/api';
+import { publicAnonKey, projectId } from '../utils/supabase/info';
 
+// Interface for the unified dashboard item
+interface DashboardItem {
+  id: string;
+  type: 'custom' | 'article' | 'project' | 'news' | 'social';
+  title: string;
+  subtitle?: string; // Date or extra info
+  url: string;
+  image?: string;
+  date: string; // ISO string for sorting
+  icon: string; // Icon name
+  isPinned?: boolean; // For custom links
+}
+
+// Raw data interfaces
 interface SocialLink {
   id: string;
   title: string;
@@ -12,6 +27,7 @@ interface SocialLink {
   order: number;
   description?: string;
   type?: 'link' | 'social';
+  created_at?: string;
 }
 
 interface BioData {
@@ -25,7 +41,7 @@ interface LinksProps {
 }
 
 export function Links({ onNavigate }: LinksProps = {}) {
-  const [links, setLinks] = useState<SocialLink[]>([]);
+  const [items, setItems] = useState<DashboardItem[]>([]);
   const [bioData, setBioData] = useState<BioData>({
     name: 'BRANDON PT DAVIS',
     tagline: 'Scenic Designer',
@@ -34,77 +50,192 @@ export function Links({ onNavigate }: LinksProps = {}) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    fetchDashboardData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Fetch links
-      const linksResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/links`,
-        {
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`,
-          },
-        }
-      );
+      // 1. Fetch Custom Links & Bio (Existing)
+      const [linksRes, bioRes] = await Promise.all([
+        fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/links`, {
+          headers: { Authorization: `Bearer ${publicAnonKey}` }
+        }).then(res => res.ok ? res.json() : []),
+        fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/links/bio`, {
+          headers: { Authorization: `Bearer ${publicAnonKey}` }
+        }).then(res => res.ok ? res.json() : null)
+      ]);
 
-      if (linksResponse.ok) {
-        const data = await linksResponse.json();
-        setLinks(Array.isArray(data) ? data : []);
+      if (bioRes) setBioData(bioRes);
+
+      // 2. Fetch Content (Articles, Projects, News)
+      const [postsRes, projectsRes, newsRes] = await Promise.all([
+        apiCall('/api/posts'),
+        apiCall('/api/projects'),
+        apiCall('/api/news')
+      ]);
+
+      // Process Data
+      const dashboardItems: DashboardItem[] = [];
+
+      // --- Custom Links (Pinned/Ordered) ---
+      const customLinks: SocialLink[] = Array.isArray(linksRes) ? linksRes : [];
+
+      // Separate pure social icons (small circle) vs custom content links (cards)
+      // The user wants "New, Portfolio, and Articles" auto populated. 
+      // "Additional links" implies standard links.
+      // We will render 'social' type links in a separate row, and 'link' type cards in the grid.
+      const socialRowLinks = customLinks.filter(l => l.enabled && l.type === 'social');
+      const customGridLinks = customLinks.filter(l => l.enabled && l.type !== 'social');
+
+      // Add Custom Grid Links
+      customGridLinks.forEach(link => {
+        dashboardItems.push({
+          id: `custom-${link.id}`,
+          type: 'custom',
+          title: link.title,
+          subtitle: link.description,
+          url: link.url,
+          date: new Date().toISOString(), // Always fresh/top if pinned, or use order
+          icon: link.icon || 'link',
+          isPinned: true, // Mark as pinned to sort first
+          // Custom links don't have images in current schema usually, 
+          // but we can try to use og-default or specific logic if added later.
+          // For now, they will rely on a cool gradient fallback.
+        });
+      });
+
+      // --- Articles ---
+      if (postsRes.ok) {
+        const postsData = await postsRes.json();
+        const posts = postsData.posts || [];
+        posts.forEach((post: any) => {
+          dashboardItems.push({
+            id: `article-${post.id}`,
+            type: 'article',
+            title: post.title,
+            subtitle: new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            url: `/articles/${post.slug}`,
+            image: post.coverImage,
+            date: post.date,
+            icon: 'pen-tool'
+          });
+        });
       }
 
-      // Fetch bio data
-      const bioResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/links/bio`,
-        {
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`,
-          },
-        }
-      );
-
-      if (bioResponse.ok) {
-        const data = await bioResponse.json();
-        if (data) {
-          setBioData(data);
-        }
+      // --- Projects ---
+      if (projectsRes.ok) {
+        const projectsData = await projectsRes.json();
+        const projects = projectsData.projects || [];
+        projects.forEach((project: any) => {
+          // Construct date from year/month for sorting
+          const dateStr = `${project.year}-${String(project.month || 1).padStart(2, '0')}-01`;
+          dashboardItems.push({
+            id: `project-${project.id}`,
+            type: 'project',
+            title: project.title,
+            subtitle: `${project.venue || 'Portfolio'} • ${project.year}`,
+            url: `/portfolio/${project.slug}`,
+            image: project.heroImage || project.thumbnail,
+            date: dateStr,
+            icon: 'image'
+          });
+        });
       }
+
+      // --- News ---
+      if (newsRes.ok) {
+        const newsData = await newsRes.json();
+        const news = newsData.news || [];
+        news.forEach((item: any) => {
+          dashboardItems.push({
+            id: `news-${item.id}`,
+            type: 'news',
+            title: item.title,
+            subtitle: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            url: item.url || '#', // News might be text-only or have external link
+            image: item.thumbnail,
+            date: item.date,
+            icon: 'newspaper'
+          });
+        });
+      }
+
+      // 3. Sort Items
+      // Strategy: Pinned custom links first (by order), then everything else by date desc
+      const sortedItems = dashboardItems.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+
+        if (a.isPinned && b.isPinned) {
+          // Preserve order for pinned items (implicitly handled by order of insertion if source was ordered)
+          // We can assume source 'customGridLinks' was sorted by 'order'
+          return 0;
+        }
+
+        // Date Descending
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+
+      setItems(sortedItems);
+      // We pass socialRowLinks separately if needed, but for now we might fetch them again or store them?
+      // Actually, define social state or just filter from raw response?
+      // Let's store social links in a separate state.
+      setSocialRow(socialRowLinks);
+
     } catch (error) {
-      } finally {
+    } finally {
       setLoading(false);
     }
   };
 
-  const enabledLinks = links.filter(link => link.enabled).sort((a, b) => a.order - b.order);
-  const socialLinks = enabledLinks.filter(link => link.type === 'social');
-  const mainLinks = enabledLinks.filter(link => link.type !== 'social');
+  const [socialRow, setSocialRow] = useState<SocialLink[]>([]);
 
-  const getIconComponent = (iconName: string) => {
-    const icons: Record<string, any> = {
+  // ---- Icons Helper ----
+  const getIcon = (name: string) => {
+    const map: Record<string, any> = {
       instagram: Instagram,
       linkedin: Linkedin,
-      mail: Mail,
-      email: Mail,
-      article: FileText,
-      blog: FileText,
-      video: Video,
-      youtube: Youtube,
-      github: Github,
       twitter: Twitter,
       facebook: Facebook,
-      external: ExternalLink,
+      youtube: Youtube,
+      github: Github,
+      mail: Mail,
+      email: Mail,
+      link: LinkIcon,
+      website: ExternalLink,
+      article: FileText,
+      'pen-tool': PenTool,
+      project: ImageIcon,
+      image: ImageIcon,
+      news: Newspaper,
+      video: Video
     };
-    return icons[iconName.toLowerCase()] || ExternalLink;
+    return map[name.toLowerCase()] || ExternalLink;
+  };
+
+  // ---- Navigation Helper ----
+  const handleItemClick = (e: React.MouseEvent, item: DashboardItem) => {
+    e.preventDefault();
+    if (item.type === 'custom' || item.url.startsWith('http')) {
+      window.open(item.url, '_blank', 'noopener,noreferrer');
+    } else {
+      // Internal navigation
+      if (onNavigate) {
+        window.scrollTo(0, 0);
+        // Remove leading slash for onNavigate if needed
+        const path = item.url.startsWith('/') ? item.url.substring(1) : item.url;
+        onNavigate(path);
+      }
+    }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="font-pixel text-xs tracking-[0.3em] text-foreground/60">LOADING</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+          <p className="font-pixel text-[10px] tracking-[0.3em] opacity-50">LOADING FEED</p>
         </div>
       </div>
     );
@@ -115,104 +246,115 @@ export function Links({ onNavigate }: LinksProps = {}) {
       {/* Top spacing for navbar */}
       <div className="h-20" />
 
-      <div className="max-w-2xl mx-auto px-4 py-8 md:py-12">
-        {/* Profile Section */}
-        <div className="text-center mb-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+
+        {/* --- BIO SECTION --- */}
+        <div className="flex flex-col items-center text-center mb-16">
           {/* Profile Image */}
           {bioData.profileImage && (
-            <div className="w-24 h-24 md:w-28 md:h-28 mx-auto mb-6 rounded-full overflow-hidden border-4 border-neutral-500/20">
-              <ImageWithFallback
-                src={bioData.profileImage}
-                alt={bioData.name}
-                className="w-full h-full object-cover"
-              />
+            <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full p-1 border border-foreground/10">
+              <div className="w-full h-full rounded-full overflow-hidden">
+                <ImageWithFallback
+                  src={bioData.profileImage}
+                  alt={bioData.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
           )}
 
-          {/* Name - Pixel Font */}
-          <h1 className="font-pixel text-foreground text-sm md:text-base tracking-[0.4em] mb-2">
+          <h1 className="font-pixel text-xs md:text-sm tracking-[0.4em] mb-3 uppercase opacity-80">
             {bioData.name}
           </h1>
-
-          {/* Tagline - Display Font */}
-          <p className="font-display italic text-foreground/70 text-xl md:text-2xl">
+          <p className="font-display italic text-2xl md:text-3xl text-foreground/80 max-w-lg leading-tight">
             {bioData.tagline}
           </p>
+
+          {/* Social Row (Icons Only) */}
+          {socialRow.length > 0 && (
+            <div className="flex items-center gap-4 mt-8">
+              {socialRow.map(link => {
+                const Icon = getIcon(link.icon);
+                return (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-all text-foreground/60 hover:text-foreground"
+                    aria-label={link.title}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Social Media Links Row */}
-        {socialLinks.length > 0 && (
-          <div className="flex justify-center gap-3 mb-8">
-            {socialLinks.map((link) => {
-              const IconComponent = getIconComponent(link.icon);
-              return (
-                <a
-                  key={link.id}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-14 h-14 rounded-full backdrop-blur-xl bg-neutral-500/10 border border-neutral-500/20 hover:border-neutral-500/40 hover:bg-neutral-500/15 transition-all duration-300 flex items-center justify-center group"
-                  aria-label={link.title}
-                >
-                  <IconComponent className="w-6 h-6 text-foreground/60 group-hover:text-foreground transition-colors" />
-                </a>
-              );
-            })}
-          </div>
-        )}
+        {/* --- DASHBOARD GRID --- */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {items.map((item) => {
+            const Icon = getIcon(item.icon);
+            const isImage = item.image && item.image !== '';
 
-        {/* Main Links */}
-        {mainLinks.length > 0 ? (
-          <div className="space-y-4">
-            {mainLinks.map((link) => {
-              const IconComponent = getIconComponent(link.icon);
-              
-              return (
-                <a
-                  key={link.id}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center justify-between w-full px-6 py-5 rounded-3xl backdrop-blur-xl bg-neutral-500/10 border border-neutral-500/20 hover:border-neutral-500/40 hover:bg-neutral-500/15 transition-all duration-300"
-                >
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="w-12 h-12 rounded-2xl bg-neutral-500/10 border border-neutral-500/20 flex items-center justify-center flex-shrink-0">
-                      <IconComponent className="w-6 h-6 text-foreground/60" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-display italic text-foreground text-lg truncate">
-                        {link.title}
-                      </h3>
-                      {link.description && (
-                        <p className="font-pixel text-[10px] text-foreground/40 tracking-[0.3em] truncate mt-0.5">
-                          {link.description.toUpperCase()}
-                        </p>
-                      )}
-                    </div>
+            return (
+              <a
+                key={item.id}
+                href={item.url}
+                onClick={(e) => handleItemClick(e, item)}
+                className="group relative aspect-[5/4] rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-black/5 dark:border-white/5 transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+              >
+                {/* Background Image */}
+                {isImage ? (
+                  <ImageWithFallback
+                    src={item.image!}
+                    alt={item.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : (
+                  // Fallback Gradient for text-only items (like custom links)
+                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-800 dark:to-neutral-900" />
+                )}
+
+                {/* Dark Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+
+                {/* Type Indicator Icon (Corner) */}
+                <div className="absolute top-3 right-3 p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/80">
+                  <Icon className="w-4 h-4" />
+                </div>
+
+                {/* Content */}
+                <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 flex flex-col justify-end h-full">
+                  <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    {/* Subtitle/Date */}
+                    {item.subtitle && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-pixel text-[9px] text-white/60 tracking-[0.2em] uppercase truncate">
+                          {item.type === 'custom' ? 'LINK' : item.type.toUpperCase()} • {item.subtitle}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Title */}
+                    <h3 className="font-display italic text-white text-lg md:text-xl leading-tight line-clamp-2 md:line-clamp-3">
+                      {item.title}
+                    </h3>
                   </div>
-                  <ArrowUpRight className="w-5 h-5 text-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all flex-shrink-0" />
-                </a>
-              );
-            })}
-          </div>
-        ) : (
-          /* Empty State */
-          <div className="text-center py-24">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-3xl backdrop-blur-xl bg-neutral-500/10 border border-neutral-500/20 flex items-center justify-center">
-              <ExternalLink className="w-10 h-10 text-foreground/20" />
-            </div>
-            <p className="font-pixel text-xs text-foreground/40 tracking-[0.3em]">
-              NO LINKS YET
-            </p>
-          </div>
-        )}
+                </div>
+              </a>
+            );
+          })}
+        </div>
 
-        {/* Footer */}
-        <div className="mt-16 text-center">
-          <p className="font-pixel text-[10px] text-foreground/30 tracking-[0.3em]">
+        {/* --- FOOTER --- */}
+        <div className="mt-20 text-center pb-8">
+          <p className="font-pixel text-[10px] opacity-30 tracking-[0.3em]">
             © {new Date().getFullYear()} {bioData.name}
           </p>
         </div>
+
       </div>
     </div>
   );
