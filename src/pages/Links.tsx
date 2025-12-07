@@ -191,7 +191,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
             title: item.title,
             subtitle: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             url: item.url || '#', // News might be text-only or have external link
-            image: item.thumbnail,
+            image: item.coverImage || item.thumbnail,
             date: item.date,
             icon: 'newspaper'
           });
