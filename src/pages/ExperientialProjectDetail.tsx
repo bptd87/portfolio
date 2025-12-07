@@ -27,7 +27,14 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
   const allImages = useMemo(() => {
     if (!project) return [];
     const heroImages = project.process?.filter((step: any) => step.image).map((step: any) => step.image) || [];
-    const images = [...heroImages];
+    const stepGalleryImages: string[] = [];
+    project.process?.forEach((step: any) => {
+      if (step.images) {
+        stepGalleryImages.push(...step.images);
+      }
+    });
+
+    const images = [...heroImages, ...stepGalleryImages];
 
     // Add images from content blocks
     project.experientialContent?.forEach((block: any) => {
@@ -345,23 +352,48 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
               <h2 className="font-pixel text-xs tracking-[0.3em] text-white/40 mb-12 uppercase">PROCESS</h2>
               <div className="space-y-20">
                 {project.process.map((step: any, index: number) => (
-                  <div key={index} className="grid md:grid-cols-2 gap-12 items-start group">
-                    {step.image && (
-                      <div className="order-2 md:order-1 overflow-hidden rounded-3xl border border-white/10">
-                        <ImageWithFallback
-                          src={step.image}
-                          alt={step.title}
-                          className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
-                        />
+                  <div key={index} className="space-y-8">
+                    {/* Main Step Layout */}
+                    <div className="grid md:grid-cols-2 gap-12 items-start group">
+                      {step.image && (
+                        <div className="order-2 md:order-1 overflow-hidden rounded-3xl border border-white/10">
+                          <ImageWithFallback
+                            src={step.image}
+                            alt={step.title}
+                            className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
+                          />
+                        </div>
+                      )}
+                      <div className={`order-1 ${step.image ? 'md:order-2' : 'md:col-span-2'} py-4`}>
+                        <div className="flex items-center gap-6 mb-6">
+                          <span className="text-4xl font-pixel text-white/20">{String(index + 1).padStart(2, '0')}</span>
+                          <h3 className="text-3xl text-white font-display italic">{step.title}</h3>
+                        </div>
+                        <p className="text-neutral-400 leading-relaxed text-lg font-light">{step.description}</p>
+                      </div>
+                    </div>
+
+                    {/* Step Gallery Grid */}
+                    {step.images && step.images.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-4">
+                        {step.images.map((img: string, i: number) => {
+                          const globalIndex = allImages.findIndex(x => x === img);
+                          return (
+                            <div
+                              key={i}
+                              className="aspect-square overflow-hidden rounded-xl border border-white/10 cursor-pointer hover:border-white/30 transition-all"
+                              onClick={() => setSelectedPhoto(globalIndex !== -1 ? globalIndex : null)}
+                            >
+                              <ImageWithFallback
+                                src={img}
+                                alt={`${step.title} gallery image ${i + 1}`}
+                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
-                    <div className={`order-1 ${step.image ? 'md:order-2' : 'md:col-span-2'} py-4`}>
-                      <div className="flex items-center gap-6 mb-6">
-                        <span className="text-4xl font-pixel text-white/20">{String(index + 1).padStart(2, '0')}</span>
-                        <h3 className="text-3xl text-white font-display italic">{step.title}</h3>
-                      </div>
-                      <p className="text-neutral-400 leading-relaxed text-lg font-light">{step.description}</p>
-                    </div>
                   </div>
                 ))}
               </div>
