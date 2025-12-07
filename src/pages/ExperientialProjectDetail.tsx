@@ -39,6 +39,11 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
       }
     });
 
+    // Add process gallery images
+    if (project.galleries?.process) {
+      images.push(...project.galleries.process);
+    }
+
     return images;
   }, [project]);
 
@@ -359,6 +364,43 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Process Gallery / Production Photos */}
+          {project.galleries?.process && project.galleries.process.length > 0 && (
+            <section className="mb-24 md:mb-32">
+              <h2 className="font-pixel text-xs tracking-[0.3em] text-white/40 mb-12 uppercase">
+                GALLERY ({project.galleries.process.length})
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {project.galleries.process.map((image: string, index: number) => {
+                  // Calculate absolute index for lightbox
+                  // We need to know how many images came before this in 'allImages'
+                  // 1. Hero/Process Step images
+                  // 2. Content block images
+                  // 3. Process Gallery images (This section)
+
+                  // Re-calculating the offset is tricky without moving logic out of useMemo or duplicating it.
+                  // Simpler appraoch: Find this image URL in allImages and use its index.
+                  // Note: This assumes unique URLs. If duplicates exist, it might pick the first one, which is acceptable typically.
+                  const globalIndex = allImages.findIndex(img => img === image);
+
+                  return (
+                    <div
+                      key={index}
+                      className="aspect-square overflow-hidden rounded-2xl border border-white/10 cursor-pointer group"
+                      onClick={() => setSelectedPhoto(globalIndex !== -1 ? globalIndex : null)}
+                    >
+                      <ImageWithFallback
+                        src={image}
+                        alt={`Gallery Image ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
