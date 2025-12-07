@@ -334,7 +334,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
                 key={item.id}
                 href={item.url}
                 onClick={(e) => handleItemClick(e, item)}
-                style={{ aspectRatio: '1.25' }}
+                style={{ aspectRatio: '0.8' }}
                 className="group relative w-full rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-black/5 dark:border-white/5 transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
               >
                 {/* Background Image */}
@@ -345,36 +345,31 @@ export function Links({ onNavigate }: LinksProps = {}) {
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (
-                  // Fallback Gradient for text-only items (like custom links)
+                  // Fallback Gradient
                   <div className="absolute inset-0 bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-800 dark:to-neutral-900" />
                 )}
 
-                {/* Dark Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                {/* Dark Overlay - Only for Text Items */}
+                {item.type !== 'project' && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                )}
 
-                {/* Type Indicator Icon (Corner) */}
-                <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/90 shadow-sm">
+                {/* Type Icon */}
+                <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/90 shadow-sm z-10">
                   <Icon className="w-3.5 h-3.5" />
                 </div>
 
-                {/* Content */}
-                <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 flex flex-col justify-end h-full">
-                  <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                    {/* Subtitle/Date */}
-                    {item.subtitle && (
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-pixel text-[8px] text-white/70 tracking-[0.2em] uppercase truncate shadow-black drop-shadow-md">
-                          {item.type === 'custom' ? 'LINK' : item.type.toUpperCase()} • {item.subtitle}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Title */}
-                    <h3 className="font-display italic text-white text-sm md:text-lg leading-tight line-clamp-2 shadow-black drop-shadow-md">
-                      {item.title}
-                    </h3>
+                {/* Content - Hidden for Projects, Title Only for others */}
+                {item.type !== 'project' && (
+                  <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 flex flex-col justify-end h-full">
+                    <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                      {/* Title Only */}
+                      <h3 className="font-display italic text-white text-sm md:text-lg leading-tight line-clamp-3 shadow-black drop-shadow-md">
+                        {item.title}
+                      </h3>
+                    </div>
                   </div>
-                </div>
+                )}
               </a>
             );
           })}
