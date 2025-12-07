@@ -49,9 +49,37 @@ export function Links({ onNavigate }: LinksProps = {}) {
   });
   const [loading, setLoading] = useState(true);
 
+  // Infinite Scroll State
+  const [displayLimit, setDisplayLimit] = useState(15);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = React.useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Infinite Scroll Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setDisplayLimit((prev) => prev + 12);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, items.length]);
+
+  // Update hasMore when items or limit changes
+  useEffect(() => {
+    setHasMore(displayLimit < items.length);
+  }, [displayLimit, items.length]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -241,10 +269,13 @@ export function Links({ onNavigate }: LinksProps = {}) {
     );
   }
 
+  // Slice items for display
+  const visibleItems = items.slice(0, displayLimit);
+
   return (
     <div className="min-h-screen bg-background pb-32">
-      {/* Top spacing for navbar */}
-      <div className="h-20" />
+      {/* Top spacing */}
+      <div className="h-12" />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
 
@@ -294,7 +325,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
 
         {/* --- DASHBOARD GRID --- */}
         <div className="grid grid-cols-3 gap-3 md:gap-4 mx-auto max-w-4xl">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = getIcon(item.icon);
             const isImage = item.image && item.image !== '';
 
@@ -303,7 +334,8 @@ export function Links({ onNavigate }: LinksProps = {}) {
                 key={item.id}
                 href={item.url}
                 onClick={(e) => handleItemClick(e, item)}
-                className="group relative aspect-[5/4] rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-black/5 dark:border-white/5 transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                style={{ aspectRatio: '1.25' }}
+                className="group relative w-full rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-black/5 dark:border-white/5 transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
               >
                 {/* Background Image */}
                 {isImage ? (
@@ -326,11 +358,11 @@ export function Links({ onNavigate }: LinksProps = {}) {
                 </div>
 
                 {/* Content */}
-                <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col justify-end h-full">
+                <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 flex flex-col justify-end h-full">
                   <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                     {/* Subtitle/Date */}
                     {item.subtitle && (
-                      <div className="flex items-center gap-2 mb-1.5">
+                      <div className="flex items-center gap-2 mb-1">
                         <span className="font-pixel text-[8px] text-white/70 tracking-[0.2em] uppercase truncate shadow-black drop-shadow-md">
                           {item.type === 'custom' ? 'LINK' : item.type.toUpperCase()} • {item.subtitle}
                         </span>
@@ -338,7 +370,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
                     )}
 
                     {/* Title */}
-                    <h3 className="font-display italic text-white text-base md:text-lg leading-tight line-clamp-2 md:line-clamp-3 shadow-black drop-shadow-md">
+                    <h3 className="font-display italic text-white text-sm md:text-lg leading-tight line-clamp-2 shadow-black drop-shadow-md">
                       {item.title}
                     </h3>
                   </div>
@@ -348,12 +380,21 @@ export function Links({ onNavigate }: LinksProps = {}) {
           })}
         </div>
 
-        {/* --- FOOTER --- */}
-        <div className="mt-20 text-center pb-8">
-          <p className="font-pixel text-[10px] opacity-30 tracking-[0.3em]">
-            © {new Date().getFullYear()} {bioData.name}
-          </p>
-        </div>
+        {/* Loading / Sentinel */}
+        {hasMore && (
+          <div ref={loaderRef} className="py-12 flex justify-center">
+            <div className="w-6 h-6 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* Footer */}
+        {!hasMore && (
+          <div className="mt-20 text-center pb-8">
+            <p className="font-pixel text-[10px] opacity-30 tracking-[0.3em]">
+              END OF FEED • © {new Date().getFullYear()}
+            </p>
+          </div>
+        )}
 
       </div>
     </div>
