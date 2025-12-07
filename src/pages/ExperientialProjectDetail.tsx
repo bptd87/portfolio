@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Loader2, CheckCircle2, TrendingUp, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import { motion, AnimatePresence } from 'motion/react';
 import { SEO } from '../components/SEO';
 import { LikeButton } from '../components/shared/LikeButton';
@@ -351,51 +350,65 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
             <section className="mb-24 md:mb-32">
               <h2 className="font-pixel text-xs tracking-[0.3em] text-white/40 mb-12 uppercase">PROCESS</h2>
               <div className="space-y-20">
-                {project.process.map((step: any, index: number) => (
-                  <div key={index} className="space-y-8">
-                    {/* Main Step Layout */}
-                    <div className="grid md:grid-cols-2 gap-12 items-start group">
-                      {step.image && (
-                        <div className="order-2 md:order-1 overflow-hidden rounded-3xl border border-white/10">
-                          <ImageWithFallback
-                            src={step.image}
-                            alt={step.title}
-                            className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
-                          />
-                        </div>
-                      )}
-                      <div className={`order-1 ${step.image ? 'md:order-2' : 'md:col-span-2'} py-4`}>
-                        <div className="flex items-center gap-6 mb-6">
-                          <span className="text-4xl font-pixel text-white/20">{String(index + 1).padStart(2, '0')}</span>
-                          <h3 className="text-3xl text-white font-display italic">{step.title}</h3>
-                        </div>
-                        <p className="text-neutral-400 leading-relaxed text-lg font-light">{step.description}</p>
-                      </div>
-                    </div>
-
-                    {/* Step Gallery Grid */}
-                    {step.images && step.images.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-4">
-                        {step.images.map((img: string, i: number) => {
-                          const globalIndex = allImages.findIndex(x => x === img);
-                          return (
-                            <div
-                              key={i}
-                              className="aspect-square overflow-hidden rounded-xl border border-white/10 cursor-pointer hover:border-white/30 transition-all"
-                              onClick={() => setSelectedPhoto(globalIndex !== -1 ? globalIndex : null)}
-                            >
+                {project.process.map((step: any, index: number) => {
+                  const isOdd = index % 2 !== 0;
+                  return (
+                    <div key={index} className="space-y-8">
+                      {/* Main Step Layout */}
+                      <div className="md:grid md:grid-cols-2 lg:gap-24 md:gap-12 items-center group">
+                        {step.image ? (
+                          <>
+                            <div className={`order-2 ${isOdd ? 'md:order-1' : 'md:order-2'} overflow-hidden rounded-3xl border border-white/10`}>
                               <ImageWithFallback
-                                src={img}
-                                alt={`${step.title} gallery image ${i + 1}`}
-                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                src={step.image}
+                                alt={step.title}
+                                className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
                               />
                             </div>
-                          );
-                        })}
+                            <div className={`order-1 ${isOdd ? 'md:order-2' : 'md:order-1'} py-4`}>
+                              <div className="flex items-center gap-6 mb-6">
+                                <span className="text-4xl font-pixel text-white/20">{String(index + 1).padStart(2, '0')}</span>
+                                <h3 className="text-3xl text-white font-display italic">{step.title}</h3>
+                              </div>
+                              <p className="text-neutral-400 leading-relaxed text-lg font-light">{step.description}</p>
+                            </div>
+                          </>
+                        ) : (
+                          // Text only layout - centered and constrained
+                          <div className="col-span-2 max-w-3xl mx-auto text-center py-12">
+                            <div className="flex flex-col items-center gap-6 mb-6">
+                              <span className="text-4xl font-pixel text-white/20">{String(index + 1).padStart(2, '0')}</span>
+                              <h3 className="text-3xl text-white font-display italic">{step.title}</h3>
+                            </div>
+                            <p className="text-neutral-400 leading-relaxed text-lg font-light">{step.description}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {/* Step Gallery Grid */}
+                      {step.images && step.images.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 max-w-5xl mx-auto">
+                          {step.images.map((img: string, i: number) => {
+                            const globalIndex = allImages.findIndex(x => x === img);
+                            return (
+                              <div
+                                key={i}
+                                className="aspect-[3/2] overflow-hidden rounded-xl border border-white/10 cursor-pointer hover:border-white/30 transition-all"
+                                onClick={() => setSelectedPhoto(globalIndex !== -1 ? globalIndex : null)}
+                              >
+                                <ImageWithFallback
+                                  src={img}
+                                  alt={`${step.title} gallery image ${i + 1}`}
+                                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
@@ -534,52 +547,68 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
       </div>
 
       {/* Image Lightbox */}
-      {selectedPhoto !== null && (
-        <Dialog open={selectedPhoto !== null} onOpenChange={() => setSelectedPhoto(null)}>
-          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-white/10 backdrop-blur-xl">
-            <DialogTitle className="sr-only">Image Viewer</DialogTitle>
-            <DialogDescription className="sr-only">Full size image view</DialogDescription>
-            <div className="relative w-full h-[95vh] flex items-center justify-center">
-              <ImageWithFallback
-                src={allImages[selectedPhoto]}
-                alt="Full size view"
-                className="max-w-full max-h-full object-contain"
-              />
-              <button
-                onClick={() => setSelectedPhoto(null)}
-                className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all"
-                title="Close image viewer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              {allImages.length > 1 && (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedPhoto((selectedPhoto - 1 + allImages.length) % allImages.length);
-                    }}
-                    className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all"
-                    title="Previous image"
-                  >
-                    <ChevronLeft className="w-6 h-6" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedPhoto((selectedPhoto + 1) % allImages.length);
-                    }}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all"
-                    title="Next image"
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                </>
-              )}
+      <AnimatePresence>
+        {selectedPhoto !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
+            onClick={() => setSelectedPhoto(null)}
+          >
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+              aria-label="Close lightbox"
+              title="Close lightbox"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+
+            {allImages.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPhoto((prev) => (prev! - 1 + allImages.length) % allImages.length);
+                  }}
+                  className="absolute left-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                  aria-label="Previous image"
+                  title="Previous image"
+                >
+                  <ChevronLeft className="w-6 h-6 text-white" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPhoto((prev) => (prev! + 1) % allImages.length);
+                  }}
+                  className="absolute right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                  aria-label="Next image"
+                  title="Next image"
+                >
+                  <ChevronRight className="w-6 h-6 text-white" />
+                </button>
+              </>
+            )}
+
+            <motion.img
+              key={selectedPhoto}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              src={allImages[selectedPhoto]}
+              alt={`Image ${selectedPhoto + 1}`}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 font-pixel text-xs text-white/60 tracking-wider">
+              {selectedPhoto + 1} / {allImages.length}
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
