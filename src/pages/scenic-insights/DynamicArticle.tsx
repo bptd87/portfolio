@@ -144,12 +144,13 @@ function ArticleEndFlourish() {
 function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; activeHeading: string }) {
   const headings = useMemo(() =>
     blocks
-      .filter(b => b.type === 'heading' && (b.metadata?.level === 2 || b.metadata?.level === 3))
+      .filter(b => b.type === 'heading')
       .map(b => ({
         id: b.id,
         text: b.content,
         level: b.metadata?.level || 2
-      })),
+      }))
+      .filter(b => b.level >= 1 && b.level <= 6),
     [blocks]
   );
 
