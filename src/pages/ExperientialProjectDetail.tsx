@@ -374,13 +374,13 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
                             </div>
                           </>
                         ) : (
-                          // Text only layout - centered and constrained
-                          <div className="col-span-2 max-w-3xl mx-auto text-center py-12">
-                            <div className="flex flex-col items-center gap-6 mb-6">
+                          // Text only layout - Alternating Zig-Zag (Left/Right)
+                          <div className={`md:col-span-1 py-12 ${isOdd ? 'md:col-start-2' : ''}`}>
+                            <div className="flex items-center gap-6 mb-6">
                               <span className="text-4xl font-pixel text-white/20">{String(index + 1).padStart(2, '0')}</span>
                               <h3 className="text-3xl text-white font-display italic">{step.title}</h3>
                             </div>
-                            <p className="text-neutral-400 leading-relaxed text-lg font-light">{step.description}</p>
+                            <p className="text-neutral-400 leading-relaxed text-lg font-light text-justify">{step.description}</p>
                           </div>
                         )}
                       </div>
