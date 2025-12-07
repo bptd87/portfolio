@@ -158,13 +158,22 @@ export function Links({ onNavigate }: LinksProps = {}) {
         projects.forEach((project: any) => {
           // Construct date from year/month for sorting
           const dateStr = `${project.year}-${String(project.month || 1).padStart(2, '0')}-01`;
+
+          // Robust Image Selection
+          // Try galleries.hero first (if exists as array), then thumbnail, then direct heroImage prop
+          let selectedImage = project.thumbnail || project.heroImage || project.coverImage;
+
+          if (!selectedImage && project.galleries?.hero?.[0]) {
+            selectedImage = project.galleries.hero[0].url || project.galleries.hero[0];
+          }
+
           dashboardItems.push({
             id: `project-${project.id}`,
             type: 'project',
             title: project.title,
             subtitle: `${project.venue || 'Portfolio'} • ${project.year}`,
             url: `/portfolio/${project.slug}`,
-            image: project.heroImage || project.thumbnail,
+            image: selectedImage,
             date: dateStr,
             icon: 'image'
           });
@@ -217,7 +226,10 @@ export function Links({ onNavigate }: LinksProps = {}) {
     }
   };
 
-  const [socialRow, setSocialRow] = useState<SocialLink[]>([]);
+  const [socialRow, setSocialRow] = useState<SocialLink[]>([
+    { id: 'ig', title: 'Instagram', url: 'https://instagram.com/brandonptdavis', icon: 'instagram', enabled: true, order: 1 },
+    { id: 'li', title: 'LinkedIn', url: 'https://linkedin.com/in/brandonptdavis', icon: 'linkedin', enabled: true, order: 2 },
+  ]);
 
   // ---- Icons Helper ----
   const getIcon = (name: string) => {
@@ -280,7 +292,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
 
         {/* --- BIO SECTION --- */}
-        <div className="flex flex-col items-center text-center mb-16">
+        <div className="flex flex-col items-center text-center mb-12">
           {/* Profile Image */}
           {bioData.profileImage && (
             <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full p-1 border border-foreground/10">
@@ -297,13 +309,14 @@ export function Links({ onNavigate }: LinksProps = {}) {
           <h1 className="font-pixel text-xs md:text-sm tracking-[0.4em] mb-3 uppercase opacity-80">
             {bioData.name}
           </h1>
-          <p className="font-display italic text-2xl md:text-3xl text-foreground/80 max-w-lg leading-tight">
+          <p className="font-display italic text-2xl md:text-3xl text-foreground/80 max-w-lg leading-tight mb-8">
             {bioData.tagline}
           </p>
 
-          {/* Social Row (Icons Only) */}
-          {socialRow.length > 0 && (
-            <div className="flex items-center gap-4 mt-8">
+          {/* Social Row + CTA */}
+          <div className="flex flex-col items-center gap-6">
+            {/* Socials */}
+            <div className="flex items-center gap-4">
               {socialRow.map(link => {
                 const Icon = getIcon(link.icon);
                 return (
@@ -312,7 +325,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-all text-foreground/60 hover:text-foreground"
+                    className="p-3 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-all text-foreground/60 hover:text-foreground hover:scale-110"
                     aria-label={link.title}
                   >
                     <Icon className="w-5 h-5" />
@@ -320,7 +333,16 @@ export function Links({ onNavigate }: LinksProps = {}) {
                 );
               })}
             </div>
-          )}
+
+            {/* Website CTA */}
+            <a
+              href="/"
+              onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('/'); }}
+              className="px-6 py-2.5 rounded-full border border-foreground/20 hover:bg-foreground/5 hover:border-foreground/40 transition-all font-pixel text-[10px] tracking-[0.2em] uppercase text-foreground/80"
+            >
+              VISIT WEBSITE
+            </a>
+          </div>
         </div>
 
         {/* --- DASHBOARD GRID --- */}
