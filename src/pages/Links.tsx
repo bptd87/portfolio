@@ -246,7 +246,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
       {/* Top spacing for navbar */}
       <div className="h-20" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
 
         {/* --- BIO SECTION --- */}
         <div className="flex flex-col items-center text-center mb-16">
@@ -293,7 +293,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
         </div>
 
         {/* --- DASHBOARD GRID --- */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mx-auto">
           {items.map((item) => {
             const Icon = getIcon(item.icon);
             const isImage = item.image && item.image !== '';
@@ -303,7 +303,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
                 key={item.id}
                 href={item.url}
                 onClick={(e) => handleItemClick(e, item)}
-                className="group relative aspect-[5/4] rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-black/5 dark:border-white/5 transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                className="group relative aspect-[5/4] rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-black/5 dark:border-white/5 transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
               >
                 {/* Background Image */}
                 {isImage ? (
@@ -321,24 +321,24 @@ export function Links({ onNavigate }: LinksProps = {}) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
                 {/* Type Indicator Icon (Corner) */}
-                <div className="absolute top-3 right-3 p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white/80">
-                  <Icon className="w-4 h-4" />
+                <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/90 shadow-sm">
+                  <Icon className="w-3.5 h-3.5" />
                 </div>
 
                 {/* Content */}
-                <div className="absolute inset-x-0 bottom-0 p-4 md:p-5 flex flex-col justify-end h-full">
+                <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col justify-end h-full">
                   <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                     {/* Subtitle/Date */}
                     {item.subtitle && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-pixel text-[9px] text-white/60 tracking-[0.2em] uppercase truncate">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="font-pixel text-[8px] text-white/70 tracking-[0.2em] uppercase truncate shadow-black drop-shadow-md">
                           {item.type === 'custom' ? 'LINK' : item.type.toUpperCase()} • {item.subtitle}
                         </span>
                       </div>
                     )}
 
                     {/* Title */}
-                    <h3 className="font-display italic text-white text-lg md:text-xl leading-tight line-clamp-2 md:line-clamp-3">
+                    <h3 className="font-display italic text-white text-base md:text-lg leading-tight line-clamp-2 md:line-clamp-3 shadow-black drop-shadow-md">
                       {item.title}
                     </h3>
                   </div>
