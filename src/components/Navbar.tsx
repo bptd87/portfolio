@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, ChevronDown, Moon, Sun } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ChevronDown, Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
 interface NavbarProps {
@@ -21,7 +21,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
   // Close menu when mouse leaves navbar area
   useEffect(() => {
     if (!menuOpen) return;
-    
+
     const handleMouseLeave = (e: MouseEvent) => {
       if (navRef.current && !navRef.current.contains(e.relatedTarget as Node)) {
         // Add a small delay to prevent accidental closes
@@ -60,7 +60,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
       document.documentElement,
       document.body
     ];
-    
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
       // Show background after scrolling 50px
@@ -80,7 +80,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
     scrollTargets.forEach(target => {
       target.addEventListener('scroll', handleScroll, { passive: true });
     });
-    
+
     return () => {
       scrollTargets.forEach(target => {
         target.removeEventListener('scroll', handleScroll);
@@ -99,26 +99,24 @@ export function Navbar({ onNavigate }: NavbarProps) {
   };
 
   return (
-    <div 
-      className={`fixed top-0 left-0 right-0 z-50 w-full flex justify-center py-6 px-4 transition-transform duration-300 ${
-        hidden ? '-translate-y-full' : 'translate-y-0'
-      }`}
-    >
-      
-      {/* Navbar Container - Rounded on both mobile and desktop */}
-      <div 
-        ref={navRef}
-        className={`shadow-2xl rounded-3xl w-full md:w-[90%] md:max-w-md transition-colors duration-300 ${
-          scrolled || menuOpen 
-            ? 'bg-neutral-700/80 backdrop-blur-xl' 
-            : 'bg-neutral-600/60 backdrop-blur-md'
+    <div
+      className={`fixed top-0 left-0 right-0 z-50 w-full flex justify-center py-6 px-4 transition-transform duration-300 ${hidden ? '-translate-y-full' : 'translate-y-0'
         }`}
+    >
+
+      {/* Navbar Container - Rounded on both mobile and desktop */}
+      <div
+        ref={navRef}
+        className={`shadow-2xl rounded-3xl w-full md:w-[90%] md:max-w-md transition-colors duration-300 ${scrolled || menuOpen
+          ? 'bg-neutral-700/80 backdrop-blur-xl'
+          : 'bg-neutral-600/60 backdrop-blur-md'
+          }`}
       >
-        
+
         {/* Top Bar - Always Visible */}
         <div className="px-6 py-3.5">
           <div className="flex items-center justify-between">
-            
+
             {/* Left - Hamburger/Close */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -126,7 +124,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
               aria-label="Toggle menu"
             >
               {/* Line 1 */}
-              <span 
+              <span
                 className="absolute left-1 bg-white transition-all duration-300"
                 style={{
                   width: '20px',
@@ -136,7 +134,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
                 }}
               />
               {/* Line 2 */}
-              <span 
+              <span
                 className="absolute left-1 bg-white transition-all duration-300"
                 style={{
                   width: '20px',
@@ -176,42 +174,17 @@ export function Navbar({ onNavigate }: NavbarProps) {
         {menuOpen && (
           <>
             <div className="border-t border-white/10" />
-            
+
             <div className="px-6 py-8">
               <nav className="space-y-5">
-                
+
                 {/* PORTFOLIO */}
-                <div>
-                  <button
-                    onClick={() => toggleSection('portfolio')}
-                    className="flex items-center justify-center gap-2 w-full font-pixel text-3xl tracking-[0.15em] text-white hover:opacity-70 transition-opacity"
-                  >
-                    PORTFOLIO
-                    <ChevronDown className={`w-5 h-5 transition-transform ${expandedSection === 'portfolio' ? 'rotate-180' : ''}`} />
-                  </button>
-                  {expandedSection === 'portfolio' && (
-                    <div className="mt-3 space-y-2">
-                      <button
-                        onClick={() => handleNavClick('portfolio?filter=scenic')}
-                        className="block w-full font-pixel text-xl tracking-[0.12em] text-white/60 hover:text-white transition-colors text-center"
-                      >
-                        SCENIC
-                      </button>
-                      <button
-                        onClick={() => handleNavClick('portfolio?filter=experiential')}
-                        className="block w-full font-pixel text-xl tracking-[0.12em] text-white/60 hover:text-white transition-colors text-center"
-                      >
-                        EXPERIENTIAL
-                      </button>
-                      <button
-                        onClick={() => handleNavClick('portfolio?filter=rendering')}
-                        className="block w-full font-pixel text-xl tracking-[0.12em] text-white/60 hover:text-white transition-colors text-center"
-                      >
-                        RENDERING + VIS
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <button
+                  onClick={() => handleNavClick('portfolio')}
+                  className="block w-full font-pixel text-3xl tracking-[0.15em] text-white hover:opacity-70 transition-opacity text-center"
+                >
+                  PORTFOLIO
+                </button>
 
                 {/* NEWS */}
                 <button
@@ -289,21 +262,21 @@ export function Navbar({ onNavigate }: NavbarProps) {
             {/* Footer Links */}
             <div className="border-t border-white/10 px-4 py-5">
               <div className="flex flex-wrap items-center justify-center gap-3 font-pixel text-[10px] tracking-[0.15em] text-white/40 uppercase">
-                <button 
+                <button
                   onClick={() => handleNavClick('sitemap')}
                   className="hover:text-white/70 transition-colors"
                 >
                   SITEMAP
                 </button>
                 <span>•</span>
-                <button 
+                <button
                   onClick={() => handleNavClick('faq')}
                   className="hover:text-white/70 transition-colors"
                 >
                   FAQ
                 </button>
                 <span>•</span>
-                <button 
+                <button
                   onClick={() => handleNavClick('accessibility')}
                   className="hover:text-white/70 transition-colors"
                 >
@@ -311,14 +284,14 @@ export function Navbar({ onNavigate }: NavbarProps) {
                 </button>
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3 mt-2 font-pixel text-[10px] tracking-[0.15em] text-white/40 uppercase">
-                <button 
+                <button
                   onClick={() => handleNavClick('privacy-policy')}
                   className="hover:text-white/70 transition-colors"
                 >
                   PRIVACY
                 </button>
                 <span>•</span>
-                <button 
+                <button
                   onClick={() => handleNavClick('terms-of-use')}
                   className="hover:text-white/70 transition-colors"
                 >

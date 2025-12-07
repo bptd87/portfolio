@@ -365,12 +365,12 @@ export const projects: Project[] = [
     id: 'scenic-models',
     title: 'Scenic Models',
     category: 'Design Documentation',
-    subcategory: 'Scale Models',
+    subcategory: 'Models',
     venue: 'Various',
     location: 'Various',
     year: 2024,
     featured: false,
-    description: 'Collection of scale scenic models from various productions.',
+    description: 'Collection of scale scenic models from various productions showcasing the design development process.',
     credits: {
       scenicDesigner: 'Brandon PT Davis'
     }
@@ -501,12 +501,12 @@ export const projects: Project[] = [
     id: 'scenic-design-archive',
     title: 'Scenic Design Archive',
     category: 'Design Documentation',
-    subcategory: 'Portfolio',
+    subcategory: 'Archive',
     venue: 'Various',
     location: 'Various',
     year: 2024,
     featured: false,
-    description: 'Archive of production photos from various scenic designs throughout my career.',
+    description: 'Archive of production photos from various scenic designs throughout my career, highlighting shows that shaped my artistic journey.',
     credits: {
       scenicDesigner: 'Brandon PT Davis'
     }

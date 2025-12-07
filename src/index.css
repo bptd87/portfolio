@@ -149,6 +149,10 @@
     --color-neutral-800: oklch(26.9% 0 0deg);
     --color-neutral-900: oklch(20.5% 0 0deg);
     --color-neutral-950: oklch(14.5% 0 0deg);
+    --studio-gold: #D4AF37;
+    --studio-gold-foreground: #FFFFFF;
+    --forest-green: #225C42;
+    --forest-green-foreground: #FFFFFF;
     --color-black: #000;
     --color-white: #fff;
     --spacing: .25rem;
@@ -226,8 +230,8 @@
   }
 
   .bg-dots-white-sm {
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.8) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 
   .bg-grid-current {
@@ -237,7 +241,7 @@
 
   .bg-dots-current {
     background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-size: 48px 48px;
   }
 
   /* New utilities for cleanup */

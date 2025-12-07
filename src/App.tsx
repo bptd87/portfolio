@@ -1,12 +1,11 @@
-import React, { useState, lazy, Suspense, useEffect } from 'react';
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { ThemeProvider } from './components/ThemeProvider';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { PageLoader } from './components/PageLoader';
 import { SEO } from './components/SEO';
-import { getPostById } from './data/blog-posts';
-import { PAGE_METADATA, generateArticleMetadata, generateProjectMetadata, DEFAULT_METADATA } from './utils/seo/metadata';
-import { generateWebSiteSchema, generateArticleSchema, generateCreativeWorkSchema, generatePersonSchema } from './utils/seo/structured-data';
+import { PAGE_METADATA } from './utils/seo/metadata';
+
 import { Toaster } from 'sonner';
 
 import { AnalyticsTracker } from './components/AnalyticsTracker';
@@ -27,7 +26,7 @@ if (process.env.NODE_ENV === 'development') {
 import { Home } from './pages/Home';
 import { Portfolio } from './pages/Portfolio';
 import { ProjectDetailNew as ProjectDetail } from './pages/ProjectDetailNew';
-import { ExperientialProjectDetail } from './pages/ExperientialProjectDetail';
+
 
 // Lazy load everything else for better performance
 const About = lazy(() => import('./pages/About').then(m => ({ default: m.About })));
@@ -70,9 +69,9 @@ const ScenicVault = lazy(() => import('./pages/ScenicVault').then(m => ({ defaul
 const DynamicArticle = lazy(() => import('./pages/scenic-insights/DynamicArticle').then(m => ({ default: m.DynamicArticle })));
 
 // Project pages
-const DynamicProject = lazy(() => import('./pages/portfolio/DynamicProject').then(m => ({ default: m.DynamicProject })));
 
-type Page = 'home' | 'portfolio' | 'about' | 'cv' | 'collaborators' | 'teaching-philosophy' | 'contact' | 'scenic-insights' | 'articles' | 'studio' | 'scenic-studio' | 'scenic-vault' | 'app-studio' | 'resources' | 'architecture-scale-converter' | 'dimension-reference' | 'model-reference-scaler' | 'design-history-timeline' | 'classical-architecture-guide' | 'rosco-paint-calculator' | 'commercial-paint-finder' | 'news' | 'news-article' | 'project' | 'blog' | 'tutorial' | 'search' | 'admin' | 'links' | 'faq' | 'privacy-policy' | 'accessibility' | 'terms-of-use' | '404' | 'sitemap';
+
+type Page = 'home' | 'portfolio' | 'about' | 'cv' | 'collaborators' | 'teaching-philosophy' | 'contact' | 'scenic-insights' | 'articles' | 'studio' | 'scenic-studio' | 'scenic-vault' | 'app-studio' | 'resources' | 'architecture-scale-converter' | 'dimension-reference' | 'model-reference-scaler' | 'design-history-timeline' | 'classical-architecture-guide' | 'rosco-paint-calculator' | 'commercial-paint-finder' | 'blog-formatter' | 'news' | 'news-article' | 'project' | 'blog' | 'tutorial' | 'search' | 'admin' | 'links' | 'faq' | 'privacy-policy' | 'accessibility' | 'terms-of-use' | '404' | 'sitemap';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -287,7 +286,7 @@ export default function App() {
         return <ScenicInsights onNavigate={handleNavigation} />;
       case 'tutorial':
         if (currentTutorialSlug) return <DynamicTutorial slug={currentTutorialSlug} onNavigate={handleNavigation} />;
-        return <Studio onNavigate={handleNavigation} initialTab="tutorials" />;
+        return <Studio onNavigate={handleNavigation} />;
       case 'search': return <Search onNavigate={handleNavigation} />;
       case 'admin': return <Admin onNavigate={handleNavigation} />;
       case 'faq': return <FAQ onNavigate={handleNavigation} />;

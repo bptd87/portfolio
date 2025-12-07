@@ -20,6 +20,9 @@ import { ProjectSEOTools } from './ProjectSEOTools';
 import { ExperientialDesignEditor } from './ExperientialDesignEditor';
 import { RenderingEditor } from './RenderingEditor';
 import { ImageUploader } from './ImageUploader';
+import { ImageUploaderWithFocalPoint } from './ImageUploaderWithFocalPoint';
+import { SimpleGalleryEditor } from './SimpleGalleryEditor';
+
 
 // Zod schema for validation
 const projectSchema = z.object({
@@ -36,9 +39,10 @@ const projectSchema = z.object({
   published: z.boolean().optional(), // New field
   description: z.string().min(1, 'Description is required'),
   cardImage: z.string().optional(),
+  focusPoint: z.object({ x: z.number(), y: z.number() }).optional(),
   credits: z.array(z.object({ role: z.string(), name: z.string() })).optional(),
   tags: z.array(z.string()).optional(),
-  
+
   // Scenic Design specific
   galleries: z.any().optional(),
   youtubeVideos: z.array(z.string()).optional(),
@@ -95,15 +99,15 @@ export function PortfolioManager() {
     setLoading(true);
     try {
       const token = sessionStorage.getItem('admin_token');
-      
+
       if (!token) {
         console.error('❌ No admin token found in sessionStorage');
         toast.error('Please log in again');
         return;
       }
-      
+
       console.log('🔑 Using admin token:', token.substring(0, 20) + '...');
-      
+
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`,
         {
@@ -182,8 +186,8 @@ export function PortfolioManager() {
 
       const response = await fetch(url, {
         method: isNew ? 'POST' : 'PUT',
-        headers: { 
-          'Content-Type': 'application/json', 
+        headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ ...formData, slug }),
@@ -238,7 +242,7 @@ export function PortfolioManager() {
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
-      
+
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
@@ -261,7 +265,7 @@ export function PortfolioManager() {
     };
     input.click();
   };
-  
+
   const category = methods.watch('category');
 
   const tabs = [
@@ -281,7 +285,8 @@ export function PortfolioManager() {
             <>
               <div className="flex items-center gap-2 mr-2">
                 <span className="text-xs text-muted-foreground uppercase tracking-wider">Sort by:</span>
-                <select 
+                <select
+                  aria-label="Sort projects"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
                   className="bg-background border border-border rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-accent-brand"
@@ -291,7 +296,7 @@ export function PortfolioManager() {
                   <option value="category">Category</option>
                 </select>
               </div>
-              <button 
+              <button
                 onClick={handleBulkImport}
                 className="flex items-center gap-2 px-4 py-2 border border-border hover:bg-accent/50 rounded-3xl transition-colors text-xs tracking-wider uppercase"
               >
@@ -329,11 +334,10 @@ export function PortfolioManager() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${
-                    activeTab === tab.id 
-                      ? 'text-foreground bg-background' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                  }`}
+                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${activeTab === tab.id
+                    ? 'text-foreground bg-background'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    }`}
                 >
                   <tab.icon className="w-4 h-4" />
                   {tab.label}
@@ -355,7 +359,7 @@ export function PortfolioManager() {
                     </Select>
                     <Input name="subcategory" label="Subcategory" placeholder="e.g. Musical, Play, Opera" />
                   </div>
-                  
+
                   {/* Conditional Fields based on Category */}
                   {category === 'Experiential Design' ? (
                     <div className="grid grid-cols-2 gap-6">
@@ -399,18 +403,22 @@ export function PortfolioManager() {
               {activeTab === 'media' && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="bg-muted/30 p-4 rounded-xl border border-border">
-                    <ImageUploader 
-                      label="Card Image (Thumbnail)" 
-                      value={methods.watch('cardImage')} 
-                      onChange={(url) => methods.setValue('cardImage', url)}
-                      bucketName="projects"
+                    <ImageUploaderWithFocalPoint
+                      label="Card Image (Thumbnail)"
+                      value={methods.watch('cardImage')}
+                      focalPoint={methods.watch('focusPoint')}
+                      onChange={(url, point) => {
+                        methods.setValue('cardImage', url);
+                        if (point) methods.setValue('focusPoint', point);
+                      }}
                     />
                     <p className="text-xs text-muted-foreground mt-2">This image will be used on the portfolio grid.</p>
                   </div>
-                  
+
+
                   {category === 'Experiential Design' ? (
-                    <ExperientialDesignEditor 
-                      data={methods.getValues() as any} 
+                    <ExperientialDesignEditor
+                      data={methods.getValues() as any}
                       onChange={(newData) => {
                         // Merge new data into form
                         Object.entries(newData).forEach(([key, value]) => {
@@ -421,8 +429,8 @@ export function PortfolioManager() {
                       onSetCover={(url) => methods.setValue('cardImage', url)}
                     />
                   ) : category === 'Rendering & Visualization' ? (
-                    <RenderingEditor 
-                      data={methods.getValues() as any} 
+                    <RenderingEditor
+                      data={methods.getValues() as any}
                       onChange={(newData) => {
                         Object.entries(newData).forEach(([key, value]) => {
                           methods.setValue(key as any, value);
@@ -431,32 +439,47 @@ export function PortfolioManager() {
                       currentCover={methods.watch('cardImage')}
                       onSetCover={(url) => methods.setValue('cardImage', url)}
                     />
+                  ) : category === 'Design Documentation' ? (
+                    <SimpleGalleryEditor
+                      label="Gallery Images"
+                      images={methods.watch('galleries.process') || []}
+                      captions={methods.watch('galleries.processCaptions') || []}
+                      onChange={(images, captions) => {
+                        methods.setValue('galleries.process', images);
+                        methods.setValue('galleries.processCaptions', captions);
+                      }}
+                      captionPlaceholder={
+                        methods.watch('subcategory') === 'Archive'
+                          ? "Production Name\nLocation: Theater, City, State\nDirector: Name | Scenic Designer: Name"
+                          : "Production Name (Year)\n\nMaterials: List materials\nScale: 1/4\" = 1'-0\"\n\nProcess: Describe construction"
+                      }
+                    />
                   ) : (
                     <>
-                      <GalleryEditor 
-                        label="Primary Gallery (Renderings & Design)" 
-                        images={methods.watch('galleries.hero') || []} 
-                        captions={methods.watch('galleries.heroCaptions') || []} 
+                      <GalleryEditor
+                        label="Primary Gallery (Renderings & Design)"
+                        images={methods.watch('galleries.hero') || []}
+                        captions={methods.watch('galleries.heroCaptions') || []}
                         onChange={(images, captions) => {
                           methods.setValue('galleries.hero', images);
                           methods.setValue('galleries.heroCaptions', captions);
-                        }} 
-                        currentCover={methods.watch('cardImage')} 
-                        onSetCover={(url) => methods.setValue('cardImage', url)} 
+                        }}
+                        currentCover={methods.watch('cardImage')}
+                        onSetCover={(url) => methods.setValue('cardImage', url)}
                       />
-                      
+
                       <div className="h-px bg-border" />
-                      
-                      <GalleryEditor 
-                        label="Secondary Gallery (Production Photos)" 
-                        images={methods.watch('galleries.process') || []} 
-                        captions={methods.watch('galleries.processCaptions') || []} 
+
+                      <GalleryEditor
+                        label="Secondary Gallery (Production Photos)"
+                        images={methods.watch('galleries.process') || []}
+                        captions={methods.watch('galleries.processCaptions') || []}
                         onChange={(images, captions) => {
                           methods.setValue('galleries.process', images);
                           methods.setValue('galleries.processCaptions', captions);
-                        }} 
-                        currentCover={methods.watch('cardImage')} 
-                        onSetCover={(url) => methods.setValue('cardImage', url)} 
+                        }}
+                        currentCover={methods.watch('cardImage')}
+                        onSetCover={(url) => methods.setValue('cardImage', url)}
                       />
 
                       <div className="h-px bg-border" />
@@ -485,7 +508,7 @@ export function PortfolioManager() {
 
               {activeTab === 'seo' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                  <ProjectSEOTools 
+                  <ProjectSEOTools
                     title={methods.watch('title')}
                     description={methods.watch('description')}
                     currentTags={methods.watch('tags') || []}
@@ -505,7 +528,7 @@ export function PortfolioManager() {
                   <div className="bg-blue-500/5 border border-blue-500/20 p-4 rounded-xl">
                     <h4 className="text-sm font-medium text-blue-400 mb-2">SEO Preview</h4>
                     <p className="text-xs text-muted-foreground">
-                      The slug for this project will be automatically generated from the title: 
+                      The slug for this project will be automatically generated from the title:
                       <code className="ml-2 bg-background px-2 py-1 rounded border border-border">
                         {methods.watch('title')?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '...'}
                       </code>
@@ -532,37 +555,37 @@ export function PortfolioManager() {
               return 0;
             })
             .map((project) => (
-            <div key={project.id} className={`flex items-center justify-between p-4 border transition-colors rounded-2xl bg-card/50 hover:bg-card ${project.published === false ? 'border-dashed border-border opacity-70' : 'border-border hover:border-accent-brand/50'}`}>
-              <div className="flex items-center gap-4">
-                {project.cardImage ? (
-                  <img src={project.cardImage} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted" />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                    <Image className="w-6 h-6 opacity-20" />
-                  </div>
-                )}
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="tracking-tight font-medium">{project.title}</h4>
-                    {project.published === false && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 uppercase tracking-wider">Draft</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-300 mt-1">
-                    <span className="px-2 py-0.5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-400">{project.category}</span>
-                    <span className="text-gray-500">•</span>
-                    <span className="text-gray-300">{project.venue}</span>
-                    <span className="text-gray-500">•</span>
-                    <span className="text-gray-400">{project.year}</span>
+              <div key={project.id} className={`flex items-center justify-between p-4 border transition-colors rounded-2xl bg-card/50 hover:bg-card ${project.published === false ? 'border-dashed border-border opacity-70' : 'border-border hover:border-accent-brand/50'}`}>
+                <div className="flex items-center gap-4">
+                  {project.cardImage ? (
+                    <img src={project.cardImage} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                      <Image className="w-6 h-6 opacity-20" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="tracking-tight font-medium">{project.title}</h4>
+                      {project.published === false && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 uppercase tracking-wider">Draft</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-300 mt-1">
+                      <span className="px-2 py-0.5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-400">{project.category}</span>
+                      <span className="text-gray-500">•</span>
+                      <span className="text-gray-300">{project.venue}</span>
+                      <span className="text-gray-500">•</span>
+                      <span className="text-gray-400">{project.year}</span>
+                    </div>
                   </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <IconButton onClick={() => handleEdit(project)}><Pencil className="w-4 h-4" /></IconButton>
+                  <IconButton onClick={() => handleDelete(project.id)} variant="danger"><Trash2 className="w-4 h-4" /></IconButton>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <IconButton onClick={() => handleEdit(project)}><Pencil className="w-4 h-4" /></IconButton>
-                <IconButton onClick={() => handleDelete(project.id)} variant="danger"><Trash2 className="w-4 h-4" /></IconButton>
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
     </div>

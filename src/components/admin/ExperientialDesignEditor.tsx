@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Plus, X, Trash2, ChevronUp, ChevronDown, Star } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 import { ImprovedBlockEditor } from './ImprovedBlockEditor';
 import { ContentBlock } from './BlockEditor';
+import { GalleryEditor } from './ProjectTemplateFields';
 
 interface KeyFeature {
   title: string;
@@ -12,7 +13,8 @@ interface KeyFeature {
 interface ProcessStep {
   title: string;
   description: string;
-  image?: string;
+  images?: string[];
+  imageCaptions?: string[];
 }
 
 interface TeamMember {
@@ -57,6 +59,12 @@ interface ExperientialProject {
   // Testimonial
   testimonial?: Testimonial;
 
+  // Gallery
+  galleries?: {
+    hero?: string[];
+    heroCaptions?: string[];
+  };
+
   // Additional content blocks
   content?: ContentBlock[];
 }
@@ -71,8 +79,6 @@ interface ExperientialDesignEditorProps {
 export function ExperientialDesignEditor({
   data,
   onChange,
-  currentCover,
-  onSetCover,
 }: ExperientialDesignEditorProps) {
   const [expandedSections, setExpandedSections] = useState<string[]>(['stats', 'challenge']);
 
@@ -227,7 +233,10 @@ export function ExperientialDesignEditor({
           onClick={() => toggleSection('challenge')}
           className="w-full flex items-center justify-between p-3 bg-accent-brand/5 border border-accent-brand/20 hover:bg-accent-brand/10 transition-colors"
         >
-          <span className="text-xs tracking-wider uppercase font-medium">The Challenge</span>
+          <div className="text-left">
+            <div className="text-xs tracking-wider uppercase font-medium">The Challenge</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">Large italic heading on page</div>
+          </div>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('challenge') ? 'rotate-180' : ''}`} />
         </button>
 
@@ -286,6 +295,7 @@ export function ExperientialDesignEditor({
                   <button type="button"
                     onClick={() => removeKeyFeature(index)}
                     className="p-1 opacity-60 hover:opacity-100 hover:text-destructive transition-all"
+                    title="Remove key feature"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -338,6 +348,7 @@ export function ExperientialDesignEditor({
                       <button type="button"
                         onClick={() => moveProcessStep(index, 'up')}
                         className="p-1 opacity-60 hover:opacity-100 transition-all"
+                        title="Move step up"
                       >
                         <ChevronUp className="w-4 h-4" />
                       </button>
@@ -346,6 +357,7 @@ export function ExperientialDesignEditor({
                       <button type="button"
                         onClick={() => moveProcessStep(index, 'down')}
                         className="p-1 opacity-60 hover:opacity-100 transition-all"
+                        title="Move step down"
                       >
                         <ChevronDown className="w-4 h-4" />
                       </button>
@@ -353,6 +365,7 @@ export function ExperientialDesignEditor({
                     <button type="button"
                       onClick={() => removeProcessStep(index)}
                       className="p-1 opacity-60 hover:opacity-100 hover:text-destructive transition-all"
+                      title="Remove process step"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -373,12 +386,68 @@ export function ExperientialDesignEditor({
                   className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none resize-none text-sm"
                 />
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2">Step Image (Optional)</label>
-                  <ImageUploader
-                    value={step.image || ''}
-                    onChange={(url) => updateProcessStep(index, 'image', url)}
-                    label="Upload or drag image here"
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs text-gray-400">Step Images (Optional)</label>
+                    {step.images && step.images.length > 0 && (
+                      <span className="text-xs text-blue-400">{step.images.length} image{step.images.length !== 1 ? 's' : ''} added</span>
+                    )}
+                  </div>
+                  <div className="bg-muted/20 p-3 rounded-lg border border-border">
+                    <ImageUploader
+                      value=""
+                      onChange={(url) => {
+                        const newProcess = [...(data.process || [])];
+                        const currentImages = newProcess[index].images || [];
+                        const currentCaptions = newProcess[index].imageCaptions || [];
+                        newProcess[index] = {
+                          ...newProcess[index],
+                          images: [...currentImages, url],
+                          imageCaptions: [...currentCaptions, '']
+                        };
+                        onChange({ ...data, process: newProcess });
+                      }}
+                      label="📸 Add another image to this step"
+                    />
+
+                    {step.images && step.images.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {step.images.map((img, imgIndex) => (
+                          <div key={imgIndex} className="flex items-center gap-2 p-2 bg-background rounded border border-border">
+                            <img src={img} alt="" className="w-12 h-12 object-cover rounded" />
+                            <input
+                              type="text"
+                              value={step.imageCaptions?.[imgIndex] || ''}
+                              onChange={(e) => {
+                                const newProcess = [...(data.process || [])];
+                                const newCaptions = [...(newProcess[index].imageCaptions || [])];
+                                newCaptions[imgIndex] = e.target.value;
+                                newProcess[index] = { ...newProcess[index], imageCaptions: newCaptions };
+                                onChange({ ...data, process: newProcess });
+                              }}
+                              placeholder="Image caption..."
+                              className="flex-1 px-2 py-1 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newProcess = [...(data.process || [])];
+                                newProcess[index] = {
+                                  ...newProcess[index],
+                                  images: step.images!.filter((_, i) => i !== imgIndex),
+                                  imageCaptions: step.imageCaptions?.filter((_, i) => i !== imgIndex) || []
+                                };
+                                onChange({ ...data, process: newProcess });
+                              }}
+                              className="p-1 hover:text-destructive"
+                              title="Remove image"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -424,6 +493,7 @@ export function ExperientialDesignEditor({
                 <button type="button"
                   onClick={() => removeTeamMember(index)}
                   className="p-2 opacity-60 hover:opacity-100 hover:text-destructive transition-all"
+                  title="Remove team member"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -472,6 +542,7 @@ export function ExperientialDesignEditor({
                 <button type="button"
                   onClick={() => removeMetric(index)}
                   className="p-2 opacity-60 hover:opacity-100 hover:text-destructive transition-all"
+                  title="Remove metric"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -545,13 +616,58 @@ export function ExperientialDesignEditor({
         )}
       </div>
 
+      {/* Project Galleries Section - NEW! */}
+      <div>
+        <button type="button"
+          onClick={() => toggleSection('galleries')}
+          className="w-full flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 transition-colors"
+        >
+          <div className="text-left">
+            <div className="text-xs tracking-wider uppercase font-medium text-blue-400">📸 Project Galleries (NEW!)</div>
+            <div className="text-[10px] text-blue-300/70 mt-0.5">Upload project photos - displays in image grid on page</div>
+          </div>
+          <ChevronDown className={`w-4 h-4 text-blue-400 transition-transform ${expandedSections.includes('galleries') ? 'rotate-180' : ''}`} />
+        </button>
+
+        {expandedSections.includes('galleries') && (
+          <div className="border border-t-0 border-blue-500/30 p-4 bg-blue-500/5">
+            <div className="mb-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+              <p className="text-xs text-blue-300">
+                <strong>Tip:</strong> Upload project photos here for a simple image gallery.
+                For more complex layouts with mixed content (text + images), use "Additional Content Blocks" below.
+              </p>
+            </div>
+            <GalleryEditor
+              label="Project Photos"
+              images={data.galleries?.hero || []}
+              captions={data.galleries?.heroCaptions || []}
+              onChange={(images, captions) => {
+                onChange({
+                  ...data,
+                  galleries: {
+                    ...data.galleries,
+                    hero: images,
+                    heroCaptions: captions
+                  }
+                });
+              }}
+              currentCover=""
+              onSetCover={() => { }}
+            />
+          </div>
+        )}
+      </div>
+
       {/* Additional Content Blocks Section */}
       <div>
         <button type="button"
           onClick={() => toggleSection('content')}
           className="w-full flex items-center justify-between p-3 bg-accent-brand/5 border border-accent-brand/20 hover:bg-accent-brand/10 transition-colors"
         >
-          <span className="text-xs tracking-wider uppercase font-medium">Additional Content Blocks ({(data.content || []).length})</span>
+          <div className="text-left">
+            <div className="text-xs tracking-wider uppercase font-medium">Additional Content Blocks ({(data.content || []).length})</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">Advanced: Mix text, images, headings & videos (like a blog post)</div>
+          </div>
           <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('content') ? 'rotate-180' : ''}`} />
         </button>
 

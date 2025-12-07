@@ -17,12 +17,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (savedTheme) {
       return savedTheme;
     }
-    
+
     // Fall back to system preference
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
-    
+
     return 'light';
   });
 
@@ -34,15 +34,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove('dark');
     }
-    
-    // Save user preference
-    localStorage.setItem('theme', theme);
   }, [theme]);
 
   // Listen for system preference changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       // Only update if user hasn't manually set a preference
       const savedTheme = localStorage.getItem('theme');
@@ -50,7 +47,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setTheme(e.matches ? 'dark' : 'light');
       }
     };
-    
+
     // Modern browsers
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleChange);
@@ -64,7 +61,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setTheme((prev) => {
+      const newTheme = prev === 'dark' ? 'light' : 'dark';
+      // Only save to localStorage when user manually toggles
+      localStorage.setItem('theme', newTheme);
+      return newTheme;
+    });
   };
 
   return (

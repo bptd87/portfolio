@@ -1,7 +1,7 @@
 // Updated: 2025-11-28 - Design system unification
-import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Heart, Eye, Calendar, MapPin, Users, Share2, ChevronDown, X, Play } from 'lucide-react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
+import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Eye, Calendar, MapPin, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ImageGallery } from '../components/shared/ImageGallery';
 import { ImageSlideshow } from '../components/shared/ImageSlideshow';
 import { ImageLightbox } from '../components/shared/ImageLightbox';
@@ -247,8 +247,50 @@ export function ProjectDetail({ slug, onNavigate }: ProjectDetailProps) {
         </motion.div>
       </div>
 
+
+
+      {/* DESIGN DOCUMENTATION LAYOUT - Archive & Models */}
+      {(project.category === 'Design Documentation' || slug === 'scenic-design-archive' || slug === 'scenic-models') && (
+        <div className="max-w-6xl mx-auto space-y-16">
+          {project.galleries?.process && project.galleries.process.length > 0 && project.galleries.process.map((image: string, index: number) => {
+            const caption = project.galleries.processCaptions?.[index] || '';
+            const lines = caption.split('\n').filter((l: string) => l.trim());
+            const title = lines[0] || `Entry ${index + 1}`;
+            const metadata = lines.slice(1);
+
+            return (
+              <article key={index} className="mb-16 last:mb-0">
+                <h2 className="font-display italic text-3xl md:text-4xl text-black dark:text-white mb-4">
+                  {title}
+                </h2>
+                {metadata.length > 0 && (
+                  <div className="mb-6 space-y-1 text-sm text-black/60 dark:text-white/60">
+                    {metadata.map((line: string, idx: number) => (
+                      <p key={idx}>{line}</p>
+                    ))}
+                  </div>
+                )}
+                <div
+                  className="rounded-3xl border border-black/10 dark:border-white/10 overflow-hidden cursor-pointer group"
+                  onClick={() => openLightbox(project.galleries.process, project.galleries.processCaptions, index)}
+                >
+                  <img
+                    src={image}
+                    alt={title}
+                    className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
+                  />
+                </div>
+                {index < project.galleries.process.length - 1 && (
+                  <hr className="mt-16 border-black/10 dark:border-white/10" />
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
+
       {/* SCENIC DESIGN LAYOUT - Editorial Split-Screen */}
-      {project.category === 'Scenic Design' && (
+      {project.category === 'Scenic Design' && slug !== 'scenic-design-archive' && slug !== 'scenic-models' && (
         <div className="space-y-16">
           {/* Editorial Layout: Images (75%) + Sidebar (25%) */}
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-12">

@@ -22,12 +22,14 @@ import { MediaManager } from '../components/admin/MediaManager';
 import { DataSync } from '../components/admin/DataSync';
 import { ApiStatus } from './admin/ApiStatus';
 import { SimpleErrorBoundary } from '../components/SimpleErrorBoundary';
+import { ArchiveManager } from '../components/admin/ArchiveManager';
+import { ModelsManager } from '../components/admin/ModelsManager';
 
 interface AdminProps {
   onNavigate: (page: string) => void;
 }
 
-type ManagerView = 'dashboard' | 'articles' | 'portfolio' | 'news' | 'links' | 'directory' | 'vault' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'api-status' | 'analytics' | 'redirects' | 'media' | 'data-sync' | 'contact';
+type ManagerView = 'dashboard' | 'articles' | 'portfolio' | 'news' | 'links' | 'directory' | 'vault' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'api-status' | 'analytics' | 'redirects' | 'media' | 'data-sync' | 'contact' | 'archive' | 'models';
 
 const navItems = [
   { id: 'dashboard', title: 'Dashboard' },
@@ -36,6 +38,8 @@ const navItems = [
   { id: 'media', title: 'Media Manager' },
   { id: 'articles', title: 'Articles' },
   { id: 'portfolio', title: 'Portfolio' },
+  { id: 'archive', title: '📸 Archive Gallery' },
+  { id: 'models', title: '🏗️ Models Gallery' },
   { id: 'news', title: 'News' },
   { id: 'links', title: 'Social Links' },
   { id: 'directory', title: 'Scenic Directory' },
@@ -174,7 +178,7 @@ export function Admin({ onNavigate }: AdminProps) {
       </div>
     );
   }
-  
+
   const getPageTitle = () => {
     const item = navItems.find(item => item.id === activeView);
     return item ? item.title : 'Dashboard';
@@ -218,6 +222,10 @@ export function Admin({ onNavigate }: AdminProps) {
         return <MediaManager />;
       case 'api-status':
         return <ApiStatus />;
+      case 'archive':
+        return <ArchiveManager />;
+      case 'models':
+        return <ModelsManager />;
       default:
         return <AdminDashboard onSelectManager={setActiveView} />;
     }
@@ -226,8 +234,8 @@ export function Admin({ onNavigate }: AdminProps) {
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <SimpleErrorBoundary>
-        <AdminLayout 
-          activeView={activeView} 
+        <AdminLayout
+          activeView={activeView}
           onNavigate={(view) => setActiveView(view as ManagerView)}
           onSiteNavigation={onNavigate}
           onLogout={handleLogout}

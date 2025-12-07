@@ -438,7 +438,7 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 bg-muted dark:bg-neutral-900 flex flex-col items-center justify-center p-8 hover:bg-muted/80 dark:hover:bg-neutral-800 transition-all duration-500 overflow-hidden border-b md:border-b-0 md:border-r border-border dark:border-white/10"
             >
               <div
-                className="absolute inset-0 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity bg-grid-current"
+                className="absolute inset-0 opacity-5 dark:opacity-25 group-hover:opacity-10 dark:group-hover:opacity-40 transition-opacity bg-grid-current"
               />
 
               <div className="relative z-10 text-center">
@@ -463,7 +463,7 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 bg-background dark:bg-neutral-950 flex flex-col items-center justify-center p-8 hover:bg-muted dark:hover:bg-neutral-900 transition-all duration-500 overflow-hidden"
             >
               <div
-                className="absolute inset-0 opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity bg-dots-current"
+                className="absolute inset-0 opacity-10 dark:opacity-40 group-hover:opacity-15 dark:group-hover:opacity-50 transition-opacity bg-dots-current"
               />
 
               <div className="relative z-10 text-center">
@@ -496,7 +496,7 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 flex flex-col items-center justify-center p-8 bg-muted dark:bg-neutral-900 hover:bg-muted/80 dark:hover:bg-neutral-800 transition-all duration-500 border-b md:border-b-0 md:border-r border-border dark:border-white/10"
             >
               <div
-                className="absolute inset-0 opacity-5 dark:opacity-10 bg-grid-sm-diagonal"
+                className="absolute inset-0 opacity-5 dark:opacity-25 bg-grid-sm-diagonal"
               />
               <div className="relative z-10 text-center">
                 <div className="font-pixel text-xs text-muted-foreground dark:text-white/40 tracking-[0.3em] mb-4">
@@ -516,7 +516,7 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 flex flex-col items-center justify-center p-8 bg-foreground dark:bg-white text-background dark:text-black hover:opacity-90 transition-all duration-500"
             >
               <div
-                className="absolute inset-0 opacity-5 bg-dots-current"
+                className="absolute inset-0 opacity-15 bg-dots-current"
               />
               <div className="relative z-10 text-center">
                 <div className="font-pixel text-xs opacity-60 tracking-[0.3em] mb-4">
@@ -539,7 +539,7 @@ export function Home({ onNavigate }: HomeProps) {
               className="group relative flex-1 flex flex-col items-center justify-center p-8 bg-muted dark:bg-neutral-900 hover:bg-muted/80 dark:hover:bg-neutral-800 transition-all duration-500 border-t md:border-t-0 md:border-l border-border dark:border-white/10"
             >
               <div
-                className="absolute inset-0 opacity-5 dark:opacity-10 bg-grid-sm-diagonal-reverse"
+                className="absolute inset-0 opacity-5 dark:opacity-25 bg-grid-sm-diagonal-reverse"
               />
               <div className="relative z-10 text-center">
                 <div className="font-pixel text-xs text-muted-foreground dark:text-white/40 tracking-[0.3em] mb-4">

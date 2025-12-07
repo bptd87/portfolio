@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Heart, Eye, Calendar, MapPin, ChevronDown, X, Share2 } from 'lucide-react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
+import { ChevronLeft, ChevronRight, Eye, Calendar, MapPin, ChevronDown, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { YouTubeEmbed } from '../components/shared/YouTubeEmbed';
 import { LikeButton } from '../components/shared/LikeButton';
 import { ShareButton } from '../components/shared/ShareButton';
@@ -24,20 +24,17 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  
+
   // Transition image from home page
   const [transitionImage, setTransitionImage] = useState<string | null>(null);
   const [transitionFocusPoint, setTransitionFocusPoint] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
-  const hasTransitioned = useRef(false);
-
-  const { scrollY } = useScroll();
   // Removed parallax transforms for simpler design
 
   // Read transition image from sessionStorage on mount
   useEffect(() => {
     const storedImage = sessionStorage.getItem('transitionImage');
     const storedFocusPoint = sessionStorage.getItem('transitionFocusPoint');
-    
+
     if (storedImage) {
       setTransitionImage(storedImage);
       sessionStorage.removeItem('transitionImage');
@@ -45,7 +42,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
     if (storedFocusPoint) {
       try {
         setTransitionFocusPoint(JSON.parse(storedFocusPoint));
-      } catch (e) {}
+      } catch (e) { }
       sessionStorage.removeItem('transitionFocusPoint');
     }
   }, []);
@@ -70,13 +67,13 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
 
       if (!response.ok) throw new Error('Failed to fetch project');
       const data = await response.json();
-      
+
       if (!data.success || !data.project) throw new Error('Invalid project data');
-      
+
       // Check if category includes "Experiential"
       if (data.project.category && data.project.category.includes('Experiential')) {
         setProject({ ...data.project, useExperientialTemplate: true });
-      } 
+      }
       // Check if category includes "Rendering" or "Visualization"
       else if (data.project.category && (data.project.category.includes('Rendering') || data.project.category.includes('Visualization'))) {
         setProject({ ...data.project, useRenderingTemplate: true });
@@ -99,12 +96,12 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
         const allProjectsData = await allProjectsResponse.json();
         const allProjects = allProjectsData.success ? allProjectsData.projects : [];
         const sameCategory = allProjects.filter((p: any) => p.category === data.project.category);
-        
+
         const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
         if (currentIndex > -1) {
           const nextIndex = (currentIndex + 1) % sameCategory.length;
           const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
-          
+
           setNextProject(sameCategory[nextIndex]);
           setPrevProject(sameCategory[prevIndex]);
         }
@@ -144,7 +141,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
         }
       }
     } catch (error) {
-      }
+    }
   };
 
   const toggleSection = (section: string) => {
@@ -168,7 +165,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
       <div className="min-h-screen relative">
         {/* Show transition image while loading for seamless experience */}
         {transitionImage && (
-          <motion.div 
+          <motion.div
             className="fixed inset-0 z-0"
             initial={{ scale: 1.05, opacity: 0.8 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -186,7 +183,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
           </motion.div>
         )}
         <div className="fixed inset-0 flex items-center justify-center z-10">
-          <motion.div 
+          <motion.div
             className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -199,7 +196,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
 
   // If project is Experiential Design, use the specialized template
   if (project && project.useExperientialTemplate) {
-    const ExperientialProjectDetail = React.lazy(() => 
+    const ExperientialProjectDetail = React.lazy(() =>
       import('./ExperientialProjectDetail').then(m => ({ default: m.ExperientialProjectDetail }))
     );
     return (
@@ -211,7 +208,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
 
   // If project is Rendering/Visualization, use the specialized template
   if (project && project.useRenderingTemplate) {
-    const RenderingProjectDetail = React.lazy(() => 
+    const RenderingProjectDetail = React.lazy(() =>
       import('./RenderingProjectDetail').then(m => ({ default: m.RenderingProjectDetail }))
     );
     return (
@@ -220,6 +217,15 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
       </React.Suspense>
     );
   }
+
+  // If project is Design Documentation (Archive or Models), use the clean catalog template
+  const isDesignDoc = project && (
+    project.category === 'Design Documentation' ||
+    slug === 'scenic-design-archive' ||
+    slug === 'scenic-models'
+  );
+
+
 
   if (!project) {
     return (
@@ -263,16 +269,146 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
     keywords: project.tags || ['scenic design', 'theatre', 'set design'],
   });
 
+  if (isDesignDoc) {
+    return (
+      <div className="min-h-screen bg-black text-white pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto">
+        <SEO
+          metadata={seoMetadata}
+          structuredData={structuredData}
+        />
+
+        {/* Simple Text Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-16 border-b border-white/10 pb-12"
+        >
+          <p className="font-pixel text-xs tracking-[0.3em] text-white/60 mb-6 uppercase">
+            {project.category || 'Design Documentation'} / {project.subcategory || 'Archive'}
+          </p>
+          <h1 className="font-display text-4xl md:text-6xl mb-6">{project.title}</h1>
+          <p className="text-white/60 max-w-2xl text-lg leading-relaxed">{project.description}</p>
+        </motion.div>
+
+        {/* Stacked Entry Layout */}
+        <div className="max-w-4xl mx-auto space-y-24">
+          {project.galleries?.process?.map((image: string, index: number) => {
+            const caption = project.galleries.processCaptions?.[index] || '';
+            const lines = caption.split('\n').filter((l: string) => l.trim());
+            const title = lines[0] || `Entry ${index + 1}`;
+            const metadata = lines.slice(1);
+
+            return (
+              <article key={index} className="space-y-8">
+                <div className="space-y-4">
+                  <h2 className="font-display text-3xl md:text-4xl">{title}</h2>
+                  {metadata.length > 0 && (
+                    <div className="space-y-1 text-white/60 font-mono text-sm">
+                      {metadata.map((line: string, idx: number) => (
+                        <p key={idx}>{line}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div
+                  className="rounded-xl overflow-hidden border border-white/10 cursor-pointer hover:border-white/30 transition-all"
+                  onClick={() => openLightbox(project.galleries.process, index)}
+                >
+                  <ImageWithFallback
+                    src={image}
+                    alt={title}
+                    className="w-full h-auto"
+                  />
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        {/* Back Button */}
+        <div className="mt-24 text-center">
+          <button
+            onClick={() => onNavigate('portfolio')}
+            className="px-8 py-3 backdrop-blur-xl bg-neutral-800/60 rounded-3xl border border-white/10 hover:bg-neutral-800/80 transition-all font-pixel text-xs tracking-[0.3em]"
+          >
+            BACK TO PORTFOLIO
+          </button>
+        </div>
+
+        {/* Lightbox */}
+        <AnimatePresence>
+          {lightboxOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
+              onClick={() => setLightboxOpen(false)}
+            >
+              <button
+                onClick={() => setLightboxOpen(false)}
+                className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                aria-label="Close lightbox"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+
+              {lightboxImages.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+                    }}
+                    className="absolute left-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-6 h-6 text-white" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
+                    }}
+                    className="absolute right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-6 h-6 text-white" />
+                  </button>
+                </>
+              )}
+
+              <motion.img
+                key={lightboxIndex}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+                src={lightboxImages[lightboxIndex]}
+                alt={`Image ${lightboxIndex + 1}`}
+                className="max-w-full max-h-full object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 font-pixel text-xs text-white/60 tracking-wider">
+                {lightboxIndex + 1} / {lightboxImages.length}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* SEO and Structured Data */}
-      <SEO 
+      <SEO
         metadata={seoMetadata}
         structuredData={structuredData}
       />
 
       {/* Fixed Background - Stationary with visible card image */}
-      <motion.div 
+      <motion.div
         layoutId={`project-image-${project.id}`}
         className="fixed inset-0 z-0"
       >
@@ -288,6 +424,8 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
         <button
           onClick={() => onNavigate(`project/${prevProject.slug}`)}
           className="fixed left-6 top-1/2 -translate-y-1/2 z-50 p-4 backdrop-blur-xl bg-neutral-800/80 dark:bg-neutral-900/80 rounded-full border border-white/10 hover:bg-neutral-800/90 transition-all hidden md:block"
+          aria-label={`Previous project: ${prevProject.title}`}
+          title={`Previous project: ${prevProject.title}`}
         >
           <ChevronLeft className="w-6 h-6 text-white" />
         </button>
@@ -297,6 +435,8 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
         <button
           onClick={() => onNavigate(`project/${nextProject.slug}`)}
           className="fixed right-6 top-1/2 -translate-y-1/2 z-50 p-4 backdrop-blur-xl bg-neutral-800/80 dark:bg-neutral-900/80 rounded-full border border-white/10 hover:bg-neutral-800/90 transition-all hidden md:block"
+          aria-label={`Next project: ${nextProject.title}`}
+          title={`Next project: ${nextProject.title}`}
         >
           <ChevronRight className="w-6 h-6 text-white" />
         </button>
@@ -305,7 +445,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
       {/* Scrollable Content - Wider Column */}
       <div className="relative z-10 min-h-screen pt-32 pb-24 px-6">
         <div className="max-w-4xl mx-auto space-y-6">
-          
+
           {/* Hero Title Card */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -320,10 +460,14 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
               {project.title}
             </h1>
             <div className="flex flex-wrap gap-6 text-sm text-white/80">
-              {project.venue && (
+              {(project.venue || project.location) && (
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
-                  <span>{project.venue}</span>
+                  <span>
+                    {project.venue}
+                    {project.venue && project.location && <span className="mx-1 opacity-60">·</span>}
+                    {project.location}
+                  </span>
                 </div>
               )}
               {project.year && (
@@ -419,8 +563,8 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                 </div>
                 {!expandedSections.has('renderings') && (
                   <div className="mt-4 aspect-[16/9] overflow-hidden rounded-xl">
-                    <ImageWithFallback 
-                      src={project.galleries.hero[0]} 
+                    <ImageWithFallback
+                      src={project.galleries.hero[0]}
                       alt="Preview"
                       className="w-full h-full object-cover"
                     />
@@ -445,8 +589,8 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                         className="group backdrop-blur-xl bg-neutral-800/60 dark:bg-neutral-900/60 rounded-3xl border border-white/10 overflow-hidden cursor-pointer hover:bg-neutral-800/80 transition-all"
                         style={{ lineHeight: 0 }}
                       >
-                        <ImageWithFallback 
-                          src={image} 
+                        <ImageWithFallback
+                          src={image}
                           alt={project.galleries.heroCaptions?.[index] || `Rendering ${index + 1}`}
                           className="w-full h-auto block transition-transform duration-700 group-hover:scale-110"
                         />
@@ -484,8 +628,8 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                   <div className="mt-4 grid grid-cols-3 gap-2">
                     {project.galleries.process.slice(0, 3).map((image: string, index: number) => (
                       <div key={index} className="aspect-square overflow-hidden rounded-lg">
-                        <ImageWithFallback 
-                          src={image} 
+                        <ImageWithFallback
+                          src={image}
                           alt={`Preview ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
@@ -512,8 +656,8 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                         className="group backdrop-blur-xl bg-neutral-800/60 dark:bg-neutral-900/60 rounded-3xl border border-white/10 overflow-hidden cursor-pointer hover:bg-neutral-800/80 transition-all"
                         style={{ lineHeight: 0 }}
                       >
-                        <ImageWithFallback 
-                          src={image} 
+                        <ImageWithFallback
+                          src={image}
                           alt={project.galleries.processCaptions?.[index] || `Photo ${index + 1}`}
                           className="w-full h-auto block transition-transform duration-700 group-hover:scale-110"
                         />
@@ -641,7 +785,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
 
           {/* Bottom Navigation Panel - Scenic Design Projects */}
           {(prevProject || nextProject) && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -751,10 +895,12 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
             <button
               onClick={() => setLightboxOpen(false)}
               className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+              aria-label="Close lightbox"
+              title="Close lightbox"
             >
               <X className="w-6 h-6 text-white" />
             </button>
-            
+
             {lightboxImages.length > 1 && (
               <>
                 <button
@@ -763,6 +909,8 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                     setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
                   }}
                   className="absolute left-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                  aria-label="Previous image"
+                  title="Previous image"
                 >
                   <ChevronLeft className="w-6 h-6 text-white" />
                 </button>
@@ -772,6 +920,8 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                     setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
                   }}
                   className="absolute right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                  aria-label="Next image"
+                  title="Next image"
                 >
                   <ChevronRight className="w-6 h-6 text-white" />
                 </button>

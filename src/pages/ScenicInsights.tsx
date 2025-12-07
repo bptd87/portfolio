@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Search, Loader2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
+import { BookOpen, Search, X } from 'lucide-react';
 import { BlogCard } from '../components/shared/BlogCard';
 import { apiCall } from '../utils/api';
 import { SkeletonBlogCard } from '../components/ui/skeleton';
@@ -17,7 +17,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeTag, setActiveTag] = useState<string | null>(initialTag || null);
-  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]); 
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
 
   // Set initial tag from prop
   useEffect(() => {
@@ -32,22 +32,22 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
         setLoading(true);
         // Fetch categories using apiCall helper with fallback
         const categoriesResponse = await apiCall('/api/categories/articles');
-        
+
         if (categoriesResponse.ok) {
           const categoriesData = await categoriesResponse.json();
           if (categoriesData.success && categoriesData.categories) {
             setCategories(categoriesData.categories);
           }
         }
-        
+
         // Fetch articles from API using apiCall helper with fallback
         const response = await apiCall('/api/posts');
-        
+
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`API returned ${response.status}: ${errorText}`);
         }
-        
+
         const result = await response.json();
         console.log('📰 Articles API response:', result);
         if (result.success && result.posts) {
@@ -58,7 +58,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
         }
       } catch (err) {
         console.error('❌ Error fetching articles:', err);
-        } finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -72,25 +72,25 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
     let matchesCategory = activeCategory === 'all';
     if (!matchesCategory) {
       const category = categories.find(cat => cat.slug === activeCategory);
-      matchesCategory = category && post.category === category.name;
+      matchesCategory = !!(category && post.category === category.name);
     }
-    
+
     // Tag filter
     let matchesTag = !activeTag;
     if (activeTag && post.tags) {
       matchesTag = post.tags.some((t: string) => t.toLowerCase() === activeTag.toLowerCase());
     }
-    
+
     // Search filter
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         (post.excerpt && post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                         (post.tags && post.tags.some((t: string) => t.toLowerCase().includes(searchQuery.toLowerCase())));
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.excerpt && post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (post.tags && post.tags.some((t: string) => t.toLowerCase().includes(searchQuery.toLowerCase())));
 
     return matchesCategory && matchesSearch && matchesTag;
   });
 
   // Sort by date (newest first)
-  const sortedPosts = [...filteredPosts].sort((a, b) => 
+  const sortedPosts = [...filteredPosts].sort((a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
@@ -107,28 +107,16 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
     onNavigate(`articles/${postSlug}`);
   };
 
-  // Bento grid sizing pattern - all single column on mobile, bento on desktop
-  const getBentoSize = (index: number) => {
-    const pattern = index % 6;
-    switch (pattern) {
-      case 0: return 'lg:row-span-2'; // Tall on desktop only
-      case 1: return 'lg:col-span-2'; // Wide on desktop only
-      case 2: return ''; // Standard everywhere
-      case 3: return ''; // Standard everywhere
-      case 4: return 'lg:col-span-2 lg:row-span-2'; // Featured on desktop only
-      case 5: return ''; // Standard everywhere
-      default: return '';
-    }
-  };
+
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
+      {/* Hero Section - Reduced height for better fold content */}
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="relative pt-32 pb-16 px-6"
+        transition={{ duration: 0.8 }}
+        className="relative pt-32 pb-12 px-6"
       >
         <div className="max-w-7xl mx-auto">
           <motion.h1
@@ -164,18 +152,17 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
                 }))
               ].map((cat) => {
                 const isActive = activeCategory === cat.id;
-                
+
                 return (
                   <motion.button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`px-5 py-2.5 font-pixel text-[10px] tracking-[0.3em] rounded-full transition-all ${
-                      isActive
-                        ? 'bg-foreground text-background'
-                        : 'bg-foreground/5 text-foreground/50 hover:bg-foreground/10 hover:text-foreground/80 border border-foreground/10'
-                    }`}
+                    className={`px-5 py-2.5 font-pixel text-[10px] tracking-[0.3em] rounded-full transition-all ${isActive
+                      ? 'bg-foreground text-background'
+                      : 'bg-foreground/5 text-foreground/50 hover:bg-foreground/10 hover:text-foreground/80 border border-foreground/10'
+                      }`}
                   >
                     {cat.label}
                   </motion.button>
@@ -186,17 +173,19 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
             {/* Search Bar */}
             <div className="relative lg:ml-auto w-full lg:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40" />
-              <input 
-                type="text" 
-                placeholder="Search articles..." 
+              <input
+                type="text"
+                placeholder="Search articles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-foreground/5 border border-foreground/10 pl-10 pr-10 py-2.5 text-sm placeholder:text-foreground/40 focus:outline-none focus:border-foreground/30 focus:bg-foreground/10 transition-all rounded-full"
               />
               {searchQuery && (
-                <button 
+                <button
                   onClick={() => setSearchQuery('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground/80 transition-colors"
+                  aria-label="Clear search"
+                  title="Clear search"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -219,7 +208,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
             <div className="text-center py-24">
               <BookOpen className="w-16 h-16 mx-auto mb-4 text-foreground/20" />
               <p className="text-foreground/60 text-lg mb-4">No articles found matching your criteria.</p>
-              <button 
+              <button
                 onClick={() => { setSearchQuery(''); setActiveCategory('all'); setActiveTag(null); }}
                 className="px-6 py-3 backdrop-blur-xl bg-foreground/10 hover:bg-foreground/20 border border-foreground/20 transition-all rounded-full font-pixel text-xs tracking-wider"
               >
@@ -227,7 +216,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-[400px] lg:auto-rows-[280px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {sortedPosts.map((post, index) => (
                 <motion.div
                   key={post.id}
@@ -236,15 +225,16 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className={getBentoSize(index)}
+                  style={{ aspectRatio: '2/3' }}
+                  className="w-full"
                 >
                   <BlogCard
                     title={post.title}
                     excerpt={post.excerpt}
-                    date={new Date(post.date).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    date={new Date(post.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
                     })}
                     category={post.category}
                     readTime={post.readTime}
@@ -253,7 +243,6 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
                     onClick={() => handlePostClick(post.slug || post.id)}
                     index={index}
                     variant="nothing"
-                    className=""
                   />
                 </motion.div>
               ))}
@@ -261,6 +250,6 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
           )}
         </div>
       </section>
-    </div>
+    </div >
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Loader2, CheckCircle2, TrendingUp, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import { motion, AnimatePresence } from 'motion/react';
@@ -20,7 +20,6 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [views, setViews] = useState(0);
-  const [likes, setLikes] = useState(0);
   const [nextProject, setNextProject] = useState<any>(null);
   const [prevProject, setPrevProject] = useState<any>(null);
 
@@ -81,7 +80,6 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
       if (!data.success || !data.project) throw new Error('Invalid project data');
       setProject(data.project);
       setViews(data.project.views || 0);
-      setLikes(data.project.likes || 0);
 
       // Increment view count
       await fetch(
@@ -219,8 +217,8 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
                     key={index}
                     onClick={() => setCurrentIndex(index)}
                     className={`h-1 rounded-full transition-all duration-300 ${index === currentIndex
-                        ? 'bg-white w-8'
-                        : 'bg-white/30 w-2 hover:bg-white/50'
+                      ? 'bg-white w-8'
+                      : 'bg-white/30 w-2 hover:bg-white/50'
                       }`}
                     aria-label={`Go to image ${index + 1}`}
                   />
@@ -476,6 +474,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
               <button
                 onClick={() => setSelectedPhoto(null)}
                 className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all"
+                title="Close image viewer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -487,6 +486,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
                       setSelectedPhoto((selectedPhoto - 1 + allImages.length) % allImages.length);
                     }}
                     className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all"
+                    title="Previous image"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
@@ -496,6 +496,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
                       setSelectedPhoto((selectedPhoto + 1) % allImages.length);
                     }}
                     className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-all"
+                    title="Next image"
                   >
                     <ChevronRight className="w-6 h-6" />
                   </button>
