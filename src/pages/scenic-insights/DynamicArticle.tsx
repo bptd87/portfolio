@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { ArrowLeft, ArrowRight, Tag, Loader2, Share2, Twitter, Linkedin, Link2, Check } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { ArrowLeft, ArrowRight, Tag, Loader2, Twitter, Linkedin, Link2, Check } from 'lucide-react';
 import { ArticleAuthor } from '../../components/shared/ArticleAuthor';
 import { BlockRenderer, ContentBlock } from '../../components/shared/BlockRenderer';
-import { API_BASE_URL, apiCall } from '../../utils/api';
-import { publicAnonKey } from '../../utils/supabase/info';
+import { apiCall } from '../../utils/api';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 
 interface Article {
@@ -29,25 +28,25 @@ interface Category {
 // Helper to find category color from categories list
 function findCategoryColor(categoryName: string, categories: Category[]): string | undefined {
   if (!categoryName || !categories.length) return undefined;
-  
+
   const normalizedName = categoryName.toLowerCase().trim();
-  
+
   // 1. Exact match
   let match = categories.find(c => c.name.toLowerCase().trim() === normalizedName);
   if (match?.color) return match.color;
-  
+
   // 2. Starts with match (e.g., "Design Philosophy" matches "Design Philosophy & Scenic Insights")
   match = categories.find(c => normalizedName.startsWith(c.name.toLowerCase().trim()));
   if (match?.color) return match.color;
-  
+
   // 3. Contains match (e.g., looking for "Technology" in "Technology & Tutorials")
   match = categories.find(c => normalizedName.includes(c.name.toLowerCase().trim()));
   if (match?.color) return match.color;
-  
+
   // 4. Reverse contains (category name contains our search term)
   match = categories.find(c => c.name.toLowerCase().trim().includes(normalizedName));
   if (match?.color) return match.color;
-  
+
   return undefined;
 }
 
@@ -88,7 +87,7 @@ function ShareButtons({ title, url }: { title: string; url: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (e) {
-        }
+      }
       document.body.removeChild(textArea);
     }
   };
@@ -143,7 +142,7 @@ function ArticleEndFlourish() {
 
 // Table of Contents component
 function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; activeHeading: string }) {
-  const headings = useMemo(() => 
+  const headings = useMemo(() =>
     blocks
       .filter(b => b.type === 'heading' && (b.metadata?.level === 2 || b.metadata?.level === 3))
       .map(b => ({
@@ -154,7 +153,7 @@ function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; ac
     [blocks]
   );
 
-  if (headings.length < 3) return null;
+  if (headings.length < 1) return null;
 
   const scrollToHeading = (id: string) => {
     const element = document.getElementById(`heading-${id}`);
@@ -172,9 +171,8 @@ function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; ac
             <li key={heading.id}>
               <button
                 onClick={() => scrollToHeading(heading.id)}
-                className={`text-left text-xs leading-tight transition-all hover:opacity-100 ${
-                  heading.level === 3 ? 'ml-3 text-[11px]' : ''
-                } ${activeHeading === heading.id ? 'opacity-100 text-accent' : 'opacity-40'}`}
+                className={`text-left text-xs leading-tight transition-all hover:opacity-100 ${heading.level === 3 ? 'ml-3 text-[11px]' : ''
+                  } ${activeHeading === heading.id ? 'opacity-100 text-accent' : 'opacity-40'}`}
               >
                 {heading.text}
               </button>
@@ -203,9 +201,9 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
         if (response.ok) {
           const result = await response.json();
           setCategories(result.categories || []);
-          }
-      } catch (err) {
         }
+      } catch (err) {
+      }
     };
     fetchCategories();
   }, []);
@@ -223,7 +221,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
   // Track active heading for TOC
   useEffect(() => {
     if (!article?.content) return;
-    
+
     const headings = article.content
       .filter(b => b.type === 'heading')
       .map(b => document.getElementById(`heading-${b.id}`))
@@ -255,7 +253,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
           setAllPosts(result.posts || []);
         }
       } catch (err) {
-        }
+      }
     };
     fetchAllPosts();
   }, []);
@@ -267,13 +265,13 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
         setNotFound(false);
         // Fetch article using the apiCall helper (has fallback support)
         const response = await apiCall(`/api/posts/${slug}`);
-        
+
         if (!response.ok) {
           setNotFound(true);
           setLoading(false);
           return;
         }
-        
+
         const result = await response.json();
         if (result.post) {
           // If server didn't provide categoryColor, look it up client-side
@@ -284,9 +282,9 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
               postWithColor = { ...postWithColor, categoryColor: clientColor };
             }
           }
-          
+
           setArticle(postWithColor);
-          
+
           // Fetch related posts based on same category or tags
           fetchRelatedPosts(result.post);
         } else {
@@ -326,7 +324,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       const result = await response.json();
       setRelatedPosts(result.posts);
     } catch (err) {
-      }
+    }
   };
 
   if (loading) {
@@ -370,7 +368,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
               loading="eager"
               crossOrigin="anonymous"
             />
-            
+
             {/* Back Button - Top Left */}
             <div className="absolute top-6 left-6 z-50">
               <button
@@ -388,17 +386,17 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
             {/* Meta row with share buttons */}
             <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
               <div className="flex items-center gap-4 flex-wrap">
-                <span 
+                <span
                   className="font-pixel text-[11px] tracking-[0.3em] uppercase font-medium"
                   style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 1 : 0.6 }}
                 >
                   {article.category.split(' & ')[0]}
                 </span>
-                <span 
-                  className="w-px h-3" 
+                <span
+                  className="w-px h-3"
                   style={{ backgroundColor: article.categoryColor ? `${article.categoryColor}40` : 'currentColor', opacity: article.categoryColor ? 1 : 0.2 }}
                 />
-                <span 
+                <span
                   className="font-pixel text-[11px] tracking-[0.3em]"
                   style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 0.8 : 0.6 }}
                 >
@@ -408,22 +406,22 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                     day: 'numeric',
                   }).toUpperCase()}
                 </span>
-                <span 
-                  className="w-px h-3" 
+                <span
+                  className="w-px h-3"
                   style={{ backgroundColor: article.categoryColor ? `${article.categoryColor}40` : 'currentColor', opacity: article.categoryColor ? 1 : 0.2 }}
                 />
-                <span 
+                <span
                   className="font-pixel text-[11px] tracking-[0.3em]"
                   style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 0.8 : 0.6 }}
                 >
                   {article.readTime}
                 </span>
               </div>
-              
+
               {/* Share buttons inline */}
-              <ShareButtons 
-                title={article.title} 
-                url={typeof window !== 'undefined' ? window.location.href : ''} 
+              <ShareButtons
+                title={article.title}
+                url={typeof window !== 'undefined' ? window.location.href : ''}
               />
             </div>
 
@@ -455,27 +453,27 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
             {/* Meta row with share buttons */}
             <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
               <div className="flex items-center gap-4 flex-wrap">
-                <span 
+                <span
                   className="font-pixel text-[11px] tracking-[0.3em] uppercase font-medium"
                   style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 1 : 0.6 }}
                 >
                   {article.category.split(' & ')[0]}
                 </span>
-                <span 
-                  className="w-px h-3" 
+                <span
+                  className="w-px h-3"
                   style={{ backgroundColor: article.categoryColor ? `${article.categoryColor}40` : 'currentColor', opacity: article.categoryColor ? 1 : 0.2 }}
                 />
-                <span 
+                <span
                   className="font-pixel text-[11px] tracking-[0.3em]"
                   style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 0.8 : 0.6 }}
                 >
                   {article.readTime}
                 </span>
               </div>
-              
-              <ShareButtons 
-                title={article.title} 
-                url={typeof window !== 'undefined' ? window.location.href : ''} 
+
+              <ShareButtons
+                title={article.title}
+                url={typeof window !== 'undefined' ? window.location.href : ''}
               />
             </div>
 
@@ -511,17 +509,17 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
             {/* Meta row with share buttons */}
             <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
               <div className="flex items-center gap-4 flex-wrap">
-                <span 
+                <span
                   className="font-pixel text-[11px] tracking-[0.3em] uppercase font-medium"
                   style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 1 : 0.6 }}
                 >
                   {article.category.split(' & ')[0]}
                 </span>
-                <span 
-                  className="w-px h-3" 
+                <span
+                  className="w-px h-3"
                   style={{ backgroundColor: article.categoryColor ? `${article.categoryColor}40` : 'currentColor', opacity: article.categoryColor ? 1 : 0.2 }}
                 />
-                <span 
+                <span
                   className="font-pixel text-[11px] tracking-[0.3em]"
                   style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 0.8 : 0.6 }}
                 >
@@ -531,21 +529,21 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                     day: 'numeric',
                   }).toUpperCase()}
                 </span>
-                <span 
-                  className="w-px h-3" 
+                <span
+                  className="w-px h-3"
                   style={{ backgroundColor: article.categoryColor ? `${article.categoryColor}40` : 'currentColor', opacity: article.categoryColor ? 1 : 0.2 }}
                 />
-                <span 
+                <span
                   className="font-pixel text-[11px] tracking-[0.3em]"
                   style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 0.8 : 0.6 }}
                 >
                   {article.readTime}
                 </span>
               </div>
-              
-              <ShareButtons 
-                title={article.title} 
-                url={typeof window !== 'undefined' ? window.location.href : ''} 
+
+              <ShareButtons
+                title={article.title}
+                url={typeof window !== 'undefined' ? window.location.href : ''}
               />
             </div>
 
@@ -600,9 +598,9 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
           const currentIndex = allPosts.findIndex(p => p.slug === slug);
           const prevPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
           const nextPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
-          
+
           if (!prevPost && !nextPost) return null;
-          
+
           return (
             <div className="py-8 border-t border-black/10 dark:border-white/10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -624,7 +622,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                     </h4>
                   </button>
                 ) : <div />}
-                
+
                 {/* Next Article */}
                 {nextPost ? (
                   <button
@@ -655,7 +653,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
               <h2 className="font-display text-3xl md:text-4xl italic mb-2">Related Articles</h2>
               <p className="font-pixel text-[10px] tracking-[0.2em] opacity-60 uppercase">Continue Reading</p>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {relatedPosts.slice(0, 3).map((post) => (
                 <button
@@ -676,10 +674,10 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-foreground/10 to-foreground/5" />
                   )}
-                  
+
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                  
+
                   {/* Text Content */}
                   <div className="absolute inset-x-0 bottom-0 p-5">
                     <div className="flex items-center gap-3 mb-2">
