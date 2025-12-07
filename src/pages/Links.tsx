@@ -3,6 +3,7 @@ import { ExternalLink, Instagram, Linkedin, Mail, FileText, Video, Github, Twitt
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { apiCall } from '../utils/api';
 import { publicAnonKey, projectId } from '../utils/supabase/info';
+import { SEO } from '../components/SEO';
 
 // Interface for the unified dashboard item
 interface DashboardItem {
@@ -287,6 +288,10 @@ export function Links({ onNavigate }: LinksProps = {}) {
 
   return (
     <div className="min-h-screen bg-background pb-32">
+      <SEO
+        title="Links"
+        description="Connect with Brandon PT Davis: Latest news, portfolio projects, and resources."
+      />
       {/* Top spacing */}
       <div className="h-12" />
 

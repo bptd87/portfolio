@@ -1,4 +1,6 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
+import { HelmetProvider } from 'react-helmet-async';
+import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from './components/ThemeProvider';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -71,7 +73,7 @@ const DynamicArticle = lazy(() => import('./pages/scenic-insights/DynamicArticle
 // Project pages
 
 
-type Page = 'home' | 'portfolio' | 'about' | 'cv' | 'collaborators' | 'teaching-philosophy' | 'contact' | 'scenic-insights' | 'articles' | 'studio' | 'scenic-studio' | 'scenic-vault' | 'app-studio' | 'resources' | 'architecture-scale-converter' | 'dimension-reference' | 'model-reference-scaler' | 'design-history-timeline' | 'classical-architecture-guide' | 'rosco-paint-calculator' | 'commercial-paint-finder' | 'blog-formatter' | 'news' | 'news-article' | 'project' | 'blog' | 'tutorial' | 'search' | 'admin' | 'links' | 'faq' | 'privacy-policy' | 'accessibility' | 'terms-of-use' | '404' | 'sitemap';
+type Page = 'home' | 'portfolio' | 'about' | 'cv' | 'collaborators' | 'teaching-philosophy' | 'contact' | 'scenic-insights' | 'articles' | 'studio' | 'scenic-studio' | 'scenic-vault' | 'app-studio' | 'resources' | 'architecture-scale-converter' | 'dimension-reference' | 'model-reference-scaler' | 'design-history-timeline' | 'classical-architecture-guide' | 'rosco-paint-calculator' | 'commercial-paint-finder' | 'blog-formatter' | 'news' | 'news-article' | 'project' | 'project-new' | 'experiential-detail' | 'blog' | 'tutorial' | 'search' | 'admin' | 'links' | 'faq' | 'privacy-policy' | 'accessibility' | 'terms-of-use' | '404' | 'sitemap';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -304,32 +306,35 @@ export default function App() {
   const pageKey = `${currentPage}-${currentProjectSlug}-${currentBlogSlug}-${currentTutorialSlug}-${currentNewsSlug}`;
 
   return (
-    <ThemeProvider>
-      <Toaster richColors />
-      <AnalyticsTracker
-        currentPage={currentPage}
-        slug={currentProjectSlug || currentBlogSlug || currentTutorialSlug || currentNewsSlug}
-      />
-      <RedirectHandler onNavigate={handleNavigation} />
-      <div className={`transition-colors duration-300 w-full overflow-x-hidden ${currentPage === 'home' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
-        <SEO metadata={seoData.metadata} structuredData={seoData.structuredData} />
-        {currentPage !== 'admin' && currentPage !== 'links' && (
-          <Navbar
-            currentPage={currentPage === 'project' ? 'portfolio' : currentPage === 'blog' ? 'articles' : currentPage === 'scenic-insights' ? 'articles' : currentPage === 'tutorial' ? 'scenic-studio' : currentPage}
-            onNavigate={handleNavigation}
-            breadcrumb={getBreadcrumb()}
-            transparent={currentPage === 'home'}
-          />
-        )}
-        <main key={pageKey} className={currentPage === 'home' ? 'h-full' : ''}>
-          <Suspense fallback={<PageLoader />}>
-            {renderPage()}
-          </Suspense>
-        </main>
-        {currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'links' && (
-          <Footer onNavigate={handleNavigation} />
-        )}
-      </div>
-    </ThemeProvider>
+    <HelmetProvider>
+      <ThemeProvider>
+        <Toaster richColors />
+        <AnalyticsTracker
+          currentPage={currentPage}
+          slug={currentProjectSlug || currentBlogSlug || currentTutorialSlug || currentNewsSlug}
+        />
+        <RedirectHandler onNavigate={handleNavigation} />
+        <Analytics />
+        <div className={`transition-colors duration-300 w-full overflow-x-hidden ${currentPage === 'home' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+          <SEO metadata={seoData.metadata} structuredData={seoData.structuredData} />
+          {currentPage !== 'admin' && currentPage !== 'links' && (
+            <Navbar
+              currentPage={currentPage === 'project' ? 'portfolio' : currentPage === 'blog' ? 'articles' : currentPage === 'scenic-insights' ? 'articles' : currentPage === 'tutorial' ? 'scenic-studio' : currentPage}
+              onNavigate={handleNavigation}
+              breadcrumb={getBreadcrumb()}
+              transparent={currentPage === 'home'}
+            />
+          )}
+          <main key={pageKey} className={currentPage === 'home' ? 'h-full' : ''}>
+            <Suspense fallback={<PageLoader />}>
+              {renderPage()}
+            </Suspense>
+          </main>
+          {currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'links' && (
+            <Footer onNavigate={handleNavigation} />
+          )}
+        </div>
+      </ThemeProvider>
+    </HelmetProvider>
   );
 }

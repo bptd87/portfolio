@@ -10,6 +10,7 @@ import { useSiteSettings } from '../hooks/useSiteSettings';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { RevealText, FadeInUp, ParallaxImage } from '../components/shared/Motion';
+import { SEO } from '../components/SEO';
 
 const heroStyle: React.CSSProperties = {
   backgroundImage: `url(${heroPattern})`,
@@ -195,6 +196,19 @@ export function Home({ onNavigate }: HomeProps) {
       className={`relative h-screen overflow-x-hidden bg-black text-white selection:bg-white selection:text-black snap-y snap-mandatory ${!showScrollbar ? "overflow-hidden hero-animating" : "overflow-y-auto"
         }`}
     >
+      <SEO
+        title="Brandon PT Davis"
+        description="Scenic Designer and Creative Technologist based in New York City, specializing in theatre, experiential production, and digital environments."
+        keywords={[
+          'Scenic Designer NYC',
+          'Theatre Design',
+          'Digital Scenography',
+          'Experiential Design',
+          'Scenic Design Portfolio',
+          'Brandon PT Davis',
+          'Brandon Davis Scenic'
+        ]}
+      />
       <Navbar onNavigate={(page) => onNavigate?.(page)} currentPage="home" />{/* Frame 0: Hero with Seamless Pattern */}
       <section className="relative h-screen w-full snap-start snap-always overflow-hidden bg-black flex-shrink-0">
         {/* Animated Seamless Background */}

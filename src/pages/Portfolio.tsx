@@ -5,6 +5,7 @@ import { projectId, publicAnonKey } from '../utils/supabase/info';
 import { projects as hardcodedProjects } from '../data/projects';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { SkeletonProjectCard } from '../components/ui/skeleton';
+import { SEO } from '../components/SEO';
 
 interface PortfolioProps {
   onNavigate: (page: string, projectSlug?: string) => void;
@@ -198,6 +199,9 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
   if (loading) {
     return (
       <div className="min-h-screen pt-24 pb-16">
+        {/* ... skeleton ... */}
+        {/* Helper SEO for loading state */}
+        <SEO title="Portfolio | Loading..." />
         {/* Hero Section Skeleton */}
         <section className="relative h-[60vh] flex items-center justify-center bg-gradient-to-b from-black/50 to-transparent">
           <div className="text-center px-6 animate-pulse">
@@ -220,8 +224,18 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
     );
   }
 
+  // Determine title based on filter
+  const pageTitle = selectedFilter === 'all'
+    ? 'Portfolio'
+    : `${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1).replace('-', ' ')} Portfolio`;
+
   return (
     <div className="min-h-screen bg-white dark:bg-black">
+      <SEO
+        title={pageTitle}
+        description="Browse the scenic design portfolio of Brandon PT Davis."
+        keywords={['Portfolio', 'Scenic Design', 'Theatre', 'Gallery']}
+      />
       {/* Hero Section */}
       <motion.section
         initial={{ opacity: 0 }}
