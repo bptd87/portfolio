@@ -1,35 +1,33 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Briefcase, GraduationCap, Star, 
-  ChevronDown, ChevronUp, MapPin, Mail, 
-  Globe, Phone, Calendar, Users, Wrench, Download, Loader
+import {
+  Briefcase, GraduationCap, Star,
+  ChevronDown, MapPin, Mail,
+  Globe, Calendar, Wrench, Loader
 } from 'lucide-react';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 
 export function CV() {
   const [expandedSection, setExpandedSection] = useState<string | null>('recent');
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'design' | 'assistant' | 'academic'>('all');
   const { settings, loading, error } = useSiteSettings();
   const [showContent, setShowContent] = useState(false);
-  
+
   // Force show content after 3 seconds even if still loading
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setShowContent(true);
     }, 3000);
-    
+
     if (!loading) {
       setShowContent(true);
       clearTimeout(timer);
     }
-    
+
     return () => clearTimeout(timer);
   }, [loading]);
-  
+
   // Get contact info from settings, fallback to defaults
   const contactInfo = {
-    phone: settings?.phone || '573.881.0430',
     email: settings?.email || 'brandon@brandonptdavis.com',
     location: settings?.location || 'Irvine, CA',
     website: settings?.website || 'https://www.brandonptdavis.com'
@@ -68,7 +66,7 @@ export function CV() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 pt-32 pb-24">
-      
+
       {/* Hero Section - Modern Nothing.tech style */}
       <section className="px-6 lg:px-12 pb-16">
         <div className="max-w-[1800px] mx-auto">
@@ -81,26 +79,14 @@ export function CV() {
             {/* Title */}
             <div>
               <div className="font-pixel text-[10px] text-black/40 dark:text-white/40 tracking-[0.3em] mb-4">CURRICULUM VITAE</div>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl tracking-tight mb-6">BRANDON PT DAVIS</h1>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl tracking-tight mb-6 font-display italic">BRANDON PT DAVIS</h1>
               <p className="text-xl md:text-2xl text-black/70 dark:text-white/70 max-w-3xl leading-relaxed">
                 Scenic & Experiential Designer specializing in theatrical production, live events, and immersive environments
               </p>
             </div>
-            
-            {/* Contact Cards - Glass style */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <motion.a
-                href={`tel:${contactInfo.phone}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="flex items-center gap-3 p-4 bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl hover:border-black/30 dark:hover:border-white/30 transition-all group"
-                whileHover={{ y: -2 }}
-              >
-                <Phone className="w-5 h-5 text-black/40 dark:text-white/40 group-hover:text-black dark:group-hover:text-white transition-colors" />
-                <span className="text-sm">{contactInfo.phone}</span>
-              </motion.a>
 
+            {/* Contact Cards - Glass style */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <motion.a
                 href={`mailto:${contactInfo.email}`}
                 initial={{ opacity: 0, y: 20 }}
@@ -168,7 +154,7 @@ export function CV() {
 
       {/* Main Content */}
       <div className="max-w-[1800px] mx-auto px-6 lg:px-12 space-y-16">
-        
+
         {/* Education */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -180,7 +166,7 @@ export function CV() {
             <h2 className="font-pixel text-[10px] text-black/40 dark:text-white/40 tracking-[0.3em]">EDUCATION</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -194,7 +180,7 @@ export function CV() {
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -222,7 +208,7 @@ export function CV() {
             <h2 className="font-pixel text-[10px] text-black/40 dark:text-white/40 tracking-[0.3em]">PROFESSIONAL AFFILIATIONS</h2>
           </div>
           <div className="grid sm:grid-cols-2 gap-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -231,7 +217,7 @@ export function CV() {
               <h3 className="text-xl mb-2">United Scenic Artists, Local 829</h3>
               <p className="text-sm text-black/60 dark:text-white/60">Member, 2023–Present</p>
             </motion.div>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -467,7 +453,7 @@ export function CV() {
                         </thead>
                         <tbody>
                           {upcomingProductions.map((show, index) => (
-                            <motion.tr 
+                            <motion.tr
                               key={index}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -523,7 +509,7 @@ export function CV() {
                         </thead>
                         <tbody>
                           {recentProductions.map((show, index) => (
-                            <motion.tr 
+                            <motion.tr
                               key={index}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -584,7 +570,7 @@ export function CV() {
                         </thead>
                         <tbody>
                           {assistantDesignProductions.map((show, index) => (
-                            <motion.tr 
+                            <motion.tr
                               key={index}
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -617,9 +603,9 @@ export function CV() {
             <Wrench className="w-6 h-6 text-black/40 dark:text-white/40" />
             <h2 className="font-pixel text-[10px] text-black/40 dark:text-white/40 tracking-[0.3em]">TECHNICAL PROFICIENCIES</h2>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -631,7 +617,7 @@ export function CV() {
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -644,7 +630,7 @@ export function CV() {
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -657,7 +643,7 @@ export function CV() {
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -670,7 +656,7 @@ export function CV() {
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -683,7 +669,7 @@ export function CV() {
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
