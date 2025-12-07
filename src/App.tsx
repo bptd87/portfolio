@@ -313,7 +313,7 @@ export default function App() {
       <RedirectHandler onNavigate={handleNavigation} />
       <div className={`transition-colors duration-300 w-full overflow-x-hidden ${currentPage === 'home' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
         <SEO metadata={seoData.metadata} structuredData={seoData.structuredData} />
-        {currentPage !== 'admin' && (
+        {currentPage !== 'admin' && currentPage !== 'links' && (
           <Navbar
             currentPage={currentPage === 'project' ? 'portfolio' : currentPage === 'blog' ? 'articles' : currentPage === 'scenic-insights' ? 'articles' : currentPage === 'tutorial' ? 'scenic-studio' : currentPage}
             onNavigate={handleNavigation}
@@ -326,7 +326,7 @@ export default function App() {
             {renderPage()}
           </Suspense>
         </main>
-        {currentPage !== 'admin' && currentPage !== 'home' && (
+        {currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'links' && (
           <Footer onNavigate={handleNavigation} />
         )}
       </div>

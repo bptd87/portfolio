@@ -293,7 +293,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
         </div>
 
         {/* --- DASHBOARD GRID --- */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mx-auto">
+        <div className="grid grid-cols-3 gap-3 md:gap-4 mx-auto max-w-4xl">
           {items.map((item) => {
             const Icon = getIcon(item.icon);
             const isImage = item.image && item.image !== '';
