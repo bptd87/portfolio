@@ -203,6 +203,15 @@ export function Home({ onNavigate }: HomeProps) {
           // eslint-disable-next-line react/forbid-dom-props
           style={heroStyle}
         />
+        {/* LCP Optimization: Explicitly preload hero pattern */}
+        <img
+          src={heroPattern}
+          alt=""
+          className="absolute top-0 left-0 w-0 h-0 opacity-0 pointer-events-none"
+          // @ts-ignore
+          fetchPriority="high"
+          loading="eager"
+        />
 
         {/* Content Overlay */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">

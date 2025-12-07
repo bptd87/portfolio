@@ -24,7 +24,14 @@ interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElemen
   /**
    * Custom skeleton className
    */
+  /**
+   * Custom skeleton className
+   */
   skeletonClassName?: string
+  /**
+   * Priority loading for LCP images (disables lazy, fade-in, and sets fetchPriority high)
+   */
+  priority?: boolean
 }
 
 /**
@@ -110,7 +117,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
 
   // Fetch metadata from Supabase if available
   const { metadata } = useImageMetadata(src || '');
-  
+
   // Use metadata alt text if available, otherwise fallback to props
   const finalAlt = metadata?.alt_text || alt || 'Image';
   const finalTitle = metadata?.caption || props.title;
@@ -144,14 +151,17 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   // Determine which src to use
   const imageSrc = isInView ? src : BLUR_PLACEHOLDER
 
+  // LCP Optimization: If priority is true, show immediately without transition
+  const isPriority = props.priority;
+  const showTransition = !isPriority;
+
   return (
     <div className="relative inline-block w-full h-full" style={style}>
-      {/* Skeleton loader - shown while image is loading */}
-      {showSkeleton && isLoading && (
+      {/* Skeleton loader - shown while image is loading, disabled for priority to avoid flash */}
+      {showSkeleton && isLoading && !isPriority && (
         <div
-          className={`absolute inset-0 bg-gradient-to-r from-neutral-200 via-neutral-300 to-neutral-200 dark:from-neutral-800 dark:via-neutral-700 dark:to-neutral-800 animate-pulse ${
-            skeletonClassName || ''
-          }`}
+          className={`absolute inset-0 bg-gradient-to-r from-neutral-200 via-neutral-300 to-neutral-200 dark:from-neutral-800 dark:via-neutral-700 dark:to-neutral-800 animate-pulse ${skeletonClassName || ''
+            }`}
           style={{
             backgroundSize: '200% 100%',
             animation: 'shimmer 1.5s infinite',
@@ -165,17 +175,18 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
         src={imageSrc}
         alt={finalAlt}
         title={finalTitle}
-        className={`${className ?? ''} ${
-          blurUp && isLoading && isInView ? 'blur-sm scale-105' : ''
-        } ${isLoading ? 'opacity-0' : 'opacity-100'} transition-all duration-500 ease-out`}
+        className={`${className ?? ''} ${blurUp && isLoading && isInView && showTransition ? 'blur-sm scale-105' : ''
+          } ${isLoading && showTransition ? 'opacity-0' : 'opacity-100'} ${showTransition ? 'transition-all duration-500 ease-out' : ''}`}
         style={{
           ...style,
-          ...(isLoading ? { visibility: 'hidden' } : {}),
+          ...(isLoading && showTransition ? { visibility: 'hidden' } : {}),
         }}
         {...rest}
         onError={handleError}
         onLoad={handleLoad}
-        loading={lazy ? 'lazy' : 'eager'} // Native lazy loading as fallback
+        loading={lazy && !isPriority ? 'lazy' : 'eager'}
+        // @ts-ignore - fetchPriority is standard but missing in some React types
+        fetchPriority={isPriority ? 'high' : 'auto'}
       />
     </div>
   )
