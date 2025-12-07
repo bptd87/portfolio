@@ -160,8 +160,9 @@ export function Links({ onNavigate }: LinksProps = {}) {
           const dateStr = `${project.year}-${String(project.month || 1).padStart(2, '0')}-01`;
 
           // Robust Image Selection
-          // Try galleries.hero first (if exists as array), then thumbnail, then direct heroImage prop
-          let selectedImage = project.thumbnail || project.heroImage || project.coverImage;
+          // Use cardImage (from Bento Grid), then fallback to thumbnail/hero/cover
+          // This matches the Portfolio page logic
+          let selectedImage = project.cardImage || project.thumbnail || project.heroImage || project.coverImage;
 
           if (!selectedImage && project.galleries?.hero?.[0]) {
             selectedImage = project.galleries.hero[0].url || project.galleries.hero[0];
