@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, X, Image as ImageIcon, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Upload, X, Loader2, Plus, Trash2 } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { createClient } from '../../utils/supabase/client';
 import { optimizeImage } from '../../utils/image-optimizer';
+import { sanitizeFileName } from '../../utils/file-naming';
 
 interface ImageUploaderProps {
   value?: string; // Current image URL
@@ -13,8 +14,8 @@ interface ImageUploaderProps {
 
 interface ImageGalleryManagerProps {
   label: string;
-  images: Array<{ url: string; caption?: string }>;
-  onChange: (images: Array<{ url: string; caption?: string }>) => void;
+  images: Array<{ url: string; caption?: string; alt?: string }>;
+  onChange: (images: Array<{ url: string; caption?: string; alt?: string }>) => void;
 }
 
 export function ImageUploader({ value, onChange, label, bucketName = 'make-74296234-images' }: ImageUploaderProps) {
@@ -49,11 +50,11 @@ export function ImageUploader({ value, onChange, label, bucketName = 'make-74296
       // 2. Try Direct Upload to Supabase Storage (Preferred)
       try {
         const supabase = createClient();
-        const fileExt = optimizedFile.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+        // Use sanitized original filename
+        const fileName = sanitizeFileName(optimizedFile.name);
         const filePath = `${fileName}`;
 
-        const { data, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from(bucketName)
           .upload(filePath, optimizedFile);
 
@@ -78,7 +79,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'make-74296
       const formData = new FormData();
       formData.append('image', optimizedFile);
       // Note: Server endpoint might ignore bucketName, but we send it anyway just in case
-      formData.append('bucket', bucketName); 
+      formData.append('bucket', bucketName);
 
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/upload`,
@@ -126,7 +127,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'make-74296
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
     await uploadFile(file);
@@ -153,17 +154,17 @@ export function ImageUploader({ value, onChange, label, bucketName = 'make-74296
             type="button"
             onClick={handleRemove}
             className="absolute top-2 right-2 p-2 bg-black/80 text-white hover:bg-destructive transition-colors opacity-0 group-hover:opacity-100 rounded-full"
+            title="Remove image"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       ) : (
         <label
-          className={`block border-2 border-dashed transition-colors cursor-pointer ${
-            isDragging 
-              ? 'border-accent-brand bg-accent-brand/5' 
-              : 'border-border hover:border-accent-brand'
-          }`}
+          className={`block border-2 border-dashed transition-colors cursor-pointer ${isDragging
+            ? 'border-accent-brand bg-accent-brand/5'
+            : 'border-border hover:border-accent-brand'
+            }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -199,6 +200,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'make-74296
   );
 }
 
+// Gallery Manager for multiple images with captions
 // Gallery Manager for multiple images with captions
 export function ImageGalleryManager({ label, images, onChange }: ImageGalleryManagerProps) {
   const [uploading, setUploading] = useState(false);
@@ -236,7 +238,7 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        
+
         // Validate file type
         if (!file.type.startsWith('image/')) continue;
         // Validate file size (max 5MB)
@@ -260,11 +262,11 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
 
           const data = await response.json();
           if (data.success && data.url) {
-            newImages.push({ url: data.url, caption: '' });
+            newImages.push({ url: data.url, caption: '', alt: '' });
             successCount++;
           }
         } catch (err) {
-          }
+        }
       }
 
       if (successCount > 0) {
@@ -287,15 +289,18 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
     await handleFileUpload(files);
   };
 
-  const updateImage = (index: number, updates: Partial<{ url: string; caption?: string }>) => {
+  // Safe update helper
+  const updateImage = (index: number, updates: Partial<{ url: string; caption?: string; alt?: string }>) => {
     if (typeof onChange !== 'function') {
       return;
     }
     const newImages = [...images];
+    // Ensure object exists and merge updates safely
     newImages[index] = { ...newImages[index], ...updates };
     onChange(newImages);
   };
 
+  // Safe remove helper
   const removeImage = (index: number) => {
     if (typeof onChange !== 'function') {
       return;
@@ -311,33 +316,50 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
 
       <div className="space-y-3">
         {images.map((image, index) => (
-          <div key={index} className="border border-border p-4 space-y-3">
-            <div className="flex gap-3">
-              <img
-                src={image.url}
-                alt={image.caption || `Image ${index + 1}`}
-                className="w-32 h-24 object-cover border border-border flex-shrink-0"
-              />
+          <div key={index} className="border border-border p-4 space-y-3 bg-secondary/10 rounded-lg">
+            <div className="flex gap-4 items-start">
+              <div className="w-32 h-24 flex-shrink-0 border border-border bg-black/50 overflow-hidden rounded-md">
+                <img
+                  src={image.url}
+                  alt={image.caption || `Image ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
               <div className="flex-1 space-y-2">
                 <input
                   type="text"
                   value={image.url}
                   onChange={(e) => updateImage(index, { url: e.target.value })}
-                  className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm font-mono"
+                  className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs font-mono rounded"
                   placeholder="Image URL"
                 />
-                <input
-                  type="text"
-                  value={image.caption || ''}
-                  onChange={(e) => updateImage(index, { caption: e.target.value })}
-                  className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm"
-                  placeholder="Caption (optional)"
-                />
+
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={image.caption || ''}
+                    onChange={(e) => updateImage(index, { caption: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm rounded"
+                    placeholder="Caption (Public)"
+                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={image.alt || ''}
+                      onChange={(e) => updateImage(index, { alt: e.target.value })}
+                      className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none text-sm rounded border-dashed text-gray-400 focus:text-white"
+                      placeholder="Alt Text (SEO)"
+                    />
+                  </div>
+                </div>
               </div>
+
               <button
                 type="button"
                 onClick={() => removeImage(index)}
-                className="p-2 self-start opacity-60 hover:opacity-100 hover:text-destructive transition-all"
+                className="p-2 text-gray-500 hover:text-destructive hover:bg-destructive/10 rounded-full transition-all"
+                title="Remove image"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -346,7 +368,7 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
         ))}
 
         {/* Upload New Image */}
-        <label className="block border-2 border-dashed border-border hover:border-accent-brand transition-colors cursor-pointer">
+        <label className="block border-2 border-dashed border-border hover:border-accent-brand hover:bg-accent-brand/5 transition-all cursor-pointer rounded-lg">
           <div className="flex flex-col items-center justify-center py-8 px-4">
             {uploading ? (
               <>
@@ -356,7 +378,7 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
             ) : (
               <>
                 <Plus className="w-8 h-8 text-accent-brand mb-2" />
-                <p className="text-sm opacity-80 mb-1">Add Images</p>
+                <p className="text-sm font-medium mb-1">Add Images</p>
                 <p className="text-xs opacity-50">Bulk upload supported</p>
               </>
             )}

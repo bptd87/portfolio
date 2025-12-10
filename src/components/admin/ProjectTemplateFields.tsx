@@ -1,67 +1,49 @@
 import React from 'react';
-import { Plus, X, MoveUp, MoveDown, Upload } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { Plus, X, Upload } from 'lucide-react';
+import { projectId } from '../../utils/supabase/info';
 import { createClient } from '../../utils/supabase/client';
 import { optimizeImage } from '../../utils/image-optimizer';
+import { sanitizeFileName } from '../../utils/file-naming';
 
 // Simple URL list manager with captions AND upload
 interface GalleryEditorProps {
   label: string;
   images: string[];
   captions: string[];
-  onChange: (images: string[], captions: string[]) => void;
+  altTexts?: string[]; // New optional prop
+  onChange: (images: string[], captions: string[], altTexts?: string[]) => void;
   currentCover?: string;
   onSetCover?: (url: string) => void;
 }
 
-export function GalleryEditor({ label, images, captions, onChange, currentCover, onSetCover }: GalleryEditorProps) {
+export function GalleryEditor({ label, images, captions, altTexts = [], onChange, currentCover, onSetCover }: GalleryEditorProps) {
   const [uploading, setUploading] = React.useState<number | null>(null);
   const [bulkUploading, setBulkUploading] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
 
-  const addImage = () => {
-    onChange([...images, ''], [...captions, '']);
-  };
-
-  const removeImage = (index: number) => {
-    onChange(
-      images.filter((_, i) => i !== index),
-      captions.filter((_, i) => i !== index)
-    );
-  };
-
-  const updateImage = (index: number, value: string) => {
-    const newImages = [...images];
-    newImages[index] = value;
-    onChange(newImages, captions);
-  };
-
-  const updateCaption = (index: number, value: string) => {
-    const newCaptions = [...captions];
-    newCaptions[index] = value;
-    onChange(images, newCaptions);
-  };
-
+  // Helper function defined INSIDE component to access props/state if needed, 
+  // but strictly it depends on external utils. 
+  // Renamed to avoid conflicts if any, though scope is clean here.
   const uploadImageToBucket = async (file: File, bucket: string = 'projects') => {
     try {
       // Optimize
       const optimized = await optimizeImage(file, { maxWidth: 1920, quality: 0.8, format: 'image/webp' });
-      
+
       // Direct Upload
       const supabase = createClient();
-      const fileExt = optimized.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-      
+      // Use sanitized original filename
+      const fileName = sanitizeFileName(optimized.name);
+
       const { error } = await supabase.storage.from(bucket).upload(fileName, optimized);
       if (error) throw error;
-      
+
       const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
       return data.publicUrl;
     } catch (error) {
       // Fallback to server endpoint
       const token = sessionStorage.getItem('admin_token');
       const formData = new FormData();
-      formData.append('image', file); // Use original file if optimization failed or just as fallback
+      formData.append('image', file);
       formData.append('bucket', bucket);
 
       const response = await fetch(
@@ -69,8 +51,7 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'Authorization': `Bearer ${token}`,
           },
           body: formData,
         }
@@ -80,6 +61,38 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
       if (data.success && data.url) return data.url;
       throw new Error(data.error || 'Upload failed');
     }
+  };
+
+  const addImage = () => {
+    onChange([...images, ''], [...captions, ''], [...altTexts, '']);
+  };
+
+  const removeImage = (index: number) => {
+    onChange(
+      images.filter((_, i) => i !== index),
+      captions.filter((_, i) => i !== index),
+      altTexts.filter((_, i) => i !== index)
+    );
+  };
+
+  const updateImage = (index: number, value: string) => {
+    const newImages = [...images];
+    newImages[index] = value;
+    onChange(newImages, captions, altTexts);
+  };
+
+  const updateCaption = (index: number, value: string) => {
+    const newCaptions = [...captions];
+    newCaptions[index] = value;
+    onChange(images, newCaptions, altTexts);
+  };
+
+  const updateAltText = (index: number, value: string) => {
+    const newAltTexts = [...altTexts];
+    // Ensure array is long enough
+    while (newAltTexts.length <= index) newAltTexts.push('');
+    newAltTexts[index] = value;
+    onChange(images, captions, newAltTexts);
   };
 
   const handleFileUpload = async (index: number, file: File) => {
@@ -101,6 +114,7 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
     setBulkUploading(true);
     const newImages = [...images];
     const newCaptions = [...captions];
+    const newAltTexts = [...altTexts];
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -109,11 +123,13 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
           const url = await uploadImageToBucket(file, 'projects');
           newImages.push(url);
           newCaptions.push('');
+          newAltTexts.push('');
         } catch (err) {
-          }
+          console.error(err);
+        }
       }
 
-      onChange(newImages, newCaptions);
+      onChange(newImages, newCaptions, newAltTexts);
     } catch (err) {
       alert('Some uploads failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
@@ -175,6 +191,7 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
               type="file"
               accept="image/*"
               multiple
+              aria-label="Bulk upload images"
               onChange={(e) => {
                 const files = e.target.files;
                 if (files && files.length > 0) handleBulkUpload(files);
@@ -191,7 +208,7 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
               {bulkUploading ? 'Uploading...' : 'Bulk Upload'}
             </button>
           </div>
-          
+
           <button
             type="button"
             onClick={addImage}
@@ -209,9 +226,9 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
             <div className="w-20 h-20 flex-shrink-0 bg-black/5 dark:bg-white/5 border border-border overflow-hidden relative">
               {img ? (
                 <>
-                  <img 
-                    src={img} 
-                    alt="Preview" 
+                  <img
+                    src={img}
+                    alt="Preview"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
@@ -232,22 +249,32 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
             </div>
 
             {/* Input and controls */}
-            <div className="flex-1 flex items-center gap-2">
+            <div className="flex-1 flex flex-col gap-2">
               <input
                 type="text"
                 value={img}
                 onChange={(e) => updateImage(index, e.target.value)}
                 placeholder="Image URL"
-                className="flex-1 px-3 py-1.5 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
+                className="w-full px-3 py-1.5 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
               />
-              
-              <input
-                type="text"
-                value={captions[index] || ''}
-                onChange={(e) => updateCaption(index, e.target.value)}
-                placeholder="Caption"
-                className="flex-1 px-3 py-1.5 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
-              />
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={captions[index] || ''}
+                  onChange={(e) => updateCaption(index, e.target.value)}
+                  placeholder="Caption (Public Visible)"
+                  className="flex-1 px-3 py-1.5 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
+                />
+
+                <input
+                  type="text"
+                  value={altTexts[index] || ''}
+                  onChange={(e) => updateAltText(index, e.target.value)}
+                  placeholder="Alt Text (SEO Hidden)"
+                  className="flex-1 px-3 py-1.5 bg-background border border-border border-dashed focus:border-accent-brand focus:outline-none text-xs text-muted-foreground"
+                />
+              </div>
             </div>
 
             {/* Action buttons */}
@@ -257,6 +284,7 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
                 <input
                   type="file"
                   accept="image/*"
+                  aria-label="Upload image"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleFileUpload(index, file);
@@ -290,7 +318,7 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
                   {currentCover === img ? '✓ COVER' : 'COVER'}
                 </button>
               )}
-              
+
               {/* Remove button */}
               <button
                 type="button"
@@ -303,6 +331,7 @@ export function GalleryEditor({ label, images, captions, onChange, currentCover,
             </div>
           </div>
         ))}
+
         {images.length === 0 && (
           <div className={`border-2 border-dashed ${isDragging ? 'border-accent-brand bg-accent-brand/5' : 'border-border'} p-12 text-center transition-colors`}>
             <Upload className={`w-8 h-8 mx-auto mb-3 ${isDragging ? 'text-accent-brand' : 'opacity-30'}`} />
@@ -368,6 +397,7 @@ export function DesignNotesEditor({ notes, onChange }: DesignNotesEditorProps) {
             <button
               type="button"
               onClick={() => removeNote(index)}
+              aria-label="Remove note"
               className="p-1.5 opacity-60 hover:opacity-100 hover:text-destructive transition-all"
             >
               <X className="w-4 h-4" />
@@ -438,6 +468,7 @@ export function CollaboratorsEditor({ collaborators, onChange }: CollaboratorsEd
             <button
               type="button"
               onClick={() => removeCollaborator(index)}
+              aria-label="Remove collaborator"
               className="p-1.5 opacity-60 hover:opacity-100 hover:text-destructive transition-all"
             >
               <X className="w-4 h-4" />
@@ -497,6 +528,7 @@ export function TagsEditor({ tags, onChange }: TagsEditorProps) {
           <button
             type="button"
             onClick={addTag}
+            aria-label="Add tag"
             className="px-4 py-2 border border-border hover:border-accent-brand text-xs tracking-wider uppercase opacity-60 hover:opacity-100 transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -513,6 +545,7 @@ export function TagsEditor({ tags, onChange }: TagsEditorProps) {
                 <button
                   type="button"
                   onClick={() => removeTag(index)}
+                  aria-label="Remove tag"
                   className="opacity-40 hover:opacity-100 hover:text-destructive transition-all"
                 >
                   <X className="w-3 h-3" />

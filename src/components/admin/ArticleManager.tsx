@@ -12,6 +12,7 @@ import { ImageUploader } from './ImageUploader';
 import { ArticleSEOTools } from './ArticleSEOTools';
 import { FocusPointPicker } from './FocusPointPicker';
 import { ContentFormatter } from './ContentFormatter';
+import { SquarespaceImporter } from './SquarespaceImporter';
 import { useCategories } from '../../hooks/useCategories';
 import { PrimaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
 import { InfoBanner } from './InfoBanner';
@@ -46,7 +47,7 @@ type TabId = 'content' | 'basic' | 'media' | 'seo';
 function ContentTabWrapper({ methods, categories }: { methods: any; categories: any }) {
   const content = useWatch({ control: methods.control, name: 'content' }) || [];
   const [showPreview, setShowPreview] = useState(false);
-  
+
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200 h-full">
       {/* Preview Toggle */}
@@ -56,18 +57,16 @@ function ContentTabWrapper({ methods, categories }: { methods: any; categories: 
           <button
             type="button"
             onClick={() => setShowPreview(false)}
-            className={`px-3 py-1 text-sm rounded transition-colors ${
-              !showPreview ? 'bg-accent-brand text-white' : 'bg-secondary/30 hover:bg-secondary/50'
-            }`}
+            className={`px-3 py-1 text-sm rounded transition-colors ${!showPreview ? 'bg-accent-brand text-white' : 'bg-secondary/30 hover:bg-secondary/50'
+              }`}
           >
             Edit
           </button>
           <button
             type="button"
             onClick={() => setShowPreview(true)}
-            className={`px-3 py-1 text-sm rounded transition-colors ${
-              showPreview ? 'bg-accent-brand text-white' : 'bg-secondary/30 hover:bg-secondary/50'
-            }`}
+            className={`px-3 py-1 text-sm rounded transition-colors ${showPreview ? 'bg-accent-brand text-white' : 'bg-secondary/30 hover:bg-secondary/50'
+              }`}
           >
             Preview
           </button>
@@ -81,11 +80,11 @@ function ContentTabWrapper({ methods, categories }: { methods: any; categories: 
       {showPreview ? (
         <ArticlePreview blocks={content} />
       ) : (
-        <ImprovedBlockEditor 
-          blocks={content} 
+        <ImprovedBlockEditor
+          blocks={content}
           onChange={(blocks) => {
             methods.setValue('content', blocks, { shouldDirty: true, shouldTouch: true });
-          }} 
+          }}
         />
       )}
     </div>
@@ -97,6 +96,7 @@ export function ArticleManager() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('content');
   const { categories, loading: categoriesLoading } = useCategories();
 
@@ -169,7 +169,7 @@ export function ArticleManager() {
     try {
       const token = sessionStorage.getItem('admin_token');
       const isNew = editingId === 'new';
-      
+
       const slug = isNew ? (formData.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '') : formData.slug;
 
       const url = isNew
@@ -178,8 +178,8 @@ export function ArticleManager() {
 
       const response = await fetch(url, {
         method: isNew ? 'POST' : 'PUT',
-        headers: { 
-          'Content-Type': 'application/json', 
+        headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ ...formData, slug, lastModified: new Date().toISOString().split('T')[0] }),
@@ -222,7 +222,7 @@ export function ArticleManager() {
     setShowForm(false);
     setEditingId(null);
   };
-  
+
   if (loading) return <div className="text-center py-12 text-gray-400">Loading articles...</div>;
 
   const tabs: { id: TabId; label: string; icon: any }[] = [
@@ -240,8 +240,30 @@ export function ArticleManager() {
           <h2 className="text-xl tracking-tight">Articles</h2>
           <p className="text-sm text-gray-400 mt-1">{articles.length} total articles</p>
         </div>
-        {!showForm && <PrimaryButton onClick={handleCreate}><Plus className="w-4 h-4" /><span>New Article</span></PrimaryButton>}
+        {!showForm && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowImporter(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-secondary/30 hover:bg-secondary/50 text-white rounded-lg transition-colors border border-border"
+            >
+              <span className="text-sm">Import (Squarespace)</span>
+            </button>
+            <PrimaryButton onClick={handleCreate}><Plus className="w-4 h-4" /><span>New Article</span></PrimaryButton>
+            ```
+          </div>
+        )}
       </div>
+
+      {showImporter && (
+        <SquarespaceImporter
+          target="articles"
+          onComplete={() => {
+            setShowImporter(false);
+            loadArticles(); // Reload to show new posts
+          }}
+          onCancel={() => setShowImporter(false)}
+        />
+      )}
 
       {showForm && (
         <FormProvider {...methods}>
@@ -257,11 +279,10 @@ export function ArticleManager() {
                       key={tab.id}
                       type="button"
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        activeTab === tab.id
-                          ? 'bg-accent-brand text-accent-brand-foreground'
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                      }`}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeTab === tab.id
+                        ? 'bg-accent-brand text-accent-brand-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        }`}
                     >
                       <tab.icon className="w-3 h-3" />
                       {tab.label}
@@ -284,7 +305,7 @@ export function ArticleManager() {
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto p-6">
               <div className="max-w-4xl mx-auto space-y-6">
-                
+
                 {/* CONTENT TAB */}
                 {activeTab === 'content' && (
                   <ContentTabWrapper methods={methods} categories={categories} />
@@ -318,22 +339,22 @@ export function ArticleManager() {
                 {activeTab === 'media' && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-200 max-w-2xl">
                     <div className="bg-muted/30 p-6 rounded-xl border border-border">
-                      <ImageUploader 
-                        label="Cover Image" 
-                        value={methods.watch('coverImage')} 
-                        onChange={(url) => methods.setValue('coverImage', url)} 
+                      <ImageUploader
+                        label="Cover Image"
+                        value={methods.watch('coverImage')}
+                        onChange={(url) => methods.setValue('coverImage', url)}
                         bucketName="blog"
                       />
                       <p className="text-xs text-muted-foreground mt-2">Recommended size: 1920x1080px (16:9 aspect ratio)</p>
                     </div>
-                    
+
                     {methods.watch('coverImage') && (
                       <div className="bg-muted/30 p-6 rounded-xl border border-border">
                         <h4 className="text-sm font-medium mb-4">Image Focus Point</h4>
-                        <FocusPointPicker 
-                          imageUrl={methods.watch('coverImage')} 
-                          focusPoint={methods.watch('focusPoint')} 
-                          onFocusPointChange={(point) => methods.setValue('focusPoint', point)} 
+                        <FocusPointPicker
+                          imageUrl={methods.watch('coverImage')}
+                          focusPoint={methods.watch('focusPoint')}
+                          onFocusPointChange={(point) => methods.setValue('focusPoint', point)}
                         />
                         <p className="text-xs text-muted-foreground mt-2">Click to set the focal point for cropping on different screen sizes.</p>
                       </div>
@@ -344,20 +365,20 @@ export function ArticleManager() {
                 {/* SEO TAB */}
                 {activeTab === 'seo' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200 max-w-2xl">
-                    <ArticleSEOTools 
-                      title={methods.watch('title')} 
-                      excerpt={methods.watch('excerpt')} 
-                      content={methods.watch('content')} 
-                      currentTags={methods.watch('tags')} 
-                      currentDescription={methods.watch('seoDescription')} 
-                      currentReadTime={methods.watch('readTime')} 
-                      onTagsGenerated={(tags) => methods.setValue('tags', tags)} 
-                      onDescriptionGenerated={(desc) => methods.setValue('seoDescription', desc)} 
-                      onReadTimeGenerated={(time) => methods.setValue('readTime', time)} 
+                    <ArticleSEOTools
+                      title={methods.watch('title')}
+                      excerpt={methods.watch('excerpt')}
+                      content={methods.watch('content')}
+                      currentTags={methods.watch('tags')}
+                      currentDescription={methods.watch('seoDescription')}
+                      currentReadTime={methods.watch('readTime')}
+                      onTagsGenerated={(tags) => methods.setValue('tags', tags)}
+                      onDescriptionGenerated={(desc) => methods.setValue('seoDescription', desc)}
+                      onReadTimeGenerated={(time) => methods.setValue('readTime', time)}
                     />
-                    
+
                     <div className="h-px bg-border" />
-                    
+
                     <Input name="tags" label="Tags (comma-separated)" placeholder="e.g., Design Philosophy, Creative Process" />
                     <Textarea name="seoDescription" label="SEO Meta Description" rows={4} maxLength={160} placeholder="Custom meta description for search engines. If left empty, the excerpt will be used." />
                   </div>

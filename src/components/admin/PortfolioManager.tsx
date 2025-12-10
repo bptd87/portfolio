@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Save, X, Trash2, Pencil, Layout, Image, Users, Tags, Upload, FileJson } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { Plus, Save, X, Trash2, Pencil, Layout, Image, Users, Tags, FileJson } from 'lucide-react';
+import { projectId } from '../../utils/supabase/info';
 import { projects as hardcodedProjects } from '../../data/projects';
 import { useCategories } from '../../hooks/useCategories';
-import { PrimaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
+import { PrimaryButton, SaveButton, IconButton } from './AdminButtons';
 import { InfoBanner } from './InfoBanner';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
@@ -19,9 +19,9 @@ import { YouTubeVideosEditor } from './YouTubeVideosEditor';
 import { ProjectSEOTools } from './ProjectSEOTools';
 import { ExperientialDesignEditor } from './ExperientialDesignEditor';
 import { RenderingEditor } from './RenderingEditor';
-import { ImageUploader } from './ImageUploader';
 import { ImageUploaderWithFocalPoint } from './ImageUploaderWithFocalPoint';
 import { SimpleGalleryEditor } from './SimpleGalleryEditor';
+import { SEOImageFixer } from './SEOImageFixer';
 
 
 // Zod schema for validation
@@ -71,17 +71,24 @@ type TabId = 'basic' | 'media' | 'details' | 'seo';
 
 export function PortfolioManager() {
   const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  // loading state removed as unused currently, though typically used for UI
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('basic');
   const [sortBy, setSortBy] = useState<'date' | 'title' | 'category'>('date');
-  const { categories, loading: categoriesLoading } = useCategories();
+  const { categories } = useCategories();
 
   const methods = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      galleries: { hero: [], heroCaptions: [], process: [], processCaptions: [] },
+      galleries: {
+        hero: [],
+        heroCaptions: [],
+        heroAlt: [], // New
+        process: [],
+        processCaptions: [],
+        processAlt: [] // New 
+      },
       credits: [],
       tags: [],
       youtubeVideos: [],
@@ -96,7 +103,6 @@ export function PortfolioManager() {
   }, []);
 
   const loadProjects = async () => {
-    setLoading(true);
     try {
       const token = sessionStorage.getItem('admin_token');
 
@@ -133,8 +139,6 @@ export function PortfolioManager() {
       console.error('Error loading projects:', error);
       setProjects(hardcodedProjects);
       toast.error('Error connecting to server, using local data');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -196,8 +200,9 @@ export function PortfolioManager() {
       if (response.ok) {
         toast.success('Project saved successfully!');
         await loadProjects();
-        setShowForm(false);
-        setEditingId(null);
+        // Removed auto-close to allow continued editing
+        // setShowForm(false);
+        // setEditingId(null);
       } else {
         const errorData = await response.json();
         toast.error(`Failed to save project: ${errorData.error}`);
@@ -460,9 +465,11 @@ export function PortfolioManager() {
                         label="Primary Gallery (Renderings & Design)"
                         images={methods.watch('galleries.hero') || []}
                         captions={methods.watch('galleries.heroCaptions') || []}
-                        onChange={(images, captions) => {
+                        altTexts={methods.watch('galleries.heroAlt') || []}
+                        onChange={(images, captions, altTexts) => {
                           methods.setValue('galleries.hero', images);
                           methods.setValue('galleries.heroCaptions', captions);
+                          if (altTexts) methods.setValue('galleries.heroAlt', altTexts);
                         }}
                         currentCover={methods.watch('cardImage')}
                         onSetCover={(url) => methods.setValue('cardImage', url)}
@@ -474,9 +481,11 @@ export function PortfolioManager() {
                         label="Secondary Gallery (Production Photos)"
                         images={methods.watch('galleries.process') || []}
                         captions={methods.watch('galleries.processCaptions') || []}
-                        onChange={(images, captions) => {
+                        altTexts={methods.watch('galleries.processAlt') || []}
+                        onChange={(images, captions, altTexts) => {
                           methods.setValue('galleries.process', images);
                           methods.setValue('galleries.processCaptions', captions);
+                          if (altTexts) methods.setValue('galleries.processAlt', altTexts);
                         }}
                         currentCover={methods.watch('cardImage')}
                         onSetCover={(url) => methods.setValue('cardImage', url)}
@@ -534,6 +543,32 @@ export function PortfolioManager() {
                       </code>
                     </p>
                   </div>
+
+                  {/* AI Image Renamer & Caption Generator */}
+                  {editingId !== 'new' ? (
+                    <SEOImageFixer
+                      project={{ ...methods.watch(), id: editingId }}
+                      onUpdate={(updatedData) => {
+                        methods.reset({ ...methods.getValues(), ...updatedData });
+                        toast.success('Project form updated with new image URLs. Please Save.');
+                      }}
+                      onAutoSave={async (updatedData) => {
+                        const newData = { ...methods.getValues(), ...updatedData };
+                        methods.reset(newData);
+                        await onSubmit(newData);
+                      }}
+                    />
+                  ) : (
+                    <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-xl text-center space-y-3">
+                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/10 text-blue-400 mb-2">
+                        <Tags className="w-5 h-5" />
+                      </div>
+                      <h3 className="text-sm font-medium text-slate-200">Save Project to Enable AI Tools</h3>
+                      <p className="text-xs text-slate-400 max-w-[300px] mx-auto">
+                        The AI Image Optimizer requires the project to be saved first. Please save your progress to rename images and generate captions.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

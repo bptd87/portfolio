@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { NewsBlock, newsItems as hardcodedNews } from '../../data/news';
-import { NewsBlockEditor } from './NewsBlockEditor';
+import { SquarespaceImporter } from './SquarespaceImporter';
 import { ImageUploader } from './ImageUploader';
 import { FocusPointPicker } from './FocusPointPicker';
 import { useCategories } from '../../hooks/useCategories';
-import { PrimaryButton, SecondaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
-import { 
-  DarkInput, 
-  DarkTextarea, 
-  DarkSelect, 
+import { PrimaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
+import {
+  DarkInput,
+  DarkTextarea,
+  DarkSelect,
   DarkLabel,
   formContainerClasses,
-  listItemClasses,
-  badgeClasses
+  listItemClasses
 } from './DarkModeStyles';
-
 import { InfoBanner } from './InfoBanner';
+import { NewsBlockEditor } from './NewsBlockEditor'; // Assuming this import was missing or implied
+import { toast } from 'sonner';
 
 interface NewsItem {
   id: string;
@@ -43,20 +43,22 @@ export function NewsManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<NewsItem>>({});
   const [showForm, setShowForm] = useState(false);
-  
-  const { categories, loading: categoriesLoading } = useCategories();
+  const [showImporter, setShowImporter] = useState(false);
+
+  const { categories } = useCategories();
 
   useEffect(() => {
     loadNews();
   }, []);
 
   const loadNews = async () => {
+    setLoading(true);
     try {
       const token = sessionStorage.getItem('admin_token');
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news`,
         {
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${token || publicAnonKey}`,
           },
         }
@@ -65,7 +67,7 @@ export function NewsManager() {
       if (data.success) {
         // Sort news by date (newest first)
         const sortedNews = (data.news || []).sort((a: NewsItem, b: NewsItem) => {
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+          return new Date(b.date).getTime() - new Date(a.date).getTime(); // Fix: b - a for descending
         });
         setNewsItems(sortedNews);
         toast.success(`Loaded ${sortedNews.length} news items from server`);
@@ -122,8 +124,7 @@ export function NewsManager() {
         method: isNew ? 'POST' : 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicAnonKey}`,
-          // Token in Authorization header
+          'Authorization': `Bearer ${token}`, // Use token here, not anon key for admin actions ideally, but following observed pattern
         },
         body: JSON.stringify(dataToSave),
       });
@@ -133,12 +134,13 @@ export function NewsManager() {
         setShowForm(false);
         setEditingId(null);
         setFormData({});
+        toast.success('News item saved successfully');
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        alert('Failed to save news item: ' + (errorData.error || response.statusText));
+        toast.error('Failed to save news item: ' + (errorData.error || response.statusText));
       }
     } catch (err) {
-      alert('Failed to save news item');
+      toast.error('Failed to save news item');
     }
   };
 
@@ -151,18 +153,18 @@ export function NewsManager() {
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news/${id}`,
         {
           method: 'DELETE',
-          headers: { 
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header 
+          headers: {
+            'Authorization': `Bearer ${token}`,
           },
         }
       );
 
       if (response.ok) {
         await loadNews();
+        toast.success('News item deleted');
       }
     } catch (err) {
-      alert('Failed to delete news item');
+      toast.error('Failed to delete news item');
     }
   };
 
@@ -199,14 +201,32 @@ export function NewsManager() {
           <p className="text-sm text-gray-400 mt-1">{newsItems.length} total news items</p>
         </div>
         {!showForm && (
-          <PrimaryButton
-            onClick={handleCreate}
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-xs tracking-wider uppercase">New News Item</span>
-          </PrimaryButton>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowImporter(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-secondary/30 hover:bg-secondary/50 text-white rounded-lg transition-colors border border-border"
+            >
+              <span className="text-sm">Import (Squarespace)</span>
+            </button>
+            <PrimaryButton onClick={handleCreate}>
+              <Plus className="w-4 h-4" />
+              <span className="text-xs tracking-wider uppercase">New News Item</span>
+            </PrimaryButton>
+          </div>
         )}
       </div>
+
+      {/* Importer Modal */}
+      {showImporter && (
+        <SquarespaceImporter
+          target="news"
+          onComplete={() => {
+            setShowImporter(false);
+            loadNews();
+          }}
+          onCancel={() => setShowImporter(false)}
+        />
+      )}
 
       {/* Form */}
       {showForm && (

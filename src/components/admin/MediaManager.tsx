@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '../../utils/supabase/client';
-import { 
-  Image as ImageIcon, 
-  Trash2, 
-  Upload, 
-  Copy, 
-  Check, 
-  RefreshCw, 
-  Folder, 
+import {
+  Image as ImageIcon,
+  Trash2,
+  Upload,
+  Copy,
+  Check,
+  RefreshCw,
+  Folder,
   Loader2,
   ExternalLink,
   Search,
@@ -24,6 +24,7 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { analyzeImage, getAIKey, setAIKey } from '../../utils/ai-service';
+import { sanitizeFileName } from '../../utils/file-naming';
 
 const BUCKETS = [
   { id: 'make-74296234-images', label: 'General Uploads' },
@@ -65,7 +66,7 @@ export function MediaManager() {
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  
+
   // Edit State
   const [editingFile, setEditingFile] = useState<FileObject | null>(null);
   const [metadata, setMetadata] = useState<MediaMetadata>({
@@ -173,11 +174,11 @@ export function MediaManager() {
 
     try {
       const publicUrl = getPublicUrl(editingFile.name);
-      
+
       // Use the client-side AI service if the server endpoint fails or is not configured
       // This is a fallback since the server endpoint seems to be 404ing
       const key = getAIKey();
-      
+
       if (key) {
         // Client-side analysis
         const result = await analyzeImage(publicUrl, key);
@@ -193,50 +194,50 @@ export function MediaManager() {
         // The function name is 'server', so the path is /functions/v1/server
         // The internal route in Hono is /analyze-image
         // So the full URL is .../functions/v1/server/analyze-image
-        
+
         const functionUrl = `https://${projectId}.supabase.co/functions/v1/server/analyze-image`;
         const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-            body: JSON.stringify({ imageUrl: publicUrl })
-          }
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({ imageUrl: publicUrl })
+        }
         );
 
         if (!response.ok) {
-           const errorText = await response.text();
-           // Try the fallback route if the first one failed with 404
-           if (response.status === 404) {
-             const retryResponse = await fetch(
-                `https://${projectId}.supabase.co/functions/v1/server/make-server-74296234/api/admin/ai/analyze-image`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${publicAnonKey}`,
-                  },
-                  body: JSON.stringify({ imageUrl: publicUrl })
-                }
-             );
-             
-             if (retryResponse.ok) {
-                const data = await retryResponse.json();
-                if (data.success && data.result) {
-                  setMetadata({
-                    alt_text: data.result.altText || '',
-                    caption: data.result.caption || '',
-                    seo_description: data.result.seoDescription || '',
-                    tags: data.result.tags || []
-                  });
-                  toast.success('AI Analysis complete (Server-side)!');
-                  return;
-                }
-             }
-           }
-           
-           throw new Error(`Server error (${response.status}): ${errorText}`);
+          const errorText = await response.text();
+          // Try the fallback route if the first one failed with 404
+          if (response.status === 404) {
+            const retryResponse = await fetch(
+              `https://${projectId}.supabase.co/functions/v1/server/make-server-74296234/api/admin/ai/analyze-image`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${publicAnonKey}`,
+                },
+                body: JSON.stringify({ imageUrl: publicUrl })
+              }
+            );
+
+            if (retryResponse.ok) {
+              const data = await retryResponse.json();
+              if (data.success && data.result) {
+                setMetadata({
+                  alt_text: data.result.altText || '',
+                  caption: data.result.caption || '',
+                  seo_description: data.result.seoDescription || '',
+                  tags: data.result.tags || []
+                });
+                toast.success('AI Analysis complete (Server-side)!');
+                return;
+              }
+            }
+          }
+
+          throw new Error(`Server error (${response.status}): ${errorText}`);
         }
 
         const data = await response.json();
@@ -246,7 +247,7 @@ export function MediaManager() {
         }
 
         const result = data.result;
-        
+
         setMetadata({
           alt_text: result.altText || '',
           caption: result.caption || '',
@@ -255,7 +256,7 @@ export function MediaManager() {
         });
         toast.success('AI Analysis complete!');
       }
-      
+
     } catch (error: any) {
       toast.error(error.message || 'Failed to analyze image');
     } finally {
@@ -267,7 +268,7 @@ export function MediaManager() {
     setLoading(true);
     try {
       const supabase = createClient();
-      
+
       // 1. Try listing root
       const { data: rootData, error: rootError } = await supabase
         .storage
@@ -301,7 +302,7 @@ export function MediaManager() {
       // The contents are in imagesFolderData.
       // We should probably filter out the folder entries from rootData if we are showing contents.
       // Folders in Supabase storage list usually have `metadata: null` or `id: null`.
-      
+
       // DEBUG: Removed the metadata filter to see if that was hiding files
       // const flatFiles = allFiles.filter(f => !!f.metadata); 
       const flatFiles = allFiles;
@@ -316,14 +317,13 @@ export function MediaManager() {
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) return;
-    
+
     const file = event.target.files[0];
     setUploading(true);
 
     try {
       const supabase = createClient();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const fileName = sanitizeFileName(file.name);
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -371,7 +371,7 @@ export function MediaManager() {
       }
 
       toast.success('Image deleted successfully');
-      
+
       // Update local state immediately
       setFiles(prev => prev.filter(f => f.name !== fileName));
     } catch (error: any) {
@@ -401,7 +401,7 @@ export function MediaManager() {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
   };
 
-  const filteredFiles = files.filter(file => 
+  const filteredFiles = files.filter(file =>
     file.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -415,23 +415,23 @@ export function MediaManager() {
           </h2>
           <p className={AdminTokens.text.secondary + " mt-1"}>Manage your images and assets across all buckets</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => listFiles(activeBucket)}
             className={`p-2 rounded-lg ${AdminTokens.bg.tertiary} ${AdminTokens.text.secondary} hover:text-white transition-colors`}
             title="Refresh"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          
+
           <label className={`flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             <span>Upload Image</span>
-            <input 
-              type="file" 
-              className="hidden" 
-              accept="image/*" 
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
               onChange={handleUpload}
               disabled={uploading}
             />
@@ -455,11 +455,10 @@ export function MediaManager() {
             <button
               key={bucket.id}
               onClick={() => setActiveBucket(bucket.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-                activeBucket === bucket.id 
-                  ? `${AdminTokens.bg.accent} ${AdminTokens.text.accent} border ${AdminTokens.border.accent}` 
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${activeBucket === bucket.id
+                  ? `${AdminTokens.bg.accent} ${AdminTokens.text.accent} border ${AdminTokens.border.accent}`
                   : `${AdminTokens.text.secondary} ${AdminTokens.bg.hover} hover:text-white`
-              }`}
+                }`}
             >
               <Folder className={`w-4 h-4 ${activeBucket === bucket.id ? 'fill-blue-500/20' : ''}`} />
               <span className="font-medium">{bucket.label}</span>
@@ -500,8 +499,8 @@ export function MediaManager() {
                   <div key={file.id} className={`group relative rounded-xl overflow-hidden border ${AdminTokens.border.disabled} ${AdminTokens.bg.secondary} ${AdminTokens.border.accentHover} transition-all`}>
                     {/* Image Preview */}
                     <div className={`aspect-square ${AdminTokens.bg.primary} relative overflow-hidden`}>
-                      <img 
-                        src={publicUrl} 
+                      <img
+                        src={publicUrl}
                         alt={file.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         loading="lazy"
@@ -541,11 +540,10 @@ export function MediaManager() {
                         <span className={`text-xs ${AdminTokens.text.tertiary}`}>{formatBytes(file.metadata?.size || 0)}</span>
                         <button
                           onClick={() => copyToClipboard(publicUrl, file.id)}
-                          className={`p-1.5 rounded-md transition-colors ${
-                            copiedId === file.id 
-                              ? `${AdminTokens.badge.success}` 
+                          className={`p-1.5 rounded-md transition-colors ${copiedId === file.id
+                              ? `${AdminTokens.badge.success}`
                               : `${AdminTokens.bg.tertiary} ${AdminTokens.text.secondary} ${AdminTokens.bg.hover} hover:text-white`
-                          }`}
+                            }`}
                           title="Copy URL"
                         >
                           {copiedId === file.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
@@ -569,15 +567,15 @@ export function MediaManager() {
               Manage alt text, captions, and SEO metadata for this image.
             </p>
           </DialogHeader>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
             {/* Preview */}
             <div className="space-y-4">
               <div className="aspect-square rounded-lg overflow-hidden bg-black border border-gray-800">
                 {editingFile && (
-                  <img 
-                    src={getPublicUrl(editingFile.name)} 
-                    alt="Preview" 
+                  <img
+                    src={getPublicUrl(editingFile.name)}
+                    alt="Preview"
                     className="w-full h-full object-contain"
                   />
                 )}
@@ -602,19 +600,19 @@ export function MediaManager() {
                 <>
                   <div className="space-y-2">
                     <Label>Alt Text</Label>
-                    <Textarea 
+                    <Textarea
                       value={metadata.alt_text}
-                      onChange={(e) => setMetadata({...metadata, alt_text: e.target.value})}
+                      onChange={(e) => setMetadata({ ...metadata, alt_text: e.target.value })}
                       placeholder="Descriptive text for accessibility..."
                       className="bg-gray-800 border-gray-700 min-h-[80px]"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label>Caption</Label>
-                    <Textarea 
+                    <Textarea
                       value={metadata.caption}
-                      onChange={(e) => setMetadata({...metadata, caption: e.target.value})}
+                      onChange={(e) => setMetadata({ ...metadata, caption: e.target.value })}
                       placeholder="Image caption..."
                       className="bg-gray-800 border-gray-700 min-h-[80px]"
                     />
@@ -622,9 +620,9 @@ export function MediaManager() {
 
                   <div className="space-y-2">
                     <Label>SEO Description</Label>
-                    <Textarea 
+                    <Textarea
                       value={metadata.seo_description}
-                      onChange={(e) => setMetadata({...metadata, seo_description: e.target.value})}
+                      onChange={(e) => setMetadata({ ...metadata, seo_description: e.target.value })}
                       placeholder="Optimized description for search engines..."
                       className="bg-gray-800 border-gray-700 min-h-[80px]"
                     />

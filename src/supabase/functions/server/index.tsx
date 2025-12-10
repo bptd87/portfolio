@@ -388,11 +388,7 @@ app.post("/make-server-74296234/api/admin/ai/analyze-image", async (c) => {
   }
 });
 
-  } catch (err) {
-  const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-  return c.json({ success: false, error: errorMsg }, 500);
-}
-});
+
 
 // ===== AI SEO READ TIME GENERATOR =====
 app.post("/make-server-74296234/api/admin/ai/seo-read-time", verifyAdminToken, async (c) => {
