@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { NewsBlock, newsItems as hardcodedNews } from '../../data/news';
 import { SquarespaceImporter } from './SquarespaceImporter';
@@ -16,8 +17,7 @@ import {
   listItemClasses
 } from './DarkModeStyles';
 import { InfoBanner } from './InfoBanner';
-import { NewsBlockEditor } from './NewsBlockEditor'; // Assuming this import was missing or implied
-import { toast } from 'sonner';
+import { NewsBlockEditor } from './NewsBlockEditor';
 
 interface NewsItem {
   id: string;
@@ -55,6 +55,7 @@ export function NewsManager() {
     setLoading(true);
     try {
       const token = sessionStorage.getItem('admin_token');
+      // Use authenticated endpoint to get all news
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news`,
         {
@@ -63,16 +64,22 @@ export function NewsManager() {
           },
         }
       );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch news');
+      }
+
       const data = await response.json();
+
       if (data.success) {
         // Sort news by date (newest first)
         const sortedNews = (data.news || []).sort((a: NewsItem, b: NewsItem) => {
-          return new Date(b.date).getTime() - new Date(a.date).getTime(); // Fix: b - a for descending
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
         setNewsItems(sortedNews);
         toast.success(`Loaded ${sortedNews.length} news items from server`);
       } else {
-        console.error('API failed, using local data as fallback');
+        console.error('API return success: false, using local data');
         const sorted = [...hardcodedNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setNewsItems(sorted as any);
         toast.error('Failed to load news, using local data');
@@ -111,12 +118,23 @@ export function NewsManager() {
     try {
       const token = sessionStorage.getItem('admin_token');
       const isNew = editingId === 'new';
+
+      // Generate slug if new
+      let slug = formData.slug;
+      if (isNew && formData.title) {
+        slug = formData.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+      }
+
       const url = isNew
         ? `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news`
         : `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news/${editingId}`;
 
       const dataToSave = {
         ...formData,
+        slug,
         lastModified: new Date().toISOString().split('T')[0],
       };
 
@@ -124,7 +142,7 @@ export function NewsManager() {
         method: isNew ? 'POST' : 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Use token here, not anon key for admin actions ideally, but following observed pattern
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(dataToSave),
       });
@@ -140,6 +158,7 @@ export function NewsManager() {
         toast.error('Failed to save news item: ' + (errorData.error || response.statusText));
       }
     } catch (err) {
+      console.error('Save error:', err);
       toast.error('Failed to save news item');
     }
   };
@@ -162,8 +181,11 @@ export function NewsManager() {
       if (response.ok) {
         await loadNews();
         toast.success('News item deleted');
+      } else {
+        throw new Error('Failed to delete');
       }
     } catch (err) {
+      console.error('Delete error:', err);
       toast.error('Failed to delete news item');
     }
   };

@@ -142,17 +142,39 @@ function ArticleEndFlourish() {
 
 // Table of Contents component
 function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; activeHeading: string }) {
-  const headings = useMemo(() =>
-    blocks
-      .filter(b => b.type === 'heading')
-      .map(b => ({
-        id: b.id,
-        text: b.content,
-        level: b.metadata?.level || 2
-      }))
-      .filter(b => b.level >= 1 && b.level <= 6),
-    [blocks]
-  );
+  const headings = useMemo(() => {
+    const items: { id: string; text: string; level: number }[] = [];
+
+    blocks.forEach(block => {
+      if (block.type === 'heading') {
+        items.push({
+          id: block.id,
+          text: block.content,
+          level: block.metadata?.level || 2
+        });
+      } else if (block.type === 'paragraph') {
+        // Find headers with ids in HTML content
+        // Matches <h[1-6] ... id="heading-..." ... >Text</h[1-6]>
+        const regex = /<h([1-6]).*?id=["']heading-([^"']+)["'].*?>(.*?)<\/h\1>/gi;
+        let match;
+        // Reset lastIndex just in case
+        regex.lastIndex = 0;
+
+        while ((match = regex.exec(block.content)) !== null) {
+          const level = parseInt(match[1]);
+          const id = match[2];
+          // Strip any remaining internal tags from the heading text
+          const text = match[3].replace(/<[^>]*>/g, '');
+
+          if (level >= 1 && level <= 6) {
+            items.push({ id, text, level });
+          }
+        }
+      }
+    });
+
+    return items;
+  }, [blocks]);
 
   if (headings.length < 1) return null;
 
@@ -223,25 +245,29 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
   useEffect(() => {
     if (!article?.content) return;
 
-    const headings = article.content
-      .filter(b => b.type === 'heading')
-      .map(b => document.getElementById(`heading-${b.id}`))
-      .filter(Boolean);
+    // Wait a tick for rendering to complete
+    const timeout = setTimeout(() => {
+      const elements = document.querySelectorAll('[id^="heading-"]');
+      const headings = Array.from(elements);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const id = entry.target.id.replace('heading-', '');
-            setActiveHeading(id);
-          }
-        });
-      },
-      { rootMargin: '-20% 0px -60% 0px' }
-    );
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id.replace('heading-', '');
+              setActiveHeading(id);
+            }
+          });
+        },
+        { rootMargin: '-20% 0px -60% 0px' }
+      );
 
-    headings.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
+      headings.forEach((el) => el && observer.observe(el));
+
+      return () => observer.disconnect();
+    }, 100);
+
+    return () => clearTimeout(timeout);
   }, [article?.content]);
 
   // Fetch all posts for prev/next navigation

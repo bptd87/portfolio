@@ -121,10 +121,10 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
     // Check if content contains HTML tags (from rich text editor)
     // Look for common HTML tags: <b>, <strong>, <i>, <em>, <a>, <p>, <div>, <span>, <br>, <u>
     const hasHTML = /<(b|strong|i|em|a|p|div|span|br|u|blockquote|pre|code|ul|ol|li)[\s>\/]/i.test(text);
-    
+
     if (hasHTML) {
       return (
-        <span 
+        <span
           dangerouslySetInnerHTML={{ __html: text }}
           className="rich-content"
           style={{ '--accent-color': accent } as React.CSSProperties}
@@ -135,15 +135,15 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
     // Otherwise, parse markdown syntax
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
-    
+
     const combinedRegex = /(\*\*(.+?)\*\*)|(\*(.+?)\*)|(\[(.+?)\]\((.+?)\))/g;
     let match;
-    
+
     while ((match = combinedRegex.exec(text)) !== null) {
       if (match.index > lastIndex) {
         parts.push(text.substring(lastIndex, match.index));
       }
-      
+
       if (match[1]) {
         parts.push(
           <span key={match.index} className="font-semibold" style={{ color: accent }}>
@@ -166,22 +166,42 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
           </a>
         );
       }
-      
+
       lastIndex = match.index + match[0].length;
     }
-    
+
     if (lastIndex < text.length) {
       parts.push(text.substring(lastIndex));
     }
-    
+
     return parts.length > 0 ? parts : text;
+  };
+
+  // Helper to inject IDs into headers for TOC support
+  const injectIdsIntoHeaders = (html: string) => {
+    return html.replace(/<h([1-6])(.*?)>(.*?)<\/h\1>/gi, (match, level, attrs, content) => {
+      // If id already exists, leave it alone
+      if (attrs.includes('id=')) return match;
+
+      // Generate id from content
+      // Remove HTML tags from content for the ID
+      const cleanContent = content.replace(/<[^>]*>/g, '');
+      const id = cleanContent
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      if (!id) return match;
+
+      return `<h${level}${attrs} id="heading-${id}">${content}</h${level}>`;
+    });
   };
 
   return (
     <>
-      <div 
+      <div
         className="prose-custom max-w-none"
-        style={{ 
+        style={{
           '--accent-color': accent,
           '--drop-cap-color': accent,
           '--accent-default': '#3B82F6'
@@ -191,20 +211,20 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
           // Find first paragraph for drop cap
           const isFirstParagraph = enableDropCap && block.type === 'paragraph' &&
             blocks.findIndex(b => b.type === 'paragraph') === index;
-          
+
           switch (block.type) {
             case 'paragraph':
               // Check for HTML tags anywhere in content
               const hasHTMLTags = /<(b|strong|i|em|a|p|div|span|br|u|blockquote|pre|code|ul|ol|li)[\s>\/]/i.test(block.content);
               const dropCapClass = isFirstParagraph ? 'drop-cap-paragraph' : '';
-              
+
               if (hasHTMLTags) {
                 return (
                   <div
                     key={block.id}
                     className={`leading-[1.8] mb-8 text-foreground/90 text-[19px] md:text-[21px] font-serif rich-content ${dropCapClass}`}
                     style={{ '--accent-color': accent } as React.CSSProperties}
-                    dangerouslySetInnerHTML={{ __html: block.content }}
+                    dangerouslySetInnerHTML={{ __html: injectIdsIntoHeaders(block.content) }}
                   />
                 );
               } else {
@@ -222,12 +242,12 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
             case 'heading':
               const level = block.metadata?.level || 2;
               const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
-              const headingStyles = 
-                level === 1 ? 'text-5xl md:text-6xl font-display italic leading-[1.1] mt-20 mb-10' : 
-                level === 2 ? 'text-4xl md:text-5xl font-display italic leading-[1.15] mt-16 mb-8' : 
-                level === 3 ? 'text-2xl md:text-3xl font-sans tracking-tight leading-[1.2] mt-12 mb-6' : 
-                'text-xl md:text-2xl font-sans tracking-tight leading-[1.25] mt-10 mb-5';
-              
+              const headingStyles =
+                level === 1 ? 'text-5xl md:text-6xl font-display italic leading-[1.1] mt-20 mb-10' :
+                  level === 2 ? 'text-4xl md:text-5xl font-display italic leading-[1.15] mt-16 mb-8' :
+                    level === 3 ? 'text-2xl md:text-3xl font-sans tracking-tight leading-[1.2] mt-12 mb-6' :
+                      'text-xl md:text-2xl font-sans tracking-tight leading-[1.25] mt-10 mb-5';
+
               return (
                 <HeadingTag
                   key={block.id}
@@ -241,21 +261,21 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
             case 'image':
               const imageAlign = block.metadata?.align || 'full';
               const imageSize = block.metadata?.size || 'full';
-              
+
               // Alignment classes
-              const alignmentClass = 
+              const alignmentClass =
                 imageAlign === 'left' ? 'mr-auto' :
-                imageAlign === 'right' ? 'ml-auto' :
-                imageAlign === 'center' ? 'mx-auto' :
-                ''; // full width
-              
+                  imageAlign === 'right' ? 'ml-auto' :
+                    imageAlign === 'center' ? 'mx-auto' :
+                      ''; // full width
+
               // Size classes
-              const sizeClass = 
+              const sizeClass =
                 imageSize === 'small' ? 'max-w-sm' :
-                imageSize === 'medium' ? 'max-w-2xl' :
-                imageSize === 'large' ? 'max-w-4xl' :
-                'max-w-full'; // full width
-              
+                  imageSize === 'medium' ? 'max-w-2xl' :
+                    imageSize === 'large' ? 'max-w-4xl' :
+                      'max-w-full'; // full width
+
               return (
                 <ScrollReveal key={block.id}>
                   <figure className={`my-16 group ${alignmentClass} ${sizeClass}`}>
@@ -283,7 +303,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
             case 'video':
               const videoType = block.metadata?.videoType || 'youtube';
               let videoSrc = '';
-              
+
               if (videoType === 'youtube') {
                 const id = getYouTubeId(block.content);
                 if (id) videoSrc = `https://www.youtube.com/embed/${id}`;
@@ -296,12 +316,12 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
               return (
                 <div key={block.id} className="my-16 aspect-video bg-black rounded-2xl overflow-hidden">
-                  <iframe 
-                    src={videoSrc} 
-                    className="w-full h-full" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen 
+                  <iframe
+                    src={videoSrc}
+                    className="w-full h-full"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
                   />
                 </div>
               );
@@ -319,16 +339,15 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
             case 'list':
               const isOrdered = block.metadata?.listType === 'numbered' || block.metadata?.ordered;
               const ListTag = isOrdered ? 'ol' : 'ul';
-              const listItems = block.metadata?.items 
-                ? block.metadata.items 
+              const listItems = block.metadata?.items
+                ? block.metadata.items
                 : block.content.split('\n').filter(item => item.trim());
 
               return (
                 <ListTag
                   key={block.id}
-                  className={`mb-10 pl-6 space-y-4 text-[19px] md:text-[21px] font-serif ${
-                    isOrdered ? 'list-decimal' : 'list-disc'
-                  } marker:text-accent-brand opacity-90`}
+                  className={`mb-10 pl-6 space-y-4 text-[19px] md:text-[21px] font-serif ${isOrdered ? 'list-decimal' : 'list-disc'
+                    } marker:text-accent-brand opacity-90`}
                 >
                   {listItems.map((item, i) => (
                     <li key={i} className="leading-[1.8] pl-3">
@@ -346,11 +365,11 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                   </SyntaxHighlighter>
                 </div>
               );
-              
+
             case 'gallery':
               const images = block.metadata?.images || [];
               if (images.length === 0) return null;
-              
+
               const galleryStyle = block.metadata?.galleryStyle || 'grid';
               const enableDownload = block.metadata?.enableDownload || false;
 
@@ -365,39 +384,39 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
             case 'spacer':
               const height = block.metadata?.height || 'medium';
-              const heightClass = 
-                height === 'small' ? 'h-12' : 
-                height === 'medium' ? 'h-24' : 
-                'h-32';
-              
+              const heightClass =
+                height === 'small' ? 'h-12' :
+                  height === 'medium' ? 'h-24' :
+                    'h-32';
+
               return <div key={block.id} className={heightClass} />;
 
             case 'callout':
               const calloutType = block.metadata?.calloutType || 'info';
               const calloutStyles = {
-                info: { 
-                  bg: 'bg-blue-500/10', 
-                  border: 'border-blue-500/50', 
-                  text: 'text-blue-400', 
-                  icon: Info 
+                info: {
+                  bg: 'bg-blue-500/10',
+                  border: 'border-blue-500/50',
+                  text: 'text-blue-400',
+                  icon: Info
                 },
-                warning: { 
-                  bg: 'bg-yellow-500/10', 
-                  border: 'border-yellow-500/50', 
-                  text: 'text-yellow-400', 
-                  icon: AlertTriangle 
+                warning: {
+                  bg: 'bg-yellow-500/10',
+                  border: 'border-yellow-500/50',
+                  text: 'text-yellow-400',
+                  icon: AlertTriangle
                 },
-                success: { 
-                  bg: 'bg-green-500/10', 
-                  border: 'border-green-500/50', 
-                  text: 'text-green-400', 
-                  icon: CheckCircle 
+                success: {
+                  bg: 'bg-green-500/10',
+                  border: 'border-green-500/50',
+                  text: 'text-green-400',
+                  icon: CheckCircle
                 },
-                error: { 
-                  bg: 'bg-red-500/10', 
-                  border: 'border-red-500/50', 
-                  text: 'text-red-400', 
-                  icon: XCircle 
+                error: {
+                  bg: 'bg-red-500/10',
+                  border: 'border-red-500/50',
+                  text: 'text-red-400',
+                  icon: XCircle
                 },
               };
               const calloutStyle = calloutStyles[calloutType];
@@ -416,9 +435,9 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
             case 'divider':
               return (
-                <hr 
-                  key={block.id} 
-                  className="my-16 border-t border-border/50" 
+                <hr
+                  key={block.id}
+                  className="my-16 border-t border-border/50"
                   style={{ borderColor: `${accent}33` }}
                 />
               );
@@ -431,7 +450,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                   download
                   className="my-12 flex items-center gap-4 p-6 bg-foreground/5 border border-border rounded-xl hover:border-accent-brand transition-all duration-300 group"
                 >
-                  <div 
+                  <div
                     className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
                     style={{ backgroundColor: `${accent}20` }}
                   >
@@ -460,7 +479,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
       {/* Lightbox Modal */}
       {lightboxOpen && lightboxImage && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 md:p-8"
           onClick={closeLightbox}
         >
@@ -470,7 +489,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
           >
             <X className="w-6 h-6 text-white" />
           </button>
-          
+
           <div className="relative max-w-7xl max-h-full" onClick={(e) => e.stopPropagation()}>
             <img
               src={lightboxImage.url}
@@ -500,11 +519,11 @@ function AccordionItem({ question, answer, index }: { question: string; answer: 
         className="w-full px-8 py-6 text-left flex items-center justify-between gap-4 hover:bg-foreground/5 transition-colors group"
       >
         <span className="text-xl font-sans pr-4">{question}</span>
-        <ChevronDown 
-          className={`w-5 h-5 text-accent-brand transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} 
+        <ChevronDown
+          className={`w-5 h-5 text-accent-brand transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
-      <div 
+      <div
         className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
         <div className="px-8 pb-6 text-lg font-serif leading-[1.8] opacity-90">
@@ -518,7 +537,7 @@ function AccordionItem({ question, answer, index }: { question: string; answer: 
 // Accordion Block Component
 function AccordionBlock({ block }: { block: ContentBlock }) {
   const accordionItems = block.metadata?.items || [];
-  
+
   if (accordionItems.length === 0) return null;
 
   return (
