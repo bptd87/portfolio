@@ -153,21 +153,26 @@ function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; ac
           level: block.metadata?.level || 2
         });
       } else if (block.type === 'paragraph') {
-        // Find headers with ids in HTML content
-        // Matches <h[1-6] ... id="heading-..." ... >Text</h[1-6]>
-        const regex = /<h([1-6]).*?id=["']heading-([^"']+)["'].*?>(.*?)<\/h\1>/gi;
+        // Find headers in HTML content and generate IDs on the fly
+        // Matches <h[1-6] ... >Text</h[1-6]>
+        const regex = /<h([1-6])(.*?)>(.*?)<\/h\1>/gi;
         let match;
         // Reset lastIndex just in case
         regex.lastIndex = 0;
 
         while ((match = regex.exec(block.content)) !== null) {
           const level = parseInt(match[1]);
-          const id = match[2];
-          // Strip any remaining internal tags from the heading text
-          const text = match[3].replace(/<[^>]*>/g, '');
+          const content = match[3];
 
-          if (level >= 1 && level <= 6) {
-            items.push({ id, text, level });
+          // Generate ID from content (same logic as BlockRenderer)
+          const cleanContent = content.replace(/<[^>]*>/g, '');
+          const id = cleanContent
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+
+          if (id && level >= 1 && level <= 6) {
+            items.push({ id, text: cleanContent, level });
           }
         }
       }

@@ -351,7 +351,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 >
                   {listItems.map((item, i) => (
                     <li key={i} className="leading-[1.8] pl-3">
-                      {item}
+                      {parseFormattedText(item)}
                     </li>
                   ))}
                 </ListTag>
