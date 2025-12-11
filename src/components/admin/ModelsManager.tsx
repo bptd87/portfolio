@@ -66,7 +66,7 @@ export function ModelsManager() {
                     featured: false,
                     order: 998,
                     updated_at: new Date().toISOString()
-                }, {
+                } as any, {
                     onConflict: 'id'
                 });
 

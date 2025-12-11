@@ -241,7 +241,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
             case 'heading':
               const level = block.metadata?.level || 2;
-              const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
+              const HeadingTag = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
               const headingStyles =
                 level === 1 ? 'text-5xl md:text-6xl font-display italic leading-[1.1] mt-20 mb-10' :
                   level === 2 ? 'text-4xl md:text-5xl font-display italic leading-[1.15] mt-16 mb-8' :

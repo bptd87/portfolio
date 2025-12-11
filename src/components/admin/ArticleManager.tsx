@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, FormProvider, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -352,7 +352,7 @@ export function ArticleManager() {
                       <div className="bg-muted/30 p-6 rounded-xl border border-border">
                         <h4 className="text-sm font-medium mb-4">Image Focus Point</h4>
                         <FocusPointPicker
-                          imageUrl={methods.watch('coverImage')}
+                          imageUrl={methods.watch('coverImage') || ''}
                           focusPoint={methods.watch('focusPoint')}
                           onFocusPointChange={(point) => methods.setValue('focusPoint', point)}
                         />
@@ -366,12 +366,12 @@ export function ArticleManager() {
                 {activeTab === 'seo' && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200 max-w-2xl">
                     <ArticleSEOTools
-                      title={methods.watch('title')}
-                      excerpt={methods.watch('excerpt')}
-                      content={methods.watch('content')}
-                      currentTags={methods.watch('tags')}
-                      currentDescription={methods.watch('seoDescription')}
-                      currentReadTime={methods.watch('readTime')}
+                      title={methods.watch('title') || ''}
+                      excerpt={methods.watch('excerpt') || ''}
+                      content={methods.watch('content') || []}
+                      currentTags={methods.watch('tags') || []}
+                      currentDescription={methods.watch('seoDescription') || ''}
+                      currentReadTime={methods.watch('readTime') || ''}
                       onTagsGenerated={(tags) => methods.setValue('tags', tags)}
                       onDescriptionGenerated={(desc) => methods.setValue('seoDescription', desc)}
                       onReadTimeGenerated={(time) => methods.setValue('readTime', time)}

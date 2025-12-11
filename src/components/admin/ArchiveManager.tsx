@@ -66,7 +66,7 @@ export function ArchiveManager() {
                     featured: false,
                     order: 999,
                     updated_at: new Date().toISOString()
-                }, {
+                } as any, {
                     onConflict: 'id'
                 });
 

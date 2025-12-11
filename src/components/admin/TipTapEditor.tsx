@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -16,7 +16,7 @@ import {
   List, ListOrdered, Quote,
   Undo, Redo, Link as LinkIcon, Image as ImageIcon,
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  Minus, Table as TableIcon, AlertCircle, Info, AlertTriangle
+  Minus, Table as TableIcon, Type
 } from 'lucide-react';
 
 interface TipTapEditorProps {
@@ -60,9 +60,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         type="button"
         onClick={() => editor.chain().focus().undo().run()}
         disabled={!editor.can().undo()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          !editor.can().undo() ? 'opacity-30 cursor-not-allowed' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${!editor.can().undo() ? 'opacity-30 cursor-not-allowed' : ''
+          }`}
         title="Undo"
       >
         <Undo className="w-4 h-4" />
@@ -71,9 +70,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         type="button"
         onClick={() => editor.chain().focus().redo().run()}
         disabled={!editor.can().redo()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          !editor.can().redo() ? 'opacity-30 cursor-not-allowed' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${!editor.can().redo() ? 'opacity-30 cursor-not-allowed' : ''
+          }`}
         title="Redo"
       >
         <Redo className="w-4 h-4" />
@@ -85,9 +83,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBold().run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('bold') ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('bold') ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Bold (Ctrl+B)"
       >
         <Bold className="w-4 h-4" />
@@ -95,9 +92,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('italic') ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('italic') ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Italic (Ctrl+I)"
       >
         <Italic className="w-4 h-4" />
@@ -105,9 +101,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleUnderline().run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('underline') ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('underline') ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Underline (Ctrl+U)"
       >
         <UnderlineIcon className="w-4 h-4" />
@@ -115,9 +110,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleStrike().run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('strike') ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('strike') ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Strikethrough"
       >
         <Strikethrough className="w-4 h-4" />
@@ -125,9 +119,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleCode().run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('code') ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('code') ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Inline Code"
       >
         <Code className="w-4 h-4" />
@@ -138,10 +131,19 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       {/* Headings */}
       <button
         type="button"
+        onClick={() => editor.chain().focus().setParagraph().run()}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('paragraph') ? 'bg-accent-brand text-white' : ''
+          }`}
+        title="Paragraph"
+      >
+        <Type className="w-4 h-4" />
+      </button>
+
+      <button
+        type="button"
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('heading', { level: 1 }) ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Heading 1"
       >
         <Heading1 className="w-4 h-4" />
@@ -149,9 +151,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('heading', { level: 2 }) ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Heading 2"
       >
         <Heading2 className="w-4 h-4" />
@@ -159,9 +160,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('heading', { level: 3 }) ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('heading', { level: 3 }) ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Heading 3"
       >
         <Heading3 className="w-4 h-4" />
@@ -173,9 +173,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('bulletList') ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('bulletList') ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Bullet List"
       >
         <List className="w-4 h-4" />
@@ -183,9 +182,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('orderedList') ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('orderedList') ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Numbered List"
       >
         <ListOrdered className="w-4 h-4" />
@@ -193,9 +191,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('blockquote') ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('blockquote') ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Quote"
       >
         <Quote className="w-4 h-4" />
@@ -207,9 +204,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().setTextAlign('left').run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive({ textAlign: 'left' }) ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive({ textAlign: 'left' }) ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Align Left"
       >
         <AlignLeft className="w-4 h-4" />
@@ -217,9 +213,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().setTextAlign('center').run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive({ textAlign: 'center' }) ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive({ textAlign: 'center' }) ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Align Center"
       >
         <AlignCenter className="w-4 h-4" />
@@ -227,9 +222,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().setTextAlign('right').run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive({ textAlign: 'right' }) ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive({ textAlign: 'right' }) ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Align Right"
       >
         <AlignRight className="w-4 h-4" />
@@ -237,9 +231,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive({ textAlign: 'justify' }) ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive({ textAlign: 'justify' }) ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Justify"
       >
         <AlignJustify className="w-4 h-4" />
@@ -251,9 +244,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <button
         type="button"
         onClick={setLink}
-        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${
-          editor.isActive('link') ? 'bg-accent-brand text-white' : ''
-        }`}
+        className={`p-2 rounded hover:bg-accent-brand/20 transition-colors ${editor.isActive('link') ? 'bg-accent-brand text-white' : ''
+          }`}
         title="Add Link (Ctrl+K)"
       >
         <LinkIcon className="w-4 h-4" />
