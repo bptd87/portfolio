@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X } from 'phosphor-react';
+import { RelatedTools } from '../components/studio/RelatedTools';
+import { X, Ruler } from 'phosphor-react';
 import { PixelColumn, PixelRuler, PixelPalette, PixelMagnifier } from '../components/icons/PixelIcons';
 import { AppStudioLoader } from '../components/AppStudioLoader';
 
@@ -441,7 +442,6 @@ export function ClassicalArchitectureGuide() {
   const [selectedCategory, setSelectedCategory] = useState<Category>('orders');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [scaleModule, setScaleModule] = useState<number>(100); // Base module in pixels
   const detailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -457,15 +457,15 @@ export function ClassicalArchitectureGuide() {
 
   const filteredElements = allElements.filter(element => {
     const matchesCategory = element.category === selectedCategory;
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       element.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       element.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       element.characteristics.some(c => c.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
-  const selectedElementData = selectedElement 
-    ? allElements.find(e => e.id === selectedElement) 
+  const selectedElementData = selectedElement
+    ? allElements.find(e => e.id === selectedElement)
     : null;
 
   if (isLoading) {
@@ -475,7 +475,7 @@ export function ClassicalArchitectureGuide() {
   return (
     <div className="min-h-screen bg-black text-accent-brand font-retro relative overflow-hidden">
       {/* Blueprint grid background */}
-      <div 
+      <div
         className="fixed inset-0 opacity-5 pointer-events-none"
         style={{
           backgroundImage: 'linear-gradient(rgba(var(--accent-dark-rgb), 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-dark-rgb), 0.3) 1px, transparent 1px)',
@@ -488,7 +488,7 @@ export function ClassicalArchitectureGuide() {
 
       <div className="relative z-10 p-6 pt-24 pb-24">
         <div className="max-w-[1600px] mx-auto">
-          
+
           {/* Technical Header */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -524,11 +524,10 @@ export function ClassicalArchitectureGuide() {
                     setSelectedCategory('orders');
                     setSelectedElement(null);
                   }}
-                  className={`px-4 py-2 border transition-all text-sm uppercase tracking-wider ${
-                    selectedCategory === 'orders'
-                      ? 'bg-accent-brand text-black border-accent-brand'
-                      : 'bg-transparent text-accent-brand border-accent-brand/50 hover:border-accent-brand'
-                  }`}
+                  className={`px-4 py-2 border transition-all text-sm uppercase tracking-wider ${selectedCategory === 'orders'
+                    ? 'bg-accent-brand text-black border-accent-brand'
+                    : 'bg-transparent text-accent-brand border-accent-brand/50 hover:border-accent-brand'
+                    }`}
                 >
                   <PixelColumn size={16} className="inline mr-2" />
                   Orders (5)
@@ -538,11 +537,10 @@ export function ClassicalArchitectureGuide() {
                     setSelectedCategory('moldings');
                     setSelectedElement(null);
                   }}
-                  className={`px-4 py-2 border transition-all text-sm uppercase tracking-wider ${
-                    selectedCategory === 'moldings'
-                      ? 'bg-accent-brand text-black border-accent-brand'
-                      : 'bg-transparent text-accent-brand border-accent-brand/50 hover:border-accent-brand'
-                  }`}
+                  className={`px-4 py-2 border transition-all text-sm uppercase tracking-wider ${selectedCategory === 'moldings'
+                    ? 'bg-accent-brand text-black border-accent-brand'
+                    : 'bg-transparent text-accent-brand border-accent-brand/50 hover:border-accent-brand'
+                    }`}
                 >
                   <PixelRuler size={16} className="inline mr-2" />
                   Moldings (12)
@@ -552,11 +550,10 @@ export function ClassicalArchitectureGuide() {
                     setSelectedCategory('pediments');
                     setSelectedElement(null);
                   }}
-                  className={`px-4 py-2 border transition-all text-sm uppercase tracking-wider ${
-                    selectedCategory === 'pediments'
-                      ? 'bg-accent-brand text-black border-accent-brand'
-                      : 'bg-transparent text-accent-brand border-accent-brand/50 hover:border-accent-brand'
-                  }`}
+                  className={`px-4 py-2 border transition-all text-sm uppercase tracking-wider ${selectedCategory === 'pediments'
+                    ? 'bg-accent-brand text-black border-accent-brand'
+                    : 'bg-transparent text-accent-brand border-accent-brand/50 hover:border-accent-brand'
+                    }`}
                 >
                   <PixelPalette size={16} className="inline mr-2" />
                   Pediments (8)
@@ -566,7 +563,7 @@ export function ClassicalArchitectureGuide() {
               {/* Search */}
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                  <PixelMagnifier size={16} weight="regular" className="text-accent-brand/60" />
+                  <PixelMagnifier size={16} className="text-accent-brand/60" />
                 </div>
                 <input
                   type="text"
@@ -600,11 +597,10 @@ export function ClassicalArchitectureGuide() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   onClick={() => setSelectedElement(element.id)}
-                  className={`text-left border-2 p-4 transition-all group ${
-                    selectedElement === element.id
-                      ? 'border-accent-brand bg-accent-brand/10 shadow-[0_0_20px_rgba(var(--accent-dark-rgb),0.4)]'
-                      : 'border-accent-brand/30 bg-[#0a1628]/80 hover:border-accent-brand hover:bg-accent-brand/5'
-                  }`}
+                  className={`text-left border-2 p-4 transition-all group ${selectedElement === element.id
+                    ? 'border-accent-brand bg-accent-brand/10 shadow-[0_0_20px_rgba(var(--accent-dark-rgb),0.4)]'
+                    : 'border-accent-brand/30 bg-[#0a1628]/80 hover:border-accent-brand hover:bg-accent-brand/5'
+                    }`}
                 >
                   <div className="text-accent-brand font-bold text-sm mb-2 uppercase tracking-wider">
                     {element.name}
@@ -640,9 +636,11 @@ export function ClassicalArchitectureGuide() {
                 {/* Close button */}
                 <button
                   onClick={() => setSelectedElement(null)}
+                  title="Close Detail View"
+                  aria-label="Close"
                   className="absolute top-4 right-4 z-10 p-2 border border-accent-brand bg-[#0a1628] text-accent-brand hover:bg-accent-brand hover:text-black transition-all"
                 >
-                  <X size={20} weight="bold" />
+                  <X size={20} />
                 </button>
 
                 <div className="p-8">
@@ -713,10 +711,10 @@ export function ClassicalArchitectureGuide() {
 
                   {/* Content Grid */}
                   <div className="grid lg:grid-cols-2 gap-8">
-                    
+
                     {/* Left Column - Characteristics & Proportions */}
                     <div className="space-y-6">
-                      
+
                       {/* Characteristics */}
                       <div>
                         <div className="text-accent-brand text-sm mb-3 border-b border-accent-brand/30 pb-2 uppercase tracking-wider">
@@ -765,7 +763,7 @@ export function ClassicalArchitectureGuide() {
 
                           <div className="mt-4 p-3 border border-accent-brand/30 bg-accent-brand/5">
                             <div className="text-[10px] text-accent-brand/70 mb-2">
-                              NOTE: All dimensions expressed as multiples of column diameter (D). 
+                              NOTE: All dimensions expressed as multiples of column diameter (D).
                               For a 12" diameter column, multiply all ratios by 12.
                             </div>
                             <div className="text-[10px] text-accent-brand/60">
@@ -831,14 +829,14 @@ export function ClassicalArchitectureGuide() {
                         </div>
                         <div className="border-2 border-accent-brand/50 bg-accent-brand/5 aspect-[3/4] flex items-center justify-center relative">
                           {/* Blueprint grid */}
-                          <div 
+                          <div
                             className="absolute inset-0 opacity-20"
                             style={{
                               backgroundImage: 'linear-gradient(rgba(var(--accent-dark-rgb), 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-dark-rgb), 0.5) 1px, transparent 1px)',
                               backgroundSize: '20px 20px',
                             }}
                           />
-                          
+
                           {/* Placeholder content */}
                           <div className="text-center z-10 p-8">
                             <Ruler size={64} weight="thin" className="text-accent-brand/30 mx-auto mb-4" />
@@ -930,6 +928,9 @@ export function ClassicalArchitectureGuide() {
           </motion.div>
 
         </div>
+
+        {/* Related Tools */}
+        <RelatedTools currentToolId="classical-architecture-guide" />
       </div>
     </div>
   );

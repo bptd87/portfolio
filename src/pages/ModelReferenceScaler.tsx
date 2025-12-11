@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Check, X, ZoomOut, ZoomIn } from 'lucide-react';
+import { RelatedTools } from '../components/studio/RelatedTools';
 import { AppStudioLoader } from '../components/AppStudioLoader';
-import { PixelRuler, PixelScale, PixelMagnifier } from '../components/icons/PixelIcons';
+import { PixelRuler, PixelScale } from '../components/icons/PixelIcons';
 
 interface ScaleImage {
   id: string;
@@ -25,9 +26,9 @@ const PAPER_SIZES = {
 };
 
 const SCALES = [
-  { value: 1/4, label: '1/4" = 1\'-0"', ratio: 48 },
-  { value: 1/2, label: '1/2" = 1\'-0"', ratio: 24 },
-  { value: 3/8, label: '3/8" = 1\'-0"', ratio: 32 },
+  { value: 1 / 4, label: '1/4" = 1\'-0"', ratio: 48 },
+  { value: 1 / 2, label: '1/2" = 1\'-0"', ratio: 24 },
+  { value: 3 / 8, label: '3/8" = 1\'-0"', ratio: 32 },
   { value: 1, label: '1" = 1\'-0"', ratio: 12 },
   { value: 1.5, label: '1-1/2" = 1\'-0"', ratio: 8 },
   { value: 3, label: '3" = 1\'-0"', ratio: 4 },
@@ -41,35 +42,66 @@ export function ModelReferenceScaler() {
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isSettingScale, setIsSettingScale] = useState(false);
-  const [scaleLineStart, setScaleLineStart] = useState<{x: number, y: number} | null>(null);
-  const [scaleLineEnd, setScaleLineEnd] = useState<{x: number, y: number} | null>(null);
+  const [scaleLineStart, setScaleLineStart] = useState<{ x: number, y: number } | null>(null);
+  const [scaleLineEnd, setScaleLineEnd] = useState<{ x: number, y: number } | null>(null);
   const [realWorldDimension, setRealWorldDimension] = useState('');
   const [showDimensionInput, setShowDimensionInput] = useState(false);
   const [isMeasuring, setIsMeasuring] = useState(false);
-  const [measureLineStart, setMeasureLineStart] = useState<{x: number, y: number} | null>(null);
-  const [measureLineEnd, setMeasureLineEnd] = useState<{x: number, y: number} | null>(null);
+  const [measureLineStart, setMeasureLineStart] = useState<{ x: number, y: number } | null>(null);
+  const [measureLineEnd, setMeasureLineEnd] = useState<{ x: number, y: number } | null>(null);
   const [isCropping, setIsCropping] = useState(false);
-  const [cropStart, setCropStart] = useState<{x: number, y: number} | null>(null);
-  const [cropEnd, setCropEnd] = useState<{x: number, y: number} | null>(null);
+  const [cropStart, setCropStart] = useState<{ x: number, y: number } | null>(null);
+  const [cropEnd, setCropEnd] = useState<{ x: number, y: number } | null>(null);
   const [showCropConfirm, setShowCropConfirm] = useState(false);
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false);
-  const [polygonPoints, setPolygonPoints] = useState<{x: number, y: number}[]>([]);
+  const [polygonPoints, setPolygonPoints] = useState<{ x: number, y: number }[]>([]);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(0.75);
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  
+
+  // Loupe State
+  const [loupe, setLoupe] = useState<{ x: number, y: number, src: string, imgX: number, imgY: number, width: number, height: number } | null>(null);
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Constants
+  const STORAGE_KEY = 'model_scaler_v1';
   const paper = PAPER_SIZES[paperSize];
   const pixelsPerInch = 96; // Standard screen DPI
   const canvasWidth = paper.width * pixelsPerInch;
   const canvasHeight = paper.height * pixelsPerInch;
+
+  // Load state from persistence
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.images) setImages(parsed.images);
+        if (parsed.paperSize) setPaperSize(parsed.paperSize);
+        if (parsed.selectedScaleValue) {
+          const s = SCALES.find(sc => sc.value === parsed.selectedScaleValue);
+          if (s) setSelectedScale(s);
+        }
+      } catch (e) {
+        console.error('Failed to load scaler state', e);
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  // Save state to persistence
+  useEffect(() => {
+    if (isLoading) return;
+    const state = {
+      images,
+      paperSize,
+      selectedScaleValue: selectedScale.value
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [images, paperSize, selectedScale, isLoading]);
 
   // Recalculate all image sizes when scale changes
   useEffect(() => {
@@ -80,12 +112,12 @@ export function ModelReferenceScaler() {
         const scaleInches = img.referenceInches * selectedScale.value / 12;
         const targetPixels = scaleInches * 96; // Use constant 96 DPI
         const newScaleFactor = targetPixels / img.referencePixels;
-        
+
         // Calculate new dimensions based on original size
         const aspectRatio = img.originalHeight / img.originalWidth;
         const baseWidth = 200; // Initial display size
         const baseHeight = baseWidth * aspectRatio;
-        
+
         return {
           ...img,
           width: baseWidth * newScaleFactor,
@@ -151,12 +183,12 @@ export function ModelReferenceScaler() {
   // Function to convert pixels to real-world dimensions in feet and inches
   const pixelsToRealWorld = (pixels: number) => {
     if (!selectedScale) return { feet: 0, inches: 0, display: "0'-0\"" };
-    
+
     // Calculate real-world inches
     const realWorldInches = pixels / (selectedScale.value * pixelsPerInch / 12);
     const feet = Math.floor(realWorldInches / 12);
     const inches = Math.round(realWorldInches % 12);
-    
+
     return {
       feet,
       inches,
@@ -167,7 +199,7 @@ export function ModelReferenceScaler() {
   // Parse user input for dimensions (accepts "12'6" or "150")
   const parseDimensionInput = (input: string): number | null => {
     const trimmed = input.trim();
-    
+
     // Match patterns like "12'6" or "12'-6"" or "12' 6"
     const feetInchesMatch = trimmed.match(/^(\d+)['']?\s*[-]?\s*(\d+)[""]?$/);
     if (feetInchesMatch) {
@@ -175,19 +207,19 @@ export function ModelReferenceScaler() {
       const inches = parseInt(feetInchesMatch[2]);
       return feet * 12 + inches;
     }
-    
+
     // Match patterns like "12'" (just feet)
     const feetOnlyMatch = trimmed.match(/^(\d+)['']$/);
     if (feetOnlyMatch) {
       return parseInt(feetOnlyMatch[1]) * 12;
     }
-    
+
     // Just a number (assume inches)
     const number = parseFloat(trimmed);
     if (!isNaN(number)) {
       return number;
     }
-    
+
     return null;
   };
 
@@ -205,7 +237,7 @@ export function ModelReferenceScaler() {
   // Handle canvas click for scale setting
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!canvasRef.current) return;
-    
+
     const rect = canvasRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / zoom;
     const y = (e.clientY - rect.top) / zoom;
@@ -279,7 +311,7 @@ export function ModelReferenceScaler() {
   // Handle image mouse down for dragging
   const handleImageMouseDown = (e: React.MouseEvent, imgId: string) => {
     if (isSettingScale || isMeasuring) return;
-    
+
     e.stopPropagation();
     setSelectedImageId(imgId);
     setIsDraggingImage(true);
@@ -306,6 +338,36 @@ export function ModelReferenceScaler() {
     const x = (e.clientX - rect.left) / zoom;
     const y = (e.clientY - rect.top) / zoom;
 
+    if (isSettingScale || isMeasuring) {
+      // Find image under cursor for Loupe
+      // Search in reverse order (topmost first)
+      let foundImg = null;
+      for (let i = images.length - 1; i >= 0; i--) {
+        const img = images[i];
+        if (x >= img.x && x <= img.x + img.width && y >= img.y && y <= img.y + img.height) {
+          foundImg = img;
+          break;
+        }
+      }
+
+      if (foundImg) {
+        setLoupe({
+          x: e.clientX, // Screen pos
+          y: e.clientY,
+          src: foundImg.src,
+          imgX: x - foundImg.x, // Relative pixels in displayed image
+          imgY: y - foundImg.y,
+          width: foundImg.width,
+          height: foundImg.height
+        });
+      } else {
+        setLoupe(null);
+      }
+      return;
+    } else {
+      setLoupe(null);
+    }
+
     setImages(prev => prev.map(img => {
       if (img.id === draggedImageId) {
         return {
@@ -329,7 +391,7 @@ export function ModelReferenceScaler() {
     if (!scaleLineStart || !scaleLineEnd || !realWorldDimension || !selectedImageId) return;
 
     const pixelDistance = Math.sqrt(
-      Math.pow(scaleLineEnd.x - scaleLineStart.x, 2) + 
+      Math.pow(scaleLineEnd.x - scaleLineStart.x, 2) +
       Math.pow(scaleLineEnd.y - scaleLineStart.y, 2)
     );
 
@@ -341,10 +403,10 @@ export function ModelReferenceScaler() {
 
     // Calculate how many inches this should be on paper at the selected scale
     const scaleInches = realInches * selectedScale.value / 12; // e.g., 80" * (1/4) / 12 = 1.67"
-    
+
     // Convert paper inches to screen pixels (96 DPI)
     const targetPixels = scaleInches * 96; // e.g., 1.67 * 96 = 160px
-    
+
     // Calculate scale factor to apply
     const scaleFactor = targetPixels / pixelDistance; // e.g., 160 / 145 = 1.10x
 
@@ -380,7 +442,7 @@ export function ModelReferenceScaler() {
   };
 
   // Apply crop to image
-  const applyCrop = (img: ScaleImage, start: {x: number, y: number}, end: {x: number, y: number}) => {
+  const applyCrop = (img: ScaleImage, start: { x: number, y: number }, end: { x: number, y: number }) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -442,7 +504,7 @@ export function ModelReferenceScaler() {
   };
 
   // Apply perspective correction to image
-  const applyPerspectiveCorrection = (img: ScaleImage, points: {x: number, y: number}[]) => {
+  const applyPerspectiveCorrection = (img: ScaleImage, points: { x: number, y: number }[]) => {
     if (points.length !== 4) return;
 
     const canvas = document.createElement('canvas');
@@ -463,7 +525,7 @@ export function ModelReferenceScaler() {
     const maxX = Math.max(...srcPoints.map(p => p.x));
     const minY = Math.min(...srcPoints.map(p => p.y));
     const maxY = Math.max(...srcPoints.map(p => p.y));
-    
+
     const width = maxX - minX;
     const height = maxY - minY;
 
@@ -484,10 +546,10 @@ export function ModelReferenceScaler() {
       }
       ctx.closePath();
       ctx.clip();
-      
+
       ctx.drawImage(image, -minX, -minY);
       ctx.restore();
-      
+
       const correctedSrc = canvas.toDataURL();
 
       // Update image with corrected version
@@ -523,7 +585,7 @@ export function ModelReferenceScaler() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12">
-      
+
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-8 md:p-12">
@@ -563,13 +625,14 @@ export function ModelReferenceScaler() {
 
         {/* Controls */}
         <div className="grid md:grid-cols-3 gap-4 mb-6">
-          
+
           {/* Paper Size */}
           <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-6">
             <label className="block mb-3 font-pixel text-[10px] tracking-[0.3em] text-foreground/60 uppercase">
               Paper Size
             </label>
             <select
+              aria-label="Paper Size"
               value={paperSize}
               onChange={(e) => setPaperSize(e.target.value as 'letter' | 'tabloid')}
               className="w-full bg-background border border-neutral-500/20 rounded-2xl px-4 py-3 text-foreground focus:border-foreground outline-none transition-colors"
@@ -588,6 +651,7 @@ export function ModelReferenceScaler() {
               Drawing Scale
             </label>
             <select
+              aria-label="Drawing Scale"
               value={selectedScale.value}
               onChange={(e) => {
                 const scale = SCALES.find(s => s.value === parseFloat(e.target.value));
@@ -609,6 +673,7 @@ export function ModelReferenceScaler() {
               Upload Image
             </label>
             <input
+              aria-label="Upload Image"
               ref={fileInputRef}
               type="file"
               accept="image/*"
@@ -629,7 +694,7 @@ export function ModelReferenceScaler() {
 
         {/* Main Canvas Area */}
         <div className="grid lg:grid-cols-[1fr_300px] gap-6 items-start">
-          
+
           {/* Canvas */}
           <div className="border-2 border-accent-brand bg-black/95 p-6 flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 350px)', minHeight: '600px', maxWidth: '100%' }}>
             <div className="mb-4 flex items-center justify-between flex-shrink-0">
@@ -679,9 +744,8 @@ export function ModelReferenceScaler() {
                 onClick={handleCanvasClick}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
-                className={`relative bg-black/50 print:bg-white transition-all ${
-                  isDragging ? 'border-2 border-accent-brand border-dashed' : ''
-                } ${isSettingScale || isMeasuring ? 'cursor-crosshair' : 'cursor-default'}`}
+                className={`relative bg-black/50 print:bg-white transition-all ${isDragging ? 'border-2 border-accent-brand border-dashed' : ''
+                  } ${isSettingScale || isMeasuring ? 'cursor-crosshair' : 'cursor-default'}`}
                 style={{
                   width: `${canvasWidth * zoom}px`,
                   height: `${canvasHeight * zoom}px`,
@@ -712,9 +776,8 @@ export function ModelReferenceScaler() {
                 {images.map((img) => (
                   <div
                     key={img.id}
-                    className={`absolute cursor-move border-2 ${
-                      selectedImageId === img.id ? 'border-accent-brand' : 'border-transparent'
-                    }`}
+                    className={`absolute cursor-move border-2 ${selectedImageId === img.id ? 'border-accent-brand' : 'border-transparent'
+                      }`}
                     style={{
                       left: `${img.x * zoom}px`,
                       top: `${img.y * zoom}px`,
@@ -731,6 +794,8 @@ export function ModelReferenceScaler() {
                     />
                     {selectedImageId === img.id && (
                       <button
+                        title="Delete Image"
+                        aria-label="Delete Image"
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteImage(img.id);
@@ -875,16 +940,15 @@ export function ModelReferenceScaler() {
           <div className="space-y-4">
             <div className="border-2 border-accent-brand/50 bg-black/95 p-6">
               <div className="text-accent-brand text-sm tracking-wider mb-4">{'>'} TOOLS</div>
-              
+
               <div className="space-y-3">
                 <button
                   onClick={startScaleSetting}
                   disabled={!selectedImageId}
-                  className={`w-full border-2 px-4 py-2 text-sm transition-all flex items-center justify-center gap-2 ${
-                    selectedImageId
-                      ? 'border-accent-brand/30 text-accent-brand hover:bg-accent-brand/10'
-                      : 'border-white/10 text-white/30 cursor-not-allowed'
-                  }`}
+                  className={`w-full border-2 px-4 py-2 text-sm transition-all flex items-center justify-center gap-2 ${selectedImageId
+                    ? 'border-accent-brand/30 text-accent-brand hover:bg-accent-brand/10'
+                    : 'border-white/10 text-white/30 cursor-not-allowed'
+                    }`}
                 >
                   <PixelScale size={16} />
                   SET SCALE
@@ -897,13 +961,12 @@ export function ModelReferenceScaler() {
                     setMeasureLineEnd(null);
                   }}
                   disabled={!selectedImageId}
-                  className={`w-full border-2 px-4 py-2 text-sm transition-all flex items-center justify-center gap-2 ${
-                    isMeasuring
-                      ? 'border-accent-brand bg-accent-brand/20 text-accent-brand'
-                      : selectedImageId
+                  className={`w-full border-2 px-4 py-2 text-sm transition-all flex items-center justify-center gap-2 ${isMeasuring
+                    ? 'border-accent-brand bg-accent-brand/20 text-accent-brand'
+                    : selectedImageId
                       ? 'border-accent-brand/30 text-accent-brand hover:bg-accent-brand/10'
                       : 'border-white/10 text-white/30 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   <PixelRuler size={16} />
                   {isMeasuring ? 'MEASURING...' : 'MEASURE'}
@@ -916,13 +979,12 @@ export function ModelReferenceScaler() {
                     setCropEnd(null);
                   }}
                   disabled={!selectedImageId}
-                  className={`w-full border-2 px-4 py-2 text-sm transition-all flex items-center justify-center gap-2 ${
-                    isCropping
-                      ? 'border-accent-brand bg-accent-brand/20 text-accent-brand'
-                      : selectedImageId
+                  className={`w-full border-2 px-4 py-2 text-sm transition-all flex items-center justify-center gap-2 ${isCropping
+                    ? 'border-accent-brand bg-accent-brand/20 text-accent-brand'
+                    : selectedImageId
                       ? 'border-accent-brand/30 text-accent-brand hover:bg-accent-brand/10'
                       : 'border-white/10 text-white/30 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   {isCropping ? 'CROPPING...' : 'CROP IMAGE'}
                 </button>
@@ -933,13 +995,12 @@ export function ModelReferenceScaler() {
                     setPolygonPoints([]);
                   }}
                   disabled={!selectedImageId}
-                  className={`w-full border-2 px-4 py-2 text-sm transition-all flex items-center justify-center gap-2 ${
-                    isDrawingPolygon
-                      ? 'border-accent-brand bg-accent-brand/20 text-accent-brand'
-                      : selectedImageId
+                  className={`w-full border-2 px-4 py-2 text-sm transition-all flex items-center justify-center gap-2 ${isDrawingPolygon
+                    ? 'border-accent-brand bg-accent-brand/20 text-accent-brand'
+                    : selectedImageId
                       ? 'border-accent-brand/30 text-accent-brand hover:bg-accent-brand/10'
                       : 'border-white/10 text-white/30 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   {isDrawingPolygon ? `CLICK 4 CORNERS (${polygonPoints.length}/4)` : 'PERSPECTIVE FIX'}
                 </button>
@@ -1064,7 +1125,49 @@ export function ModelReferenceScaler() {
           </div>
         )}
 
+
+        {/* Loupe Overlay */}
+        {
+          loupe && (
+            <div
+              className="fixed pointer-events-none rounded-full border-2 border-accent-brand overflow-hidden z-[100] bg-black shadow-2xl"
+              style={{
+                left: loupe.x + 20,
+                top: loupe.y + 20,
+                width: 140,
+                height: 140,
+              }}
+            >
+              <div className="relative w-full h-full">
+                <img
+                  src={loupe.src}
+                  alt="zoom"
+                  style={{
+                    position: 'absolute',
+                    left: -(loupe.imgX * 2) + 70, // 2x magnification, centered (70 = half size)
+                    top: -(loupe.imgY * 2) + 70,
+                    width: loupe.width * 2,
+                    height: loupe.height * 2,
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                    objectFit: 'fill'
+                  }}
+                />
+                {/* Crosshair */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-4 h-0.5 bg-accent-brand/50"></div>
+                  <div className="h-4 w-0.5 bg-accent-brand/50 absolute"></div>
+                </div>
+                <div className="absolute bottom-2 left-0 right-0 text-center text-[9px] font-pixel text-accent-brand bg-black/50">
+                  2x ZOOM
+                </div>
+              </div>
+            </div>
+          )
+        }
       </div>
+      {/* Related Tools */}
+      <RelatedTools currentToolId="model-reference-scaler" />
     </div>
   );
 }

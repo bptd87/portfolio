@@ -48,19 +48,23 @@ export function SEO({ metadata, structuredData, title, description, keywords, im
   const ogImage = effectiveMetadata.ogImage ? (effectiveMetadata.ogImage.startsWith('http') ? effectiveMetadata.ogImage : `${siteUrl}${effectiveMetadata.ogImage}`) : `${siteUrl}${DEFAULT_METADATA.defaultOgImage}`;
   const canonicalUrl = effectiveMetadata.canonicalPath ? `${siteUrl}${effectiveMetadata.canonicalPath}` : siteUrl;
 
-  // Person Schema (Always present)
+  // Person Schema (Optimized for Knowledge Graph / Artist Profile)
   const personSchema = {
     "@context": "https://schema.org",
     "@type": "Person",
     "name": "Brandon PT Davis",
+    "alternateName": "Brandon Davis",
     "url": siteUrl,
     "image": `${siteUrl}/profile-image.jpg`,
     "sameAs": [
-      "https://www.instagram.com/brandonptdavis/",
-      "https://www.linkedin.com/in/brandonptdavis/",
-      "https://github.com/bptd87"
+      ...DEFAULT_METADATA.socialProfiles,
+      "https://www.abouttheartists.com/artists/654981-brandon-pt-davis",
+      "https://newswanshakespeare.com/company/",
+      "https://www.scr.org/scr-blog/posts/meet-the-creative-team-of-million-dollar-quartet/"
     ],
     "jobTitle": "Scenic Designer",
+    "description": "Award-winning scenic designer creating immersive theatrical experiences and educational resources.",
+    "knowsAbout": ["Scenic Design", "Theatre Production", "Vectorworks", "3D Modeling", "Experiential Design"],
     "worksFor": [
       {
         "@type": "Organization",
@@ -68,17 +72,67 @@ export function SEO({ metadata, structuredData, title, description, keywords, im
       },
       {
         "@type": "Organization",
-        "name": "Theatre Company Lumenati"
+        "name": "New Swan Shakespeare Festival"
       },
       {
         "@type": "Organization",
-        "name": "Adaptive Design"
+        "name": "South Coast Repertory"
       }
-    ]
+    ],
+    "memberOf": [
+      {
+        "@type": "Organization",
+        "name": "United Scenic Artists 829"
+      }
+    ],
+    "alumniOf": [
+      {
+        "@type": "CollegeOrUniversity",
+        "name": "Stephens College"
+      },
+      {
+        "@type": "CollegeOrUniversity",
+        "name": "University of California, Irvine"
+      }
+    ],
+    "award": ["Bobby G Award (2 Wins, 4 Nominations)"]
   };
 
+  // Breadcrumb Schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": siteUrl
+    }]
+  };
+
+  // Generate breadcrumbs from canonical path segments
+  if (effectiveMetadata.canonicalPath && effectiveMetadata.canonicalPath !== '/') {
+    const segments = effectiveMetadata.canonicalPath.split('/').filter(Boolean);
+    let currentPath = siteUrl;
+
+    segments.forEach((segment, index) => {
+      // Clean up segment name (remove query params, capitalize, etc.)
+      const cleanSegment = segment.split('?')[0];
+      const name = cleanSegment.charAt(0).toUpperCase() + cleanSegment.slice(1).replace(/-/g, ' ');
+
+      currentPath += `/${cleanSegment}`;
+
+      breadcrumbSchema.itemListElement.push({
+        "@type": "ListItem",
+        "position": index + 2,
+        "name": name,
+        "item": currentPath
+      });
+    });
+  }
+
   // Combine schemas
-  const schemas = [personSchema];
+  const schemas = [personSchema, breadcrumbSchema];
   if (structuredData) {
     if (Array.isArray(structuredData)) {
       schemas.push(...structuredData);
@@ -95,6 +149,7 @@ export function SEO({ metadata, structuredData, title, description, keywords, im
       {effectiveMetadata.keywords && <meta name="keywords" content={effectiveMetadata.keywords.join(', ')} />}
       <meta name="author" content={effectiveMetadata.author || "Brandon PT Davis"} />
       <link rel="canonical" href={canonicalUrl} />
+      {effectiveMetadata.googleSiteVerification && <meta name="google-site-verification" content={effectiveMetadata.googleSiteVerification} />}
 
       {/* Open Graph */}
       <meta property="og:site_name" content={DEFAULT_METADATA.siteName} />

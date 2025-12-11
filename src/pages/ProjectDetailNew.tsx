@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Eye, Calendar, MapPin, ChevronDown, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { YouTubeEmbed } from '../components/shared/YouTubeEmbed';
@@ -9,6 +9,7 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { SEO } from '../components/SEO';
 import { generateProjectMetadata } from '../utils/seo/metadata';
 import { generateCreativeWorkSchema } from '../utils/seo/structured-data';
+import { PageLoader } from '../components/PageLoader';
 
 interface ProjectDetailNewProps {
   slug: string;
@@ -182,13 +183,8 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
           </motion.div>
         )}
-        <div className="fixed inset-0 flex items-center justify-center z-10">
-          <motion.div
-            className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          />
+        <div className="fixed inset-0 z-10 bg-white dark:bg-black overflow-y-auto">
+          <PageLoader />
         </div>
       </div>
     );
@@ -316,7 +312,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                 >
                   <ImageWithFallback
                     src={image}
-                    alt={title}
+                    alt={project.galleries.processAlt?.[index] || title}
                     className="w-full h-auto"
                   />
                 </div>
@@ -589,16 +585,26 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                         className="group backdrop-blur-xl bg-neutral-800/60 dark:bg-neutral-900/60 rounded-3xl border border-white/10 overflow-hidden cursor-pointer hover:bg-neutral-800/80 transition-all"
                         style={{ lineHeight: 0 }}
                       >
-                        <ImageWithFallback
-                          src={image}
-                          alt={project.galleries.heroCaptions?.[index] || `Rendering ${index + 1}`}
-                          className="w-full h-auto block transition-transform duration-700 group-hover:scale-110"
-                        />
-                        {project.galleries.heroCaptions?.[index] && (
-                          <p className="p-4 text-sm text-white/60">
-                            {project.galleries.heroCaptions[index]}
-                          </p>
-                        )}
+                        {(() => {
+                          const captionItem = project.galleries.heroCaptions?.[index];
+                          const captionText = typeof captionItem === 'object' && captionItem !== null ? captionItem.caption : captionItem;
+                          const altText = project.galleries.heroAlt?.[index] || (typeof captionItem === 'object' && captionItem !== null ? captionItem.altText : captionText) || `Rendering ${index + 1}`;
+
+                          return (
+                            <>
+                              <ImageWithFallback
+                                src={image}
+                                alt={altText}
+                                className="w-full h-auto block transition-transform duration-700 group-hover:scale-110"
+                              />
+                              {captionText && (
+                                <p className="p-4 text-sm text-white/60">
+                                  {captionText}
+                                </p>
+                              )}
+                            </>
+                          );
+                        })()}
                       </motion.div>
                     ))}
                   </motion.div>
@@ -656,16 +662,26 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                         className="group backdrop-blur-xl bg-neutral-800/60 dark:bg-neutral-900/60 rounded-3xl border border-white/10 overflow-hidden cursor-pointer hover:bg-neutral-800/80 transition-all"
                         style={{ lineHeight: 0 }}
                       >
-                        <ImageWithFallback
-                          src={image}
-                          alt={project.galleries.processCaptions?.[index] || `Photo ${index + 1}`}
-                          className="w-full h-auto block transition-transform duration-700 group-hover:scale-110"
-                        />
-                        {project.galleries.processCaptions?.[index] && (
-                          <p className="p-4 text-sm text-white/60">
-                            {project.galleries.processCaptions[index]}
-                          </p>
-                        )}
+                        {(() => {
+                          const captionItem = project.galleries.processCaptions?.[index];
+                          const captionText = typeof captionItem === 'object' && captionItem !== null ? captionItem.caption : captionItem;
+                          const altText = project.galleries.processAlt?.[index] || (typeof captionItem === 'object' && captionItem !== null ? captionItem.altText : captionText) || `Photo ${index + 1}`;
+
+                          return (
+                            <>
+                              <ImageWithFallback
+                                src={image}
+                                alt={altText}
+                                className="w-full h-auto block transition-transform duration-700 group-hover:scale-110"
+                              />
+                              {captionText && (
+                                <p className="p-4 text-sm text-white/60">
+                                  {captionText}
+                                </p>
+                              )}
+                            </>
+                          );
+                        })()}
                       </motion.div>
                     ))}
                   </motion.div>

@@ -22,6 +22,7 @@ export interface PageMetadata {
   publishedTime?: string;
   modifiedTime?: string;
   noindex?: boolean; // Add noindex property
+  googleSiteVerification?: string; // For GSC verification
 }
 
 // Import social links

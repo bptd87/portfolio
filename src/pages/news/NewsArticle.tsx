@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { Calendar, Tag, ArrowLeft, ExternalLink } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
@@ -6,7 +6,7 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 interface NewsBlock {
   type: 'text' | 'gallery' | 'team' | 'details' | 'quote' | 'link';
   content?: string;
-  images?: { url: string; caption?: string }[];
+  images?: { url: string; caption?: string; alt?: string }[];
   members?: { role: string; name: string }[];
   items?: { label: string; value: string }[];
   text?: string;
@@ -30,7 +30,7 @@ interface NewsItem {
   link?: string;
   tags: string[];
   blocks?: NewsBlock[];
-  images?: { url: string; caption?: string }[];
+  images?: { url: string; caption?: string; alt?: string }[];
 }
 
 interface NewsArticleProps {
@@ -58,7 +58,7 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
           const data = await response.json();
           // Extract the newsItem from the response
           const newsItem = data.newsItem || data;
-          
+
           setArticle(newsItem);
         }
       } catch (err) {
@@ -96,21 +96,20 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
         if (!block.images || block.images.length === 0) return null;
         return (
           <div key={index} className="mb-12 not-prose">
-            <div className={`grid gap-4 ${
-              block.images.length === 1 ? 'grid-cols-1 max-w-3xl mx-auto' :
+            <div className={`grid gap-4 ${block.images.length === 1 ? 'grid-cols-1 max-w-3xl mx-auto' :
               block.images.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
-              block.images.length === 3 ? 'grid-cols-1 md:grid-cols-3' :
-              'grid-cols-2 md:grid-cols-3'
-            }`}>
+                block.images.length === 3 ? 'grid-cols-1 md:grid-cols-3' :
+                  'grid-cols-2 md:grid-cols-3'
+              }`}>
               {block.images.map((img, i) => (
                 <div
                   key={i}
                   className="aspect-square bg-neutral-500/5 border border-neutral-500/20 rounded-2xl flex items-center justify-center hover:border-neutral-500/40 transition-colors cursor-pointer group relative overflow-hidden"
                 >
                   {img.url ? (
-                    <ImageWithFallback 
-                      src={img.url} 
-                      alt={img.caption || `Image ${i + 1}`}
+                    <ImageWithFallback
+                      src={img.url}
+                      alt={img.alt || img.caption || `Image ${i + 1}`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
@@ -235,15 +234,11 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
     );
   }
 
-  const date = new Date(article.date);
-  const year = date.getFullYear();
-  const month = date.toLocaleDateString('en-US', { month: 'short' });
-
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12">
-      
-      {/* Back Navigation - Sticky */}
-      <div className="sticky top-20 z-30 mb-8">
+
+      {/* Back Navigation */}
+      <div className="mb-8">
         <div className="max-w-4xl mx-auto">
           <button
             onClick={() => onNavigate('news')}
@@ -257,7 +252,7 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
 
       {/* Article Container */}
       <div className="max-w-4xl mx-auto">
-        
+
         {/* Header Section */}
         <div className="mb-12">
           {/* Category Badge & Date */}
@@ -328,7 +323,7 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
 
         {/* Article Content */}
         <div className="prose prose-lg max-w-none">
-          
+
           {/* Render dynamic content blocks */}
           {article.blocks && article.blocks.length > 0 ? (
             <div>
@@ -348,29 +343,28 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
               </p>
             </div>
           )}
-          
+
         </div>
 
         {/* Legacy Photo Gallery - Only show if old images field exists and no blocks */}
         {article.images && article.images.length > 0 && (!article.blocks || article.blocks.length === 0) && (
           <div className="mt-12">
             <h2 className="font-serif italic text-3xl mb-6">Photo Gallery</h2>
-            
-            <div className={`grid gap-4 ${
-              article.images.length === 1 ? 'grid-cols-1 max-w-3xl mx-auto' :
+
+            <div className={`grid gap-4 ${article.images.length === 1 ? 'grid-cols-1 max-w-3xl mx-auto' :
               article.images.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
-              article.images.length === 3 ? 'grid-cols-1 md:grid-cols-3' :
-              'grid-cols-2 md:grid-cols-3'
-            }`}>
+                article.images.length === 3 ? 'grid-cols-1 md:grid-cols-3' :
+                  'grid-cols-2 md:grid-cols-3'
+              }`}>
               {article.images.map((img, i) => (
                 <div
                   key={i}
                   className="aspect-square bg-neutral-500/5 border border-neutral-500/20 rounded-2xl flex items-center justify-center hover:border-neutral-500/40 transition-colors cursor-pointer group relative overflow-hidden"
                 >
                   {img.url ? (
-                    <ImageWithFallback 
-                      src={img.url} 
-                      alt={img.caption || `Gallery image ${i + 1}`}
+                    <ImageWithFallback
+                      src={img.url}
+                      alt={img.alt || img.caption || `Gallery image ${i + 1}`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (

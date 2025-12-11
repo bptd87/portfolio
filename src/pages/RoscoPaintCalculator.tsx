@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, Palette } from 'lucide-react';
+import { RelatedTools } from '../components/studio/RelatedTools';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
@@ -50,37 +51,37 @@ const ROSCO_PAINTS: RoscoPaint[] = [
 function rgbToLab(rgb: [number, number, number]): [number, number, number] {
   // Normalize RGB to 0-1
   let [r, g, b] = rgb.map(v => v / 255);
-  
+
   // Convert to linear RGB
   r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
   g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
   b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
-  
+
   // Convert to XYZ
   let x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375;
   let y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750;
   let z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041;
-  
+
   // Normalize for D65 white point
   x = x / 0.95047;
   y = y / 1.00000;
   z = z / 1.08883;
-  
+
   // Convert to LAB
-  x = x > 0.008856 ? Math.pow(x, 1/3) : (7.787 * x + 16/116);
-  y = y > 0.008856 ? Math.pow(y, 1/3) : (7.787 * y + 16/116);
-  z = z > 0.008856 ? Math.pow(z, 1/3) : (7.787 * z + 16/116);
-  
+  x = x > 0.008856 ? Math.pow(x, 1 / 3) : (7.787 * x + 16 / 116);
+  y = y > 0.008856 ? Math.pow(y, 1 / 3) : (7.787 * y + 16 / 116);
+  z = z > 0.008856 ? Math.pow(z, 1 / 3) : (7.787 * z + 16 / 116);
+
   const L = (116 * y) - 16;
   const a = 500 * (x - y);
   const bValue = 200 * (y - z);
-  
+
   return [L, a, bValue];
 }
 
 function hexToRgb(hex: string): [number, number, number] {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result 
+  return result
     ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
     : [0, 0, 0];
 }
@@ -115,7 +116,7 @@ interface RecipeResult {
 function mixColors(paints: PaintRecipe[]): [number, number, number] {
   const totalParts = paints.reduce((sum, p) => sum + p.parts, 0);
   if (totalParts === 0) return [0, 0, 0];
-  
+
   const mixed: [number, number, number] = [0, 0, 0];
   paints.forEach(({ paint, parts }) => {
     const weight = parts / totalParts;
@@ -123,26 +124,36 @@ function mixColors(paints: PaintRecipe[]): [number, number, number] {
     mixed[1] += paint.rgb[1] * weight;
     mixed[2] += paint.rgb[2] * weight;
   });
-  
+
   return mixed;
 }
 
-function calculateRecipe(targetHex: string): RecipeResult {
+function calculateRecipe(targetHex: string, paintSet: RoscoPaint[] = ROSCO_PAINTS): RecipeResult {
   const targetRgb = hexToRgb(targetHex);
   const targetLab = rgbToLab(targetRgb);
-  
+
   let bestRecipe: PaintRecipe[] = [];
   let bestDeltaE = Infinity;
   let bestMixedRgb: [number, number, number] = [0, 0, 0];
-  
+
   // Get all paints sorted by closeness to target
-  const sortedPaints = [...ROSCO_PAINTS]
+  const sortedPaints = [...paintSet]
     .map(paint => ({
       paint,
       delta: deltaE(targetLab, rgbToLab(paint.rgb))
     }))
     .sort((a, b) => a.delta - b.delta);
-  
+
+  if (sortedPaints.length === 0) {
+    return {
+      recipe: [],
+      achievedColor: '#000000',
+      achievedRgb: [0, 0, 0],
+      accuracy: 0,
+      deltaE: 100
+    };
+  }
+
   // Step 1: Check if we already have an exact or very close match
   if (sortedPaints[0].delta < 2) {
     return {
@@ -153,31 +164,31 @@ function calculateRecipe(targetHex: string): RecipeResult {
       deltaE: sortedPaints[0].delta
     };
   }
-  
-  const white = ROSCO_PAINTS.find(p => p.id === '5330') || ROSCO_PAINTS[0];
-  const black = ROSCO_PAINTS.find(p => p.id === '5352') || ROSCO_PAINTS[8];
-  
+
+  const white = paintSet.find(p => p.id === '5330') || sortedPaints[0].paint;
+  const black = paintSet.find(p => p.id === '5352') || sortedPaints[sortedPaints.length - 1].paint;
+
   // Step 2: Try 2-paint combinations with finer granularity
   const topPaints = sortedPaints.slice(0, 8); // Top 8 closest paints
-  
+
   for (let i = 0; i < topPaints.length; i++) {
     for (let j = i; j < topPaints.length; j++) {
       // Try ratios from 0.05 to 0.95 in steps of 0.05 (much finer than before)
       for (let ratio1 = 0.05; ratio1 <= 0.95; ratio1 += 0.05) {
         const ratio2 = 1 - ratio1;
-        
+
         if (i === j && ratio1 !== 1) continue; // Skip duplicate same-paint mixes
-        
+
         const recipe: PaintRecipe[] = [];
         if (ratio1 >= 0.05) recipe.push({ paint: topPaints[i].paint, parts: ratio1 * 20 });
         if (ratio2 >= 0.05 && i !== j) recipe.push({ paint: topPaints[j].paint, parts: ratio2 * 20 });
-        
+
         if (recipe.length === 0) continue;
-        
+
         const mixedRgb = mixColors(recipe);
         const mixedLab = rgbToLab(mixedRgb);
         const delta = deltaE(targetLab, mixedLab);
-        
+
         if (delta < bestDeltaE) {
           bestDeltaE = delta;
           bestRecipe = recipe;
@@ -186,10 +197,10 @@ function calculateRecipe(targetHex: string): RecipeResult {
       }
     }
   }
-  
+
   // Step 3: Try 3-paint combinations with the best candidates
   const topCandidates = sortedPaints.slice(0, 6);
-  
+
   for (let i = 0; i < topCandidates.length; i++) {
     for (let j = i + 1; j < topCandidates.length; j++) {
       for (let k = j + 1; k < topCandidates.length; k++) {
@@ -203,18 +214,18 @@ function calculateRecipe(targetHex: string): RecipeResult {
           [0.7, 0.2, 0.1],
           [0.6, 0.3, 0.1],
         ];
-        
+
         for (const [r1, r2, r3] of ratios) {
           const recipe: PaintRecipe[] = [
             { paint: topCandidates[i].paint, parts: r1 * 20 },
             { paint: topCandidates[j].paint, parts: r2 * 20 },
             { paint: topCandidates[k].paint, parts: r3 * 20 }
           ];
-          
+
           const mixedRgb = mixColors(recipe);
           const mixedLab = rgbToLab(mixedRgb);
           const delta = deltaE(targetLab, mixedLab);
-          
+
           if (delta < bestDeltaE) {
             bestDeltaE = delta;
             bestRecipe = recipe;
@@ -224,11 +235,11 @@ function calculateRecipe(targetHex: string): RecipeResult {
       }
     }
   }
-  
+
   // Step 4: Try adding white or black to the best result for tinting/shading refinement
   if (bestRecipe.length > 0) {
     const originalRecipe = [...bestRecipe];
-    
+
     // Try adding white (tinting)
     for (let whiteRatio = 0.05; whiteRatio <= 0.4; whiteRatio += 0.05) {
       const baseRatio = 1 - whiteRatio;
@@ -236,18 +247,18 @@ function calculateRecipe(targetHex: string): RecipeResult {
         ...originalRecipe.map(r => ({ paint: r.paint, parts: r.parts * baseRatio })),
         { paint: white, parts: whiteRatio * 20 }
       ];
-      
+
       const mixedRgb = mixColors(recipe);
       const mixedLab = rgbToLab(mixedRgb);
       const delta = deltaE(targetLab, mixedLab);
-      
+
       if (delta < bestDeltaE) {
         bestDeltaE = delta;
         bestRecipe = recipe;
         bestMixedRgb = mixedRgb;
       }
     }
-    
+
     // Try adding black (shading)
     for (let blackRatio = 0.05; blackRatio <= 0.3; blackRatio += 0.05) {
       const baseRatio = 1 - blackRatio;
@@ -255,11 +266,11 @@ function calculateRecipe(targetHex: string): RecipeResult {
         ...originalRecipe.map(r => ({ paint: r.paint, parts: r.parts * baseRatio })),
         { paint: black, parts: blackRatio * 20 }
       ];
-      
+
       const mixedRgb = mixColors(recipe);
       const mixedLab = rgbToLab(mixedRgb);
       const delta = deltaE(targetLab, mixedLab);
-      
+
       if (delta < bestDeltaE) {
         bestDeltaE = delta;
         bestRecipe = recipe;
@@ -267,11 +278,11 @@ function calculateRecipe(targetHex: string): RecipeResult {
       }
     }
   }
-  
+
   // Step 5: Refinement - fine-tune the best recipe found
   if (bestRecipe.length >= 2) {
     const refinedRecipe = [...bestRecipe];
-    
+
     // Try small adjustments to ratios
     for (let adjustment = -0.1; adjustment <= 0.1; adjustment += 0.05) {
       for (let i = 0; i < refinedRecipe.length; i++) {
@@ -279,13 +290,13 @@ function calculateRecipe(targetHex: string): RecipeResult {
           paint: r.paint,
           parts: idx === i ? Math.max(0.1, r.parts * (1 + adjustment)) : r.parts
         })).filter(r => r.parts > 0.1);
-        
+
         if (testRecipe.length === 0) continue;
-        
+
         const mixedRgb = mixColors(testRecipe);
         const mixedLab = rgbToLab(mixedRgb);
         const delta = deltaE(targetLab, mixedLab);
-        
+
         if (delta < bestDeltaE) {
           bestDeltaE = delta;
           bestRecipe = testRecipe;
@@ -294,10 +305,10 @@ function calculateRecipe(targetHex: string): RecipeResult {
       }
     }
   }
-  
+
   // Normalize recipe to simple ratios
   const totalParts = bestRecipe.reduce((sum, p) => sum + p.parts, 0);
-  
+
   // Handle edge case where no recipe was found
   if (totalParts === 0 || bestRecipe.length === 0) {
     return {
@@ -308,24 +319,24 @@ function calculateRecipe(targetHex: string): RecipeResult {
       deltaE: 100
     };
   }
-  
+
   const normalizedRecipe = bestRecipe.map(({ paint, parts }) => ({
     paint,
     parts: Math.round((parts / totalParts) * 10 * 2) / 2 // Round to 0.5
   })).filter(r => r.parts >= 0.5);
-  
+
   // Ensure we always have at least one paint in the recipe
   if (normalizedRecipe.length === 0) {
     normalizedRecipe.push({ paint: bestRecipe[0].paint, parts: 1 });
   }
-  
+
   // Sort by parts (largest first)
   normalizedRecipe.sort((a, b) => b.parts - a.parts);
-  
+
   // Calculate accuracy (0-100%)
   // DeltaE < 1 is imperceptible, < 2 is very close, < 5 is acceptable
   const accuracy = Math.max(0, Math.min(100, 100 - (bestDeltaE * 10)));
-  
+
   return {
     recipe: normalizedRecipe,
     achievedColor: rgbToHex(bestMixedRgb),
@@ -335,22 +346,56 @@ function calculateRecipe(targetHex: string): RecipeResult {
   };
 }
 
-interface RoscoPaintCalculatorProps {
-  onNavigate: (page: string) => void;
-}
 
-export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) {
+
+export function RoscoPaintCalculator() {
   const [targetColor, setTargetColor] = useState('#8B4789');
   const [result, setResult] = useState<RecipeResult | null>(null);
   const [scaleAmount, setScaleAmount] = useState(1);
   const [copied, setCopied] = useState(false);
 
+  // Inventory State
+  const [showInventory, setShowInventory] = useState(false);
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [inventory, setInventory] = useState<string[]>([]);
+
+  // Load inventory
+  useEffect(() => {
+    const saved = localStorage.getItem('rosco_inventory_v1');
+    if (saved) {
+      try {
+        setInventory(JSON.parse(saved));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  // Save inventory
+  useEffect(() => {
+    localStorage.setItem('rosco_inventory_v1', JSON.stringify(inventory));
+  }, [inventory]);
+
   useEffect(() => {
     if (targetColor && /^#[0-9A-F]{6}$/i.test(targetColor)) {
-      const recipe = calculateRecipe(targetColor);
-      setResult(recipe);
+      const availablePaints = inStockOnly
+        ? ROSCO_PAINTS.filter(p => inventory.includes(p.id))
+        : ROSCO_PAINTS;
+
+      if (availablePaints.length > 0) {
+        const recipe = calculateRecipe(targetColor, availablePaints);
+        setResult(recipe);
+      } else {
+        setResult(null);
+      }
     }
-  }, [targetColor]);
+  }, [targetColor, inStockOnly, inventory]);
+
+  const toggleInventoryItem = (id: string) => {
+    setInventory(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTargetColor(e.target.value);
@@ -366,7 +411,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
 
   const copyRecipe = () => {
     if (!result) return;
-    
+
     const totalParts = result.recipe.reduce((sum, r) => sum + r.parts, 0);
     const recipeText = [
       `TARGET COLOR: ${targetColor}`,
@@ -374,13 +419,13 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
       `MATCH ACCURACY: ${result.accuracy.toFixed(1)}%`,
       '',
       'RECIPE:',
-      ...result.recipe.map(({ paint, parts }) => 
+      ...result.recipe.map(({ paint, parts }) =>
         `• ${parts.toFixed(1)} parts ${paint.name} (${paint.id})`
       ),
       '',
       `TOTAL: ${totalParts.toFixed(1)} parts`
     ].join('\n');
-    
+
     navigator.clipboard.writeText(recipeText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -398,7 +443,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12">
-      
+
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto mb-12">
         <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl overflow-hidden">
@@ -434,12 +479,12 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-6">
-          
+
           {/* LEFT PANEL: Color Input */}
           <div className="space-y-6">
-            
+
             {/* Color Picker Card */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -451,7 +496,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                   Target Color
                 </h2>
               </div>
-              
+
               {/* Visual Picker */}
               <div className="mb-6">
                 <label className="block mb-3 font-pixel text-[10px] tracking-[0.3em] text-foreground/60 uppercase">
@@ -459,6 +504,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                 </label>
                 <div className="flex items-center gap-4">
                   <input
+                    aria-label="Visual Color Picker"
                     type="color"
                     value={targetColor}
                     onChange={handleColorChange}
@@ -512,7 +558,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                       className="border border-neutral-500/20 rounded-xl hover:border-foreground transition-colors relative group overflow-hidden"
                       title={preset.name}
                     >
-                      <div 
+                      <div
                         className="w-full h-12 relative"
                         style={{ backgroundColor: preset.hex }}
                       >
@@ -526,8 +572,61 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
               </div>
             </motion.div>
 
+            {/* Inventory Toggle & Management */}
+            <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-6 md:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-pixel text-xs tracking-[0.3em] text-foreground/60 uppercase">
+                  Shop Inventory
+                </h3>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-pixel tracking-wider text-foreground/60">
+                    {inStockOnly ? 'USING INVENTORY' : 'USING FULL CATALOG'}
+                  </span>
+                  <button
+                    onClick={() => setInStockOnly(!inStockOnly)}
+                    aria-label={inStockOnly ? "Show All Paints" : "Show In Stock Only"}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${inStockOnly ? 'bg-accent-brand' : 'bg-neutral-500/30'}`}
+                  >
+                    <div className={`absolute top-1 bottom-1 w-4 h-4 bg-white rounded-full transition-all ${inStockOnly ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowInventory(!showInventory)}
+                className="w-full py-3 border border-neutral-500/20 rounded-2xl hover:bg-neutral-500/10 transition-colors text-xs font-pixel tracking-wider flex items-center justify-center gap-2"
+              >
+                {showInventory ? 'HIDE INVENTORY LIST' : `MANAGE INVENTORY (${inventory.length} PAINTS)`}
+              </button>
+
+              {showInventory && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 overflow-hidden"
+                >
+                  {ROSCO_PAINTS.map(paint => (
+                    <button
+                      key={paint.id}
+                      onClick={() => toggleInventoryItem(paint.id)}
+                      className={`flex items-center gap-2 p-2 rounded-xl border text-left transition-all ${inventory.includes(paint.id)
+                        ? 'border-accent-brand bg-accent-brand/5'
+                        : 'border-neutral-500/10 text-foreground/50'
+                        }`}
+                    >
+                      <div
+                        className="w-3 h-3 rounded-full border border-neutral-500/20"
+                        style={{ backgroundColor: paint.hex }}
+                      />
+                      <div className="text-[10px] font-pixel truncate">{paint.name}</div>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </div>
+
             {/* Rosco Paint Chart Reference */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
@@ -536,7 +635,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
               <h3 className="font-pixel text-xs tracking-[0.3em] text-foreground/60 uppercase mb-4">
                 Rosco Palette (32 Colors)
               </h3>
-              
+
               <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
                 {ROSCO_PAINTS.map(paint => (
                   <button
@@ -545,7 +644,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                     title={`${paint.name} (${paint.id})`}
                     onClick={() => setTargetColor(paint.hex)}
                   >
-                    <div 
+                    <div
                       className="w-full h-12"
                       style={{ backgroundColor: paint.hex }}
                     />
@@ -564,7 +663,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
             {result && (
               <>
                 {/* Color Comparison */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.15 }}
@@ -573,11 +672,11 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                   <h3 className="font-pixel text-xs tracking-[0.3em] text-foreground/60 uppercase mb-4">
                     Color Match
                   </h3>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
                       <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider">TARGET</div>
-                      <div 
+                      <div
                         className="w-full h-32 border border-neutral-500/20 rounded-2xl"
                         style={{ backgroundColor: targetColor }}
                       />
@@ -587,7 +686,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                     </div>
                     <div>
                       <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider">ACHIEVED</div>
-                      <div 
+                      <div
                         className="w-full h-32 border border-neutral-500/20 rounded-2xl"
                         style={{ backgroundColor: result.achievedColor }}
                       />
@@ -596,7 +695,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Accuracy Meter */}
                   <div className="bg-neutral-500/10 border border-neutral-500/20 rounded-2xl p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -606,7 +705,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                       </span>
                     </div>
                     <div className="h-3 bg-neutral-500/10 rounded-full overflow-hidden border border-neutral-500/20">
-                      <div 
+                      <div
                         className="h-full bg-foreground transition-all rounded-full"
                         style={{ width: `${result.accuracy}%` }}
                       />
@@ -619,7 +718,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                 </motion.div>
 
                 {/* Recipe */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
@@ -641,7 +740,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                   <div className="space-y-3 mb-6">
                     {result.recipe.map(({ paint, parts }, index) => (
                       <div key={index} className="bg-neutral-500/10 border border-neutral-500/20 rounded-2xl p-4 flex items-center gap-4">
-                        <div 
+                        <div
                           className="w-12 h-12 border border-neutral-500/20 rounded-xl flex-shrink-0"
                           style={{ backgroundColor: paint.hex }}
                         />
@@ -665,7 +764,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                 </motion.div>
 
                 {/* Recipe Scaler */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.25 }}
@@ -674,12 +773,13 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
                   <h3 className="font-pixel text-xs tracking-[0.3em] text-foreground/60 uppercase mb-4">
                     Scale Recipe
                   </h3>
-                  
+
                   <div className="mb-4">
                     <label className="block mb-3 font-pixel text-[10px] tracking-[0.3em] text-foreground/60 uppercase">
                       Multiplier
                     </label>
                     <input
+                      aria-label="Scale Multiplier"
                       type="number"
                       value={scaleAmount}
                       onChange={(e) => setScaleAmount(parseFloat(e.target.value) || 1)}
@@ -712,7 +812,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
         {/* Info Cards */}
         <div className="grid md:grid-cols-2 gap-6 mt-6">
           {/* Mixing Instructions */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -746,7 +846,7 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
           </motion.div>
 
           {/* Example Image */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.35 }}
@@ -769,6 +869,9 @@ export function RoscoPaintCalculator({ onNavigate }: RoscoPaintCalculatorProps) 
             </div>
           </motion.div>
         </div>
+
+        {/* Related Tools */}
+        <RelatedTools currentToolId="rosco-paint-calculator" />
       </div>
     </div>
   );

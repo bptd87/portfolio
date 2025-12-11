@@ -1,156 +1,169 @@
-import React from 'react';
-import { PageHeader } from '../components/shared/PageHeader';
+import { motion } from 'motion/react';
+import { ArrowLeft, Shield } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { PAGE_METADATA } from '../utils/seo/metadata';
 
 interface PrivacyPolicyProps {
-  onNavigate: (page: string, slug?: string) => void;
+  onNavigate?: (page: string, slug?: string) => void;
 }
 
 export function PrivacyPolicy({ onNavigate }: PrivacyPolicyProps) {
+  const effectiveDate = "June 8, 2025";
+
   return (
     <>
       <SEO metadata={PAGE_METADATA['privacy-policy']} />
-      
-      <div className="min-h-screen bg-white dark:bg-black">
-        <PageHeader 
-          title="Privacy Policy"
-          subtitle="How we collect, use, and protect your information"
-          onNavigate={onNavigate}
-        />
-        
-        <div className="max-w-4xl mx-auto px-8 md:px-16 py-16 md:py-24">
-          
-          {/* Effective Date */}
-          <div className="mb-12 pb-8 border-b border-black/10 dark:border-white/10">
-            <p className="text-sm text-black/60 dark:text-white/60">
-              Effective Date: June 8, 2025
-            </p>
-          </div>
 
-          {/* Introduction */}
-          <div className="mb-12">
-            <p className="text-black/60 dark:text-white/60 leading-relaxed">
-              Brandon PT Davis ("we," "our," or "us") is committed to protecting your privacy. 
-              This Privacy Policy explains how we collect, use, and protect your information when you 
-              visit our website:{' '}
-              <a 
-                href="https://www.brandonptdavis.com" 
-                className="text-accent-brand hover:underline"
-              >
-                https://www.brandonptdavis.com
-              </a>.
-            </p>
-          </div>
+      <div className="min-h-screen bg-background text-foreground pt-32 pb-24">
+        <div className="max-w-4xl mx-auto px-6">
 
-          {/* Information We Collect */}
-          <section className="mb-12">
-            <h2 className="mb-6">Information We Collect</h2>
-            
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm mb-3">1. Personal Information (if submitted by you):</h3>
-                <ul className="space-y-2 text-black/60 dark:text-white/60">
-                  <li>Name and email address via contact forms or newsletter sign-ups</li>
-                  <li>Project details or professional inquiries submitted voluntarily</li>
-                </ul>
-              </div>
+          {/* Back Navigation */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-12"
+          >
+            <button
+              onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('home'); else window.location.href = '/'; }}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back to Home
+            </button>
+          </motion.div>
 
-              <div>
-                <h3 className="text-sm mb-3">2. Non-Personal Information (automatically collected):</h3>
-                <ul className="space-y-2 text-black/60 dark:text-white/60">
-                  <li>Browser type and device information</li>
-                  <li>IP address and general location data</li>
-                  <li>Pages visited and time spent on the site</li>
-                  <li>Cookies and usage analytics (via tools like Google Analytics)</li>
-                </ul>
-              </div>
+          {/* Header Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mb-16 border-b border-border pb-12"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-secondary rounded-full text-xs font-medium text-secondary-foreground mb-6">
+              <Shield className="w-3 h-3" />
+              <span>Legal Documentation</span>
             </div>
-          </section>
 
-          {/* How We Use Your Information */}
-          <section className="mb-12">
-            <h2 className="mb-6">How We Use Your Information</h2>
-            <p className="text-black/60 dark:text-white/60 leading-relaxed mb-4">
-              We use the information we collect to:
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display mb-6 tracking-tight">
+              Privacy Policy
+            </h1>
+
+            <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed mb-8">
+              Transparency is key. Here's how we collect, use, and protect your data when you visit our site.
             </p>
-            <ul className="space-y-2 text-black/60 dark:text-white/60">
-              <li>Respond to inquiries or collaboration requests</li>
-              <li>Improve site performance and user experience</li>
-              <li>Share updates or blog posts (only if you opt in to a mailing list)</li>
-              <li>Maintain site security and troubleshoot technical issues</li>
+
+            <div className="flex items-center gap-4 text-sm font-mono text-muted-foreground uppercase tracking-wider">
+              <span>Effective Date: {effectiveDate}</span>
+              <span className="w-1 h-1 bg-border rounded-full" />
+              <span>Version 2.0</span>
+            </div>
+          </motion.div>
+
+          {/* Content Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-display prose-headings:font-normal prose-a:text-accent-brand prose-a:no-underline hover:prose-a:underline"
+          >
+            <p className="lead text-2xl text-foreground font-light mb-12">
+              Brandon PT Davis ("we," "our," or "us") is committed to protecting your privacy.
+              This Privacy Policy explains how we collect, use, and protect your information when you
+              visit our website.
+            </p>
+
+            <section className="mb-12">
+              <h2 className="text-3xl mb-6">Information We Collect</h2>
+              <div className="grid md:grid-cols-2 gap-8 not-prose">
+                <div className="p-6 bg-secondary/30 border border-border/50 rounded-lg">
+                  <h3 className="text-lg font-medium mb-3 text-foreground">Personal Information</h3>
+                  <p className="text-muted-foreground text-sm mb-4">Information you voluntarily provide to us.</p>
+                  <ul className="space-y-2 text-sm text-foreground/80">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 w-1 h-1 bg-accent-brand rounded-full" />
+                      Name and email address via contact forms
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 w-1 h-1 bg-accent-brand rounded-full" />
+                      Project collaboration inquiries
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 w-1 h-1 bg-accent-brand rounded-full" />
+                      Newsletter subscriptions
+                    </li>
+                  </ul>
+                </div>
+                <div className="p-6 bg-secondary/30 border border-border/50 rounded-lg">
+                  <h3 className="text-lg font-medium mb-3 text-foreground">Automated Information</h3>
+                  <p className="text-muted-foreground text-sm mb-4">Data automatically collected when you visit.</p>
+                  <ul className="space-y-2 text-sm text-foreground/80">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 w-1 h-1 bg-accent-brand rounded-full" />
+                      Browser type and device info
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 w-1 h-1 bg-accent-brand rounded-full" />
+                      IP address and general location
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 w-1 h-1 bg-accent-brand rounded-full" />
+                      Usage analytics (via Google Analytics)
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <h2>How We Use Your Information</h2>
+            <p>
+              We use the collected information primarily to improve your experience and communicate with you.
+              Specific uses include:
+            </p>
+            <ul>
+              <li>Responding to your inquiries or collaboration requests.</li>
+              <li>Improving site performance, security, and user experience.</li>
+              <li>Sending updates or newsletters (only if you have explicitly opted in).</li>
+              <li>Troubleshooting technical issues and maintaining site security.</li>
             </ul>
-            <p className="text-black/60 dark:text-white/60 leading-relaxed mt-4">
-              We do not sell, rent, or share your personal data with third parties for marketing purposes.
+            <p className="bg-secondary/20 p-4 border-l-2 border-accent-brand text-sm">
+              <strong>Note:</strong> We do not sell, rent, or share your personal data with third parties for marketing purposes.
             </p>
-          </section>
 
-          {/* Third-Party Services */}
-          <section className="mb-12">
-            <h2 className="mb-6">Third-Party Services</h2>
-            <p className="text-black/60 dark:text-white/60 leading-relaxed">
-              This website may use third-party tools or embedded content (such as YouTube, Google Analytics, 
-              or social media sharing plugins). These services may collect information according to their own 
-              privacy policies.
+            <h2>Third-Party Services & Cookies</h2>
+            <p>
+              This website uses third-party tools to enhance functionality. These may include:
             </p>
-          </section>
-
-          {/* Cookies */}
-          <section className="mb-12">
-            <h2 className="mb-6">Cookies</h2>
-            <p className="text-black/60 dark:text-white/60 leading-relaxed">
-              We use cookies to track website usage and performance. You can disable cookies in your browser 
-              settings. By using this site, you consent to the use of cookies.
+            <ul>
+              <li><strong>Google Analytics:</strong> To understand site traffic and user behavior.</li>
+              <li><strong>YouTube/Vimeo:</strong> To host and display video content.</li>
+            </ul>
+            <p>
+              These services may use cookies and have their own privacy policies. You can manage your cookie preferences through your browser settings at any time.
             </p>
-          </section>
 
-          {/* Your Rights */}
-          <section className="mb-12">
-            <h2 className="mb-6">Your Rights</h2>
-            <p className="text-black/60 dark:text-white/60 leading-relaxed">
-              If you've submitted personal information and would like it removed, updated, or reviewed, 
-              you can contact us at:{' '}
-              <a 
-                href="mailto:info@brandonptdavis.com" 
-                className="text-accent-brand hover:underline"
+            <h2>Your Rights & Contact</h2>
+            <p>
+              You have the right to request access to, correction of, or deletion of your personal data.
+              If you have any questions about this policy or our data practices, please contact us.
+            </p>
+
+            <div className="mt-8 not-prose">
+              <a
+                href="mailto:info@brandonptdavis.com"
+                className="inline-flex items-center justify-center px-6 py-3 bg-foreground text-background font-medium hover:bg-foreground/90 transition-colors"
+                style={{ borderRadius: 0 }}
               >
-                info@brandonptdavis.com
+                Contact Privacy Team
               </a>
-            </p>
-          </section>
+            </div>
 
-          {/* Updates to This Policy */}
-          <section className="mb-12">
-            <h2 className="mb-6">Updates to This Policy</h2>
-            <p className="text-black/60 dark:text-white/60 leading-relaxed">
-              We may update this policy from time to time. Changes will be posted on this page with 
-              the revised date.
-            </p>
-          </section>
-
-          {/* Contact */}
-          <section className="pt-12 border-t border-black/10 dark:border-white/10">
-            <h2 className="mb-6">Contact</h2>
-            <div className="space-y-2 text-black/60 dark:text-white/60">
-              <p>Brandon PT Davis</p>
+            <div className="mt-16 pt-8 border-t border-border text-sm text-muted-foreground">
               <p>
-                <a 
-                  href="mailto:info@brandonptdavis.com" 
-                  className="text-accent-brand hover:underline"
-                >
-                  info@brandonptdavis.com
-                </a>
-              </p>
-              <p>
-                <a 
-                  href="https://www.brandonptdavis.com" 
-                  className="text-accent-brand hover:underline"
-                >
-                  https://www.brandonptdavis.com
-                </a>
+                We may update this policy from time to time. Changes will be posted on this page with the revised date.
               </p>
             </div>
-          </section>
+          </motion.div>
 
         </div>
       </div>

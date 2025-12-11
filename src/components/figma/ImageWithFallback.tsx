@@ -185,8 +185,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
         onError={handleError}
         onLoad={handleLoad}
         loading={lazy && !isPriority ? 'lazy' : 'eager'}
-        // @ts-ignore - fetchPriority is standard but missing in some React types
-        fetchPriority={isPriority ? 'high' : 'auto'}
+      // @ts-ignore - fetchPriority is standard but missing in some React types
       />
     </div>
   )

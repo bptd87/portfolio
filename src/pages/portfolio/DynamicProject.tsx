@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, Theater, Sparkles, Eye, FileText, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Theater, Sparkles, Eye, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../../components/ui/dialog';
 import { motion, AnimatePresence } from 'motion/react';
 import { LikeButton } from '../../components/shared/LikeButton';
@@ -7,6 +7,7 @@ import { ShareButton } from '../../components/shared/ShareButton';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { ExperientialTemplate } from './ExperientialTemplate';
 import { RenderingTemplate } from './RenderingTemplate';
+import { PageLoader } from '../../components/PageLoader';
 
 interface Project {
   id: string;
@@ -90,37 +91,37 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
             },
           }
         );
-        
+
         const data = await response.json();
         if (data.success) {
           setViews(data.views);
           setLikes(data.likes);
         }
       } catch (err) {
-        }
+      }
     };
-    
+
     incrementView();
   }, [project]);
 
   // Keyboard navigation for lightbox
   useEffect(() => {
     if (selectedPhoto === null || !allImages.length) return;
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
-        setSelectedPhoto((prev) => 
+        setSelectedPhoto((prev) =>
           prev === null ? 0 : (prev - 1 + allImages.length) % allImages.length
         );
       } else if (e.key === 'ArrowRight') {
-        setSelectedPhoto((prev) => 
+        setSelectedPhoto((prev) =>
           prev === null ? 0 : (prev + 1) % allImages.length
         );
       } else if (e.key === 'Escape') {
         setSelectedPhoto(null);
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhoto]);
@@ -128,18 +129,18 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
   // Auto-advance carousel
   useEffect(() => {
     if (!project?.renderings || project.renderings.length <= 1) return;
-    
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % (project.renderings?.length || 1));
     }, 4000);
-    
+
     return () => clearInterval(interval);
   }, [project?.renderings]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin opacity-60" />
+      <div className="min-h-screen bg-white dark:bg-black">
+        <PageLoader />
       </div>
     );
   }
@@ -171,29 +172,16 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % (project.renderings?.length || 1));
   };
-  
+
   const goToPrev = () => {
     setCurrentIndex((prev) => (prev - 1 + (project.renderings?.length || 1)) % (project.renderings?.length || 1));
   };
-  
+
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'Scenic Design':
-        return <Theater className="w-5 h-5" />;
-      case 'Experiential Design':
-        return <Sparkles className="w-5 h-5" />;
-      case 'Rendering & Visualization':
-        return <Eye className="w-5 h-5" />;
-      case 'Design Documentation':
-        return <FileText className="w-5 h-5" />;
-      default:
-        return <Theater className="w-5 h-5" />;
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -212,7 +200,7 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
               transition={{ duration: 0.5 }}
             />
           </AnimatePresence>
-          
+
           {project.renderings.length > 1 && (
             <>
               <button
@@ -231,18 +219,17 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
               </button>
             </>
           )}
-          
+
           {project.renderings.length > 1 && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
               {project.renderings.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`w-2 h-2 transition-all duration-300 ${
-                    index === currentIndex 
-                      ? 'bg-white w-8' 
-                      : 'bg-white/50 hover:bg-white/75'
-                  }`}
+                  className={`w-2 h-2 transition-all duration-300 ${index === currentIndex
+                    ? 'bg-white w-8'
+                    : 'bg-white/50 hover:bg-white/75'
+                    }`}
                   aria-label={`Go to image ${index + 1}`}
                 />
               ))}
@@ -261,7 +248,7 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
-        
+
         {/* Project Header */}
         <div className="border-b border-black/10 dark:border-white/10 pb-12 mb-16 md:mb-20">
           <div className="flex items-center gap-3 mb-8">
@@ -272,33 +259,33 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
               {project.subcategory}
             </span>
           </div>
-          
+
           <h1 className="mb-6 text-black dark:text-white">
             {project.title}
           </h1>
-          
+
           <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl leading-relaxed mb-12">
             {project.description}
           </p>
-          
+
           {/* Engagement Bar */}
           <div className="flex items-center justify-between mb-12 pb-8 border-b border-black/10 dark:border-white/10">
             <div className="flex items-center gap-6">
               <LikeButton projectId={project.id} initialLikes={likes} size="lg" />
-              
+
               <div className="flex items-center gap-2 text-sm tracking-wide opacity-60">
                 <Eye className="w-5 h-5" />
                 <span>{views.toLocaleString()} views</span>
               </div>
             </div>
-            
-            <ShareButton 
+
+            <ShareButton
               title={`${project.title} - Brandon PT Davis`}
               description={project.description}
               size="lg"
             />
           </div>
-          
+
           {/* Project Info Boxes */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-secondary border border-border p-4">
@@ -362,7 +349,7 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
                     Creative Team
                   </h3>
                 </div>
-                
+
                 <div className="bg-secondary border border-border p-6 md:p-8">
                   <div className="grid md:grid-cols-2 gap-4">
                     {project.credits.map((credit, index) => (
@@ -385,7 +372,7 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
                     Project Images
                   </h3>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {allImages.map((image, index) => (
                     <button
@@ -412,7 +399,7 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
             <h2 className="text-sm tracking-wider text-black/40 dark:text-white/40 mb-2 uppercase">Explore More</h2>
             <p className="text-xl md:text-2xl text-black/80 dark:text-white/80">Continue browsing the portfolio</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <button
               onClick={() => onNavigate('portfolio', 'scenic')}
@@ -457,7 +444,7 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
             <DialogDescription className="sr-only">
               Full-size view of {project.title}
             </DialogDescription>
-            
+
             <div className="flex-1 w-full flex items-center justify-center pt-20">
               <AnimatePresence mode="wait">
                 {selectedPhoto !== null && (
@@ -479,7 +466,7 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedPhoto((prev) => 
+                  setSelectedPhoto((prev) =>
                     prev === null ? 0 : (prev - 1 + allImages.length) % allImages.length
                   );
                 }}
@@ -491,7 +478,7 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedPhoto((prev) => 
+                  setSelectedPhoto((prev) =>
                     prev === null ? 0 : (prev + 1) % allImages.length
                   );
                 }}

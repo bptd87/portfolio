@@ -1,4 +1,4 @@
-/* eslint-disable react/forbid-dom-props */
+
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown, BookOpen, Wrench } from 'lucide-react';
 // ImageWithFallback removed (unused)
@@ -214,7 +214,7 @@ export function Home({ onNavigate }: HomeProps) {
         {/* Animated Seamless Background */}
         <div
           className="absolute inset-0 w-[200%] h-full animate-scroll-seamless"
-          // eslint-disable-next-line react/forbid-dom-props
+
           style={heroStyle}
         />
         {/* LCP Optimization: Explicitly preload hero pattern */}
@@ -323,7 +323,7 @@ export function Home({ onNavigate }: HomeProps) {
                     className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${newsIndex === currentNewsIndex ? 'opacity-100' : 'opacity-0'
                       }`}
                     style={{
-                      // eslint-disable-next-line react/forbid-dom-props
+
                       objectPosition: news.coverImageFocalPoint
                         ? `${news.coverImageFocalPoint.x}% ${news.coverImageFocalPoint.y}%`
                         : 'center center',
@@ -336,7 +336,7 @@ export function Home({ onNavigate }: HomeProps) {
                       alt={news.title}
                       className="w-full h-full object-cover pointer-events-none"
                       style={{
-                        // eslint-disable-next-line react/forbid-dom-props
+
                         objectPosition: news.coverImageFocalPoint
                           ? `${news.coverImageFocalPoint.x}% ${news.coverImageFocalPoint.y}%`
                           : 'center center',

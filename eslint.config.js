@@ -35,9 +35,9 @@ export default tseslint.config(
             'react-hooks/set-state-in-effect': 'off', // Explicitly disable this
             'react-hooks/immutability': 'off', // Disable for React 19/Hooks 7.x strictness
             'react-hooks/purity': 'off', // Disable strictly pure rendering checks (Math.random etc)
-            'react/no-unescaped-entities': 'off',
-            'react/display-name': 'off',
-            'react/prop-types': 'off',
+            // 'react/no-unescaped-entities': 'off',
+            // 'react/display-name': 'off',
+            // 'react/prop-types': 'off',
         },
     },
 );

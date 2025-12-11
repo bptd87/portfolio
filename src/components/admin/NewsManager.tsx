@@ -217,22 +217,22 @@ export function NewsManager() {
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl tracking-tight text-white">News & Updates</h2>
           <p className="text-sm text-gray-400 mt-1">{newsItems.length} total news items</p>
         </div>
         {!showForm && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowImporter(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary/30 hover:bg-secondary/50 text-white rounded-lg transition-colors border border-border"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-secondary/30 hover:bg-secondary/50 text-white rounded-lg transition-colors border border-border flex-1 sm:flex-none"
             >
-              <span className="text-sm">Import (Squarespace)</span>
+              <span className="text-sm whitespace-nowrap">Import</span>
             </button>
-            <PrimaryButton onClick={handleCreate}>
+            <PrimaryButton onClick={handleCreate} className="flex-1 sm:flex-none justify-center">
               <Plus className="w-4 h-4" />
-              <span className="text-xs tracking-wider uppercase">New News Item</span>
+              <span className="text-xs tracking-wider uppercase whitespace-nowrap">New Item</span>
             </PrimaryButton>
           </div>
         )}
@@ -273,6 +273,39 @@ export function NewsManager() {
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="News title"
               />
+            </div>
+
+            <div>
+              <DarkLabel>
+                Slug (URL Path)
+              </DarkLabel>
+              <div className="flex gap-2">
+                <DarkInput
+                  type="text"
+                  value={formData.slug || ''}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  placeholder="custom-url-slug"
+                  className="font-mono text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (formData.title) {
+                      const slug = formData.title
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/(^-|-$)/g, '');
+                      setFormData({ ...formData, slug });
+                    }
+                  }}
+                  className="px-3 py-2 bg-secondary/30 hover:bg-secondary/50 border border-border rounded-lg text-xs uppercase tracking-wider transition-colors"
+                >
+                  Generate
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">
+                Leave empty to auto-generate from title. Controls the URL: /news/[slug]
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

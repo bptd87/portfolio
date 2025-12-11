@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { PageHeader } from '../components/shared/PageHeader';
 import { SEO } from '../components/SEO';
 import { PAGE_METADATA } from '../utils/seo/metadata';
-import { ChevronDown } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../components/ui/accordion';
 
 interface FAQProps {
   onNavigate: (page: string, slug?: string) => void;
@@ -56,95 +61,69 @@ const faqData: FAQItem[] = [
   },
 ];
 
-function FAQAccordionItem({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boolean; onToggle: () => void }) {
-  return (
-    <div className="border-b border-black/10 dark:border-white/10">
-      <button
-        onClick={onToggle}
-        className="w-full py-6 flex items-start justify-between gap-6 text-left group"
-      >
-        <span className="text-black dark:text-white transition-colors group-hover:text-accent-brand">
-          {item.question}
-        </span>
-        <ChevronDown
-          className={`flex-shrink-0 w-5 h-5 text-black/40 dark:text-white/40 transition-transform duration-300 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-        />
-      </button>
-      
-      <div
-        className={`overflow-hidden transition-all duration-300 ${
-          isOpen ? 'max-h-96 mb-6' : 'max-h-0'
-        }`}
-      >
-        <p className="text-black/60 dark:text-white/60 leading-relaxed">
-          {item.answer}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export function FAQ({ onNavigate }: FAQProps) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const handleToggle = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   return (
     <>
       <SEO metadata={PAGE_METADATA.faq} />
-      
-      <div className="min-h-screen bg-white dark:bg-black">
-        <PageHeader 
-          title="Frequently Asked Questions"
-          subtitle="Common questions about my work, process, and services"
-          onNavigate={onNavigate}
-        />
-        
-        <div className="max-w-4xl mx-auto px-8 md:px-16 py-16 md:py-24">
-          {/* Introduction */}
-          <div className="mb-12 pb-12 border-b border-black/10 dark:border-white/10">
-            <p className="text-black/60 dark:text-white/60 leading-relaxed">
-              Below are answers to some of the most common questions about my scenic design work, 
-              design process, technical capabilities, and collaboration opportunities. If you have 
-              additional questions, please feel free to{' '}
-              <button 
+
+      <div className="min-h-screen bg-white dark:bg-black pt-32 pb-24">
+        <div className="max-w-4xl mx-auto px-6">
+          <PageHeader
+            title="Frequently Asked Questions"
+            subtitle="Common questions about my work, process, and services"
+            variant="minimal"
+          />
+
+          <div className="mt-12 space-y-12">
+            {/* Introduction */}
+            <div className="prose dark:prose-invert max-w-none">
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Below are answers to some of the most common questions about my scenic design work,
+                design process, technical capabilities, and collaboration opportunities. If you have
+                additional questions, please feel free to{' '}
+                <button
+                  onClick={() => onNavigate('contact')}
+                  className="text-accent-brand hover:underline font-medium"
+                >
+                  reach out
+                </button>
+                .
+              </p>
+            </div>
+
+            {/* FAQ Accordion */}
+            <Accordion type="single" collapsible className="w-full">
+              {faqData.map((item, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-xl font-medium text-left hover:text-accent-brand hover:no-underline py-6">
+                    {item.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-base text-muted-foreground leading-relaxed pb-6">
+                    {item.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+
+            {/* CTA */}
+            <div className="pt-16 border-t border-border text-center space-y-6">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-display">Still have questions?</h3>
+                <p className="text-muted-foreground">
+                  I'm happy to discuss your project, answer specific questions, or explore collaboration opportunities.
+                </p>
+              </div>
+
+              <button
                 onClick={() => onNavigate('contact')}
-                className="text-accent-brand hover:underline"
+                className="inline-flex items-center justify-center px-8 py-3 
+                  bg-black dark:bg-white text-white dark:text-black 
+                  font-pixel text-xs tracking-[0.2em] uppercase rounded-full 
+                  hover:opacity-80 transition-opacity"
               >
-                reach out
+                Get in Touch
               </button>
-              .
-            </p>
-          </div>
-
-          {/* FAQ Accordion */}
-          <div className="space-y-0">
-            {faqData.map((item, index) => (
-              <FAQAccordionItem
-                key={index}
-                item={item}
-                isOpen={openIndex === index}
-                onToggle={() => handleToggle(index)}
-              />
-            ))}
-          </div>
-
-          {/* CTA */}
-          <div className="mt-16 pt-16 border-t border-black/10 dark:border-white/10 text-center">
-            <h3 className="text-lg mb-4">Still have questions?</h3>
-            <p className="text-black/60 dark:text-white/60 mb-8">
-              I'm happy to discuss your project, answer specific questions, or explore collaboration opportunities.
-            </p>
-            <button
-              onClick={() => onNavigate('contact')}
-              className="inline-block px-8 py-3 border border-black dark:border-white text-black dark:text-white hover:bg-accent-brand hover:border-accent-brand hover:text-white dark:hover:text-black transition-colors"
-            >
-              Get in Touch
-            </button>
+            </div>
           </div>
         </div>
       </div>

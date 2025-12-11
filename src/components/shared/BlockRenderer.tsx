@@ -318,6 +318,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 <div key={block.id} className="my-16 aspect-video bg-black rounded-2xl overflow-hidden">
                   <iframe
                     src={videoSrc}
+                    title="Video player"
                     className="w-full h-full"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -338,23 +339,37 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
             case 'list':
               const isOrdered = block.metadata?.listType === 'numbered' || block.metadata?.ordered;
-              const ListTag = isOrdered ? 'ol' : 'ul';
+
               const listItems = block.metadata?.items
                 ? block.metadata.items
-                : block.content.split('\n').filter(item => item.trim());
+                : block.content.split('\n').map((item) => item.trim()).filter(item => item);
+
+              if (isOrdered) {
+                return (
+                  <ol
+                    key={block.id}
+                    className="mb-10 pl-6 space-y-4 text-[19px] md:text-[21px] font-serif list-decimal marker:text-accent-brand opacity-90"
+                  >
+                    {listItems.map((item, i) => (
+                      <li key={i} className="leading-[1.8] pl-3">
+                        {parseFormattedText(item)}
+                      </li>
+                    ))}
+                  </ol>
+                );
+              }
 
               return (
-                <ListTag
+                <ul
                   key={block.id}
-                  className={`mb-10 pl-6 space-y-4 text-[19px] md:text-[21px] font-serif ${isOrdered ? 'list-decimal' : 'list-disc'
-                    } marker:text-accent-brand opacity-90`}
+                  className="mb-10 pl-6 space-y-4 text-[19px] md:text-[21px] font-serif list-disc marker:text-accent-brand opacity-90"
                 >
                   {listItems.map((item, i) => (
                     <li key={i} className="leading-[1.8] pl-3">
                       {parseFormattedText(item)}
                     </li>
                   ))}
-                </ListTag>
+                </ul>
               );
 
             case 'code':
@@ -485,6 +500,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
         >
           <button
             onClick={closeLightbox}
+            aria-label="Close lightbox"
             className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 transition-all z-10"
           >
             <X className="w-6 h-6 text-white" />
@@ -509,7 +525,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 }
 
 // Accordion Item Component
-function AccordionItem({ question, answer, index }: { question: string; answer: string; index: number }) {
+function AccordionItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -547,7 +563,7 @@ function AccordionBlock({ block }: { block: ContentBlock }) {
           key={index}
           question={item.question || ''}
           answer={item.answer || ''}
-          index={index}
+
         />
       ))}
     </div>

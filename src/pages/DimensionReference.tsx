@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Copy, Check, Search, ArrowLeft, Database, Grid3x3, ChevronRight } from 'lucide-react';
+import { RelatedTools } from '../components/studio/RelatedTools';
 
 interface DimensionItem {
   name: string;
@@ -36,7 +37,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Bar Stool (Standard)', category: 'Furniture - Seating', width: '16" - 18"', depth: '16" - 18"', height: '30"', notes: 'Seat height for 42" bar' },
   { name: 'Bar Stool (Backless)', category: 'Furniture - Seating', width: '14" - 16"', depth: '14" - 16"', height: '30"' },
   { name: 'Swivel Stool', category: 'Furniture - Seating', width: '16" - 18"', depth: '16" - 18"', height: '24" - 30"', notes: 'Adjustable height common' },
-  
+
   // ==================== FURNITURE - TABLES ====================
   { name: 'Coffee Table (Rectangle)', category: 'Furniture - Tables', width: '48" - 60"', depth: '24" - 30"', height: '16" - 18"', notes: '16-18" from sofa' },
   { name: 'Coffee Table (Square)', category: 'Furniture - Tables', width: '36" - 48"', depth: '36" - 48"', height: '16" - 18"' },
@@ -66,7 +67,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Drop Leaf Table', category: 'Furniture - Tables', width: '28" - 36" (closed), 48" - 60" (open)', depth: '28" - 36"', height: '28" - 30"' },
   { name: 'Kitchen Island', category: 'Furniture - Tables', width: '36" - 48"', depth: '24" - 36"', height: '36"', notes: 'Counter height' },
   { name: 'Bar Table / Pub Table', category: 'Furniture - Tables', width: '24" - 36"', depth: '24" - 36"', height: '40" - 42"' },
-  
+
   // ==================== FURNITURE - STORAGE ====================
   { name: 'Bookshelf (Low)', category: 'Furniture - Storage', width: '36" - 48"', depth: '10" - 14"', height: '30" - 36"' },
   { name: 'Bookshelf (Standard)', category: 'Furniture - Storage', width: '36" - 48"', depth: '10" - 14"', height: '72" - 84"' },
@@ -92,7 +93,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'File Cabinet (2-Drawer)', category: 'Furniture - Storage', width: '15" - 18"', depth: '24" - 28"', height: '28" - 30"' },
   { name: 'File Cabinet (4-Drawer)', category: 'Furniture - Storage', width: '15" - 18"', depth: '24" - 28"', height: '52" - 56"' },
   { name: 'Pantry Cabinet', category: 'Furniture - Storage', width: '24" - 36"', depth: '18" - 24"', height: '72" - 84"' },
-  
+
   // ==================== FURNITURE - BEDS ====================
   { name: 'Crib', category: 'Furniture - Beds', width: '28"', depth: '52"', height: '35" - 40"', notes: 'Mattress 27.5" x 51.5"' },
   { name: 'Toddler Bed', category: 'Furniture - Beds', width: '28"', depth: '52"', height: '20" - 24"', notes: 'Uses crib mattress' },
@@ -107,7 +108,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Bunk Bed (Standard)', category: 'Furniture - Beds', width: '39"', depth: '75"', height: '65" - 72"', notes: 'Twin over twin' },
   { name: 'Bunk Bed (Full over Full)', category: 'Furniture - Beds', width: '54"', depth: '75"', height: '72" - 78"' },
   { name: 'Loft Bed', category: 'Furniture - Beds', width: '39" - 54"', depth: '75" - 80"', height: '60" - 72"', notes: 'Raised bed, space underneath' },
-  
+
   // ==================== THEATRE - FLATS ====================
   { name: 'Standard Flat (4\' x 8\')', category: 'Theatre - Flats', width: '4\'-0"', depth: '5.5" (typical frame)', height: '8\'-0"', notes: 'Most common size, matches plywood' },
   { name: 'Standard Flat (4\' x 10\')', category: 'Theatre - Flats', width: '4\'-0"', depth: '5.5"', height: '10\'-0"', notes: 'Taller ceilings' },
@@ -120,7 +121,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Jog / Return', category: 'Theatre - Flats', width: '1\'-0" - 2\'-0"', depth: '5.5"', height: '8\'-0" - 12\'-0"', notes: 'Narrow flat for corners' },
   { name: 'Two-fold (Book Flat)', category: 'Theatre - Flats', width: '8\'-0" (total, 2x 4\' flats)', depth: '5.5"', height: '8\'-0" - 12\'-0"', notes: 'Hinged, self-standing' },
   { name: 'Three-fold', category: 'Theatre - Flats', width: '12\'-0" (total, 3x 4\' flats)', depth: '5.5"', height: '8\'-0" - 12\'-0"', notes: 'Hinged, self-standing' },
-  
+
   // ==================== THEATRE - PLATFORMS ====================
   { name: 'Stock Platform (4\' x 8\')', category: 'Theatre - Platforms', width: '4\'-0"', depth: '8\'-0"', height: 'Varies (6" - 48")', notes: 'Standard sheet goods size' },
   { name: 'Stock Platform (4\' x 4\')', category: 'Theatre - Platforms', width: '4\'-0"', depth: '4\'-0"', height: 'Varies', notes: 'Half sheet' },
@@ -132,7 +133,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Riser (24")', category: 'Theatre - Platforms', width: '4\'-0"', depth: '8\'-0"', height: '24"', notes: 'Four step' },
   { name: 'Parallels (Folding Platform)', category: 'Theatre - Platforms', width: '4\'-0"', depth: '8\'-0"', height: '12" - 48"', notes: 'Collapsible, touring' },
   { name: 'Deck (Custom)', category: 'Theatre - Platforms', width: 'Custom', depth: 'Custom', height: 'Varies', notes: 'Built to fit space' },
-  
+
   // ==================== THEATRE - DOORS ====================
   { name: 'Standard Interior Door', category: 'Theatre - Doors', width: '3\'-0"', depth: '1-3/8" - 1-3/4"', height: '6\'-8"', notes: 'Single door, most common' },
   { name: 'Interior Door (Narrow)', category: 'Theatre - Doors', width: '2\'-6"', depth: '1-3/8"', height: '6\'-8"', notes: 'Closet, bathroom' },
@@ -147,7 +148,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Bifold Door (Pair)', category: 'Theatre - Doors', width: '4\'-0" - 6\'-0" (total)', depth: '1-3/8"', height: '6\'-8"', notes: 'Two folding units' },
   { name: 'Swinging Cafe Doors', category: 'Theatre - Doors', width: '2\'-6" - 3\'-0" (per door)', depth: '1-1/4"', height: '3\'-0" - 4\'-0"', notes: 'Saloon style, half height' },
   { name: 'Grand Entrance (Double)', category: 'Theatre - Doors', width: '6\'-0" - 8\'-0" (total)', depth: '2"', height: '8\'-0" - 10\'-0"', notes: 'Oversized, theatrical' },
-  
+
   // ==================== THEATRE - STAIRS ====================
   { name: 'Standard Theatre Stairs (Per Step)', category: 'Theatre - Stairs', width: '3\'-0" - 6\'-0"', depth: '12" (tread)', height: '6" - 8" (riser)', notes: 'OSHA: max 7.75" rise' },
   { name: 'Residential Stairs (Per Step)', category: 'Theatre - Stairs', width: '3\'-0" - 3\'-6"', depth: '10" - 11" (tread)', height: '7" - 7.75" (riser)', notes: 'Building code compliant' },
@@ -155,7 +156,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Escape Stairs (Per Step)', category: 'Theatre - Stairs', width: '3\'-6" - 4\'-0"', depth: '11" (tread)', height: '7" - 8" (riser)', notes: 'Steep utilitarian stairs' },
   { name: 'Winder Step (Turning Stairs)', category: 'Theatre - Stairs', width: 'Varies (radiates)', depth: '10" - 12" (at narrow end)', height: '7" - 8" (riser)', notes: 'Pie-shaped treads' },
   { name: 'Platform Landing', category: 'Theatre - Stairs', width: '3\'-0" - 6\'-0"', depth: '3\'-0" min', height: 'N/A', notes: 'Between flights, min depth = stair width' },
-  
+
   // ==================== EVENT - TABLES ====================
   { name: 'Round Table (24")', category: 'Event - Tables', diameter: '24"', height: '30"', notes: 'Cocktail, 1-2 people' },
   { name: 'Round Table (30")', category: 'Event - Tables', diameter: '30"', height: '30"', notes: 'Cocktail, 2-3 people' },
@@ -176,7 +177,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Classroom Table (6\')', category: 'Event - Tables', width: '18"', depth: '72"', height: '30"', notes: 'Narrow, conference style' },
   { name: 'Classroom Table (8\')', category: 'Event - Tables', width: '18"', depth: '96"', height: '30"', notes: 'Narrow, conference style' },
   { name: 'Half-Round Table', category: 'Event - Tables', width: '30" (depth)', depth: '60" (diameter)', height: '30"', notes: 'Against wall, buffet' },
-  
+
   // ==================== EVENT - STAGING ====================
   { name: 'Stage Deck (4\' x 8\')', category: 'Event - Staging', width: '4\'-0"', depth: '8\'-0"', height: '8" - 48"', notes: 'Modular, standard size' },
   { name: 'Stage Deck (4\' x 4\')', category: 'Event - Staging', width: '4\'-0"', depth: '4\'-0"', height: '8" - 48"', notes: 'Half deck' },
@@ -192,7 +193,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'DJ Booth Riser', category: 'Event - Staging', width: '4\'-0" - 6\'-0"', depth: '4\'-0" - 6\'-0"', height: '16" - 24"', notes: 'Elevated platform for DJ' },
   { name: 'Dance Floor Section (3\' x 3\')', category: 'Event - Staging', width: '3\'-0"', depth: '3\'-0"', height: 'N/A', notes: 'Modular, interlocking' },
   { name: 'Dance Floor Section (4\' x 4\')', category: 'Event - Staging', width: '4\'-0"', depth: '4\'-0"', height: 'N/A', notes: 'Larger modular' },
-  
+
   // ==================== EVENT - SEATING ====================
   { name: 'Chiavari Chair', category: 'Event - Seating', width: '16" - 17"', depth: '16" - 17"', height: '36"', notes: 'Wedding standard, seat height 17.5"', jargon: 'Tiffany chair, ballroom chair' },
   { name: 'Folding Chair (Metal)', category: 'Event - Seating', width: '18"', depth: '18"', height: '32"', notes: 'Budget option, seat height 17.5"' },
@@ -207,7 +208,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Lounge Chair (Club)', category: 'Event - Seating', width: '30" - 36"', depth: '32" - 36"', height: '28" - 32"', notes: 'Cocktail area' },
   { name: 'Lounge Ottoman', category: 'Event - Seating', width: '24" - 36"', depth: '24" - 36"', height: '16" - 18"', notes: 'Cocktail area, footrest or seat' },
   { name: 'Bench (Event)', category: 'Event - Seating', width: '48" - 72"', depth: '16" - 18"', height: '18"', notes: 'Farm table seating' },
-  
+
   // ==================== EVENT - LINENS ====================
   { name: 'Tablecloth (60" Round)', category: 'Event - Linens', diameter: '108" - 120"', height: 'N/A', notes: 'For 60" round table, floor length 120"' },
   { name: 'Tablecloth (72" Round)', category: 'Event - Linens', diameter: '120" - 132"', height: 'N/A', notes: 'For 72" round table, floor length 132"' },
@@ -220,7 +221,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Napkin (Dinner)', category: 'Event - Linens', width: '20" x 20"', depth: 'N/A', height: 'N/A', notes: 'Standard linen napkin' },
   { name: 'Chair Sash', category: 'Event - Linens', width: '6" - 8"', depth: '90" - 108"', height: 'N/A', notes: 'Decorative tie' },
   { name: 'Overlay (60" Round)', category: 'Event - Linens', diameter: '72" - 84"', height: 'N/A', notes: 'Top layer, accent' },
-  
+
   // ==================== ARCHITECTURE - CIRCULATION ====================
   { name: 'Corridor (Residential)', category: 'Architecture - Circulation', width: '3\'-0" - 4\'-0"', depth: 'N/A', height: 'N/A', notes: 'Minimum 3\'-0", comfortable 4\'-0"' },
   { name: 'Corridor (Public Building)', category: 'Architecture - Circulation', width: '5\'-0" - 6\'-0"', depth: 'N/A', height: 'N/A', notes: 'Accessible, code compliant' },
@@ -229,7 +230,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'ADA Clearance (Hallway Passing)', category: 'Architecture - Circulation', width: '5\'-0"', depth: 'N/A', height: 'N/A', notes: 'Two wheelchairs passing' },
   { name: 'Ramp (ADA Compliant)', category: 'Architecture - Circulation', width: '3\'-0" min', depth: '1:12 slope', height: 'Varies', notes: '1 foot rise per 12 feet run' },
   { name: 'Landing (Ramp)', category: 'Architecture - Circulation', width: '5\'-0" x 5\'-0" min', depth: 'N/A', height: 'N/A', notes: 'At top, bottom, and direction changes' },
-  
+
   // ==================== ARCHITECTURE - HEIGHTS ====================
   { name: 'Residential Ceiling (Standard)', category: 'Architecture - Heights', width: 'N/A', depth: 'N/A', height: '8\'-0"', notes: 'Most common residential' },
   { name: 'Residential Ceiling (Luxury)', category: 'Architecture - Heights', width: 'N/A', depth: 'N/A', height: '9\'-0" - 12\'-0"', notes: 'High-end homes' },
@@ -239,7 +240,7 @@ const DIMENSIONS: DimensionItem[] = [
   { name: 'Theatre Proscenium Height', category: 'Architecture - Heights', width: 'N/A', depth: 'N/A', height: '12\'-0" - 18\'-0"', notes: 'Opening height' },
   { name: 'Theatre Grid Height', category: 'Architecture - Heights', width: 'N/A', depth: 'N/A', height: '40\'-0" - 60\'-0"', notes: 'Rigging grid above stage' },
   { name: 'Fly Loft (Theatre)', category: 'Architecture - Heights', width: 'N/A', depth: 'N/A', height: '2.5x - 3x proscenium height', notes: 'Above stage for flying scenery' },
-  
+
   // ==================== ARCHITECTURE - COUNTERS ====================
   { name: 'Kitchen Counter (Standard)', category: 'Architecture - Counters', width: 'Varies', depth: '24" - 25"', height: '36"', notes: 'Residential kitchen standard' },
   { name: 'Kitchen Island', category: 'Architecture - Counters', width: '36" - 48"', depth: '24" - 36"', height: '36"', notes: 'Workspace height' },
@@ -270,16 +271,37 @@ const CATEGORIES = [
   'Architecture - Counters',
 ];
 
+const toMetric = (val: string | undefined) => {
+  if (!val) return '';
+  // Handle 6'-8" format
+  let res = val.replace(/(\d+)'(?:\s*-\s*(\d+(?:\.\d+)?)(?:"|'')?)/g, (_, f, i) => {
+    const cm = (parseInt(f) * 30.48) + (parseFloat(i) * 2.54);
+    return `${Math.round(cm)} cm`;
+  });
+
+  // Handle 6' format (no inches)
+  res = res.replace(/(\d+)'(?!-)/g, (_, f) => {
+    return `${Math.round(parseInt(f) * 30.48)} cm`;
+  });
+
+  // Handle 30" format
+  res = res.replace(/(\d+(?:\.\d+)?)"/g, (_, i) => {
+    return `${Math.round(parseFloat(i) * 2.54)} cm`;
+  });
+  return res;
+}
+
 export function DimensionReference() {
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [searchQuery, setSearchQuery] = useState('');
+  const [unitSystem, setUnitSystem] = useState<'imperial' | 'metric'>('imperial');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
   const filteredDimensions = DIMENSIONS.filter(item => {
     const matchesCategory = selectedCategory === 'All Categories' || item.category === selectedCategory;
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.notes && item.notes.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -306,9 +328,9 @@ export function DimensionReference() {
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 pt-32 pb-24">
       <div className="max-w-[1800px] mx-auto px-6 lg:px-12">
-        
+
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -318,7 +340,7 @@ export function DimensionReference() {
             <Database className="w-3.5 h-3.5 text-black/60 dark:text-white/60" />
             <span className="font-pixel text-[10px] tracking-[0.2em] text-black/60 dark:text-white/60">REFERENCE DATABASE</span>
           </div>
-          
+
           <h1 className="font-display text-black dark:text-white text-5xl md:text-6xl lg:text-7xl mb-6 leading-[0.95] italic">
             Dimension Reference
           </h1>
@@ -328,11 +350,11 @@ export function DimensionReference() {
         </motion.div>
 
         {/* Controls */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
-          className="grid md:grid-cols-2 gap-4 mb-8"
+          className="grid md:grid-cols-3 gap-4 mb-8"
         >
           {/* Category Filter */}
           <div className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl p-6">
@@ -340,6 +362,7 @@ export function DimensionReference() {
               CATEGORY
             </label>
             <select
+              aria-label="Category Select"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full bg-white dark:bg-black border border-black/10 dark:border-white/10 text-black dark:text-white px-4 py-3 rounded-2xl focus:outline-none focus:border-black dark:focus:border-white transition-colors"
@@ -366,10 +389,37 @@ export function DimensionReference() {
               />
             </div>
           </div>
+
+          {/* Unit Toggle */}
+          <div className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl p-6 flex flex-col">
+            <label className="font-pixel text-[10px] tracking-[0.3em] text-black/40 dark:text-white/40 mb-3 block">
+              UNITS
+            </label>
+            <div className="flex-1 flex items-center bg-white dark:bg-black rounded-2xl p-1 border border-black/10 dark:border-white/10">
+              <button
+                onClick={() => setUnitSystem('imperial')}
+                className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${unitSystem === 'imperial'
+                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-lg'
+                  : 'text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white'
+                  }`}
+              >
+                IMPERIAL
+              </button>
+              <button
+                onClick={() => setUnitSystem('metric')}
+                className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${unitSystem === 'metric'
+                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-lg'
+                  : 'text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white'
+                  }`}
+              >
+                METRIC
+              </button>
+            </div>
+          </div>
         </motion.div>
 
         {/* Results Count */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -405,6 +455,7 @@ export function DimensionReference() {
                     )}
                     className="p-3 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors flex-shrink-0"
                     title="Copy dimensions"
+                    aria-label="Copy dimensions"
                   >
                     {copiedId === item.name ? (
                       <Check className="w-5 h-5 text-black dark:text-white" />
@@ -419,25 +470,25 @@ export function DimensionReference() {
                   {item.width && (
                     <div>
                       <div className="font-pixel text-[10px] tracking-[0.3em] text-black/40 dark:text-white/40 mb-2">WIDTH</div>
-                      <div className="text-lg">{item.width}</div>
+                      <div className="text-lg">{unitSystem === 'metric' ? toMetric(item.width) : item.width}</div>
                     </div>
                   )}
                   {item.depth && (
                     <div>
                       <div className="font-pixel text-[10px] tracking-[0.3em] text-black/40 dark:text-white/40 mb-2">DEPTH</div>
-                      <div className="text-lg">{item.depth}</div>
+                      <div className="text-lg">{unitSystem === 'metric' ? toMetric(item.depth) : item.depth}</div>
                     </div>
                   )}
                   {item.height && (
                     <div>
                       <div className="font-pixel text-[10px] tracking-[0.3em] text-black/40 dark:text-white/40 mb-2">HEIGHT</div>
-                      <div className="text-lg">{item.height}</div>
+                      <div className="text-lg">{unitSystem === 'metric' ? toMetric(item.height) : item.height}</div>
                     </div>
                   )}
                   {item.diameter && (
                     <div>
                       <div className="font-pixel text-[10px] tracking-[0.3em] text-black/40 dark:text-white/40 mb-2">DIAMETER</div>
-                      <div className="text-lg">{item.diameter}</div>
+                      <div className="text-lg">{unitSystem === 'metric' ? toMetric(item.diameter) : item.diameter}</div>
                     </div>
                   )}
                 </div>
@@ -466,7 +517,7 @@ export function DimensionReference() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex items-center justify-center gap-4 mt-12 mb-16"
@@ -474,6 +525,7 @@ export function DimensionReference() {
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
+              aria-label="Previous Page"
               className="px-6 py-3 bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-full disabled:opacity-40 hover:border-black/30 dark:hover:border-white/30 transition-all"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -484,6 +536,7 @@ export function DimensionReference() {
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
+              aria-label="Next Page"
               className="px-6 py-3 bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-full disabled:opacity-40 hover:border-black/30 dark:hover:border-white/30 transition-all"
             >
               <ArrowLeft className="w-4 h-4 rotate-180" />
@@ -492,163 +545,8 @@ export function DimensionReference() {
         )}
 
         {/* More Apps Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-24 mb-12"
-        >
-          <div className="text-center mb-12">
-            <Grid3x3 className="w-12 h-12 text-black/60 dark:text-white/60 mx-auto mb-6" />
-            <h2 className="font-display text-3xl md:text-4xl mb-4 italic">
-              More Tools
-            </h2>
-            <p className="text-lg text-black/60 dark:text-white/60 max-w-2xl mx-auto">
-              Explore our full collection of scenic design and architectural reference tools
-            </p>
-          </div>
-
-          {/* App Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Design History Timeline */}
-            <a
-              href="/design-history-timeline"
-              className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl overflow-hidden hover:border-black/30 dark:hover:border-white/30 transition-all group"
-            >
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1721244653652-268631ec049a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcmNoaXRlY3R1cmFsJTIwaGlzdG9yeSUyMHRpbWVsaW5lfGVufDF8fHx8MTc2Mzk3MDc3OHww&ixlib=rb-4.1.0&q=80&w=1080"
-                  alt="Design History Timeline"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="font-pixel text-[10px] tracking-[0.2em] text-black/40 dark:text-white/40 mb-3">REFERENCE</div>
-                <h3 className="font-display text-2xl mb-2 italic">Design History Timeline</h3>
-                <p className="text-black/60 dark:text-white/60 mb-4">Interactive archive of architectural and artistic movements from 3000 BCE to present.</p>
-                <div className="flex items-center gap-2 text-black/60 dark:text-white/60">
-                  <span className="text-sm">Explore</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
-            </a>
-
-            {/* Classical Architecture */}
-            <a
-              href="/classical-architecture-guide"
-              className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl overflow-hidden hover:border-black/30 dark:hover:border-white/30 transition-all group"
-            >
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1632731187075-11c50d94bd5a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjbGFzc2ljYWwlMjBhcmNoaXRlY3R1cmUlMjBjb2x1bW5zfGVufDF8fHx8MTc2Mzk3MDc3OHww&ixlib=rb-4.1.0&q=80&w=1080"
-                  alt="Classical Architecture"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="font-pixel text-[10px] tracking-[0.2em] text-black/40 dark:text-white/40 mb-3">REFERENCE</div>
-                <h3 className="font-display text-2xl mb-2 italic">Classical Architecture</h3>
-                <p className="text-black/60 dark:text-white/60 mb-4">Comprehensive guide to classical orders, molding profiles, and pediment types.</p>
-                <div className="flex items-center gap-2 text-black/60 dark:text-white/60">
-                  <span className="text-sm">Explore</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
-            </a>
-
-            {/* 3D Print Scale Calculator */}
-            <a
-              href="/architecture-scale-converter"
-              className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl overflow-hidden hover:border-black/30 dark:hover:border-white/30 transition-all group"
-            >
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1544704784-59bcc978c9c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHwzZCUyMHByaW50ZXIlMjB0ZWNobm9sb2d5fGVufDF8fHx8MTc2Mzk3MDQ5N3ww&ixlib=rb-4.1.0&q=80&w=1080"
-                  alt="3D Print Scale Calculator"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="font-pixel text-[10px] tracking-[0.2em] text-black/40 dark:text-white/40 mb-3">CALCULATION</div>
-                <h3 className="font-display text-2xl mb-2 italic">3D Print Scale Calculator</h3>
-                <p className="text-black/60 dark:text-white/60 mb-4">Convert theatrical dimensions to 3D printable scale. Input imperial, get mm output.</p>
-                <div className="flex items-center gap-2 text-black/60 dark:text-white/60">
-                  <span className="text-sm">Explore</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
-            </a>
-
-            {/* Rosco Paint Calculator */}
-            <a
-              href="/rosco-paint-calculator"
-              className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl overflow-hidden hover:border-black/30 dark:hover:border-white/30 transition-all group"
-            >
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1660861472949-a26dfbf0b0f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0aGVhdGVyJTIwcGFpbnQlMjBicnVzaHxlbnwxfHx8fDE3NjM5NzA3Nzl8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                  alt="Rosco Paint Calculator"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="font-pixel text-[10px] tracking-[0.2em] text-black/40 dark:text-white/40 mb-3">CALCULATION</div>
-                <h3 className="font-display text-2xl mb-2 italic">Rosco Paint Calculator</h3>
-                <p className="text-black/60 dark:text-white/60 mb-4">Calculate Rosco paint mixing formulas with precision measurements.</p>
-                <div className="flex items-center gap-2 text-black/60 dark:text-white/60">
-                  <span className="text-sm">Explore</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
-            </a>
-
-            {/* Commercial Paint Finder */}
-            <a
-              href="/commercial-paint-finder"
-              className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl overflow-hidden hover:border-black/30 dark:hover:border-white/30 transition-all group"
-            >
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1560121361-3968dbf2b749?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWludCUyMGNvbG9yJTIwc3dhdGNoZXN8ZW58MXx8fHwxNzYzOTY3MTQzfDA&ixlib=rb-4.1.0&q=80&w=1080"
-                  alt="Commercial Paint Finder"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="font-pixel text-[10px] tracking-[0.2em] text-black/40 dark:text-white/40 mb-3">CALCULATION</div>
-                <h3 className="font-display text-2xl mb-2 italic">Commercial Paint Finder</h3>
-                <p className="text-black/60 dark:text-white/60 mb-4">Find commercial paint matches for theatrical colors and formulas.</p>
-                <div className="flex items-center gap-2 text-black/60 dark:text-white/60">
-                  <span className="text-sm">Explore</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
-            </a>
-
-            {/* Model Reference Scaler */}
-            <a
-              href="/model-reference-scaler"
-              className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl overflow-hidden hover:border-black/30 dark:hover:border-white/30 transition-all group"
-            >
-              <div className="aspect-video overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1680079526971-92914190f440?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcmNoaXRlY3R1cmFsJTIwc2NhbGUlMjBtb2RlbHxlbnwxfHx8fDE3NjM5MDU1MjR8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                  alt="Model Reference Scaler"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="font-pixel text-[10px] tracking-[0.2em] text-black/40 dark:text-white/40 mb-3">DESIGN</div>
-                <h3 className="font-display text-2xl mb-2 italic">Model Reference Scaler</h3>
-                <p className="text-black/60 dark:text-white/60 mb-4">Scale reference photos for model making. Upload images, set scale, export to PDF.</p>
-                <div className="flex items-center gap-2 text-black/60 dark:text-white/60">
-                  <span className="text-sm">Explore</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
-            </a>
-          </div>
-        </motion.div>
+        {/* More Apps Section */}
+        <RelatedTools currentToolId="dimension-reference" />
 
         {/* Empty State */}
         {filteredDimensions.length === 0 && (

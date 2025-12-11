@@ -103,6 +103,18 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
+  // Define valid pages for 404 handling
+  const VALID_PAGES = [
+    'home', 'portfolio', 'about', 'cv', 'collaborators', 'teaching-philosophy',
+    'contact', 'scenic-insights', 'articles', 'studio', 'scenic-studio',
+    'scenic-vault', 'app-studio', 'resources', 'architecture-scale-converter',
+    'dimension-reference', 'model-reference-scaler', 'design-history-timeline',
+    'classical-architecture-guide', 'rosco-paint-calculator',
+    'commercial-paint-finder', 'blog-formatter', 'news', 'search', 'admin',
+    'links', 'faq', 'privacy-policy', 'accessibility', 'terms-of-use', 'sitemap',
+    'project', 'blog', 'tutorial', 'test-database'
+  ];
+
   // Internal navigation logic (updates state only)
   const navigateInternal = (page: string, slugOrBlogSlug?: string) => {
     let actualPage = page;
@@ -110,11 +122,16 @@ export default function App() {
 
     if (page.includes('?')) {
       const [basePage, queryString] = page.split('?');
-      actualPage = basePage;
+      actualPage = basePage || 'home'; // Handle root with query params
       const params = new URLSearchParams(queryString);
       params.forEach((value, key) => {
         queryParams[key] = value;
       });
+    }
+
+    if (!actualPage) {
+      setCurrentPage('home');
+      return;
     }
 
     if (actualPage.includes('/')) {
@@ -138,42 +155,53 @@ export default function App() {
       } else if (basePage === 'news') {
         setCurrentPage('news-article');
         setCurrentNewsSlug(slug);
+      } else {
+        // Check for trailing slash on valid pages (e.g. "about/")
+        if (parts.length === 2 && parts[1] === '' && VALID_PAGES.includes(basePage)) {
+          setCurrentPage(basePage as Page);
+        } else {
+          setCurrentPage('404');
+        }
       }
     } else {
-      setCurrentPage(actualPage as Page);
-      setCurrentProjectSlug(null);
-      setCurrentBlogSlug(null);
-      setCurrentTutorialSlug(null);
-      setCurrentNewsSlug(null);
+      if (VALID_PAGES.includes(actualPage)) {
+        setCurrentPage(actualPage as Page);
+        setCurrentProjectSlug(null);
+        setCurrentBlogSlug(null);
+        setCurrentTutorialSlug(null);
+        setCurrentNewsSlug(null);
 
-      if (actualPage === 'portfolio') {
-        if (queryParams.filter) {
-          setPortfolioFilter(queryParams.filter);
-        } else if (slugOrBlogSlug) {
-          setPortfolioFilter(slugOrBlogSlug);
+        if (actualPage === 'portfolio') {
+          if (queryParams.filter) {
+            setPortfolioFilter(queryParams.filter);
+          } else if (slugOrBlogSlug) {
+            setPortfolioFilter(slugOrBlogSlug);
+          } else {
+            setPortfolioFilter(undefined);
+          }
         } else {
           setPortfolioFilter(undefined);
         }
-      } else {
-        setPortfolioFilter(undefined);
-      }
 
-      if (actualPage === 'scenic-insights' || actualPage === 'articles') {
-        // Normalize to scenic-insights internally
-        setCurrentPage('scenic-insights');
-        if (queryParams.category) {
-          setScenicInsightsCategory(queryParams.category);
+        if (actualPage === 'scenic-insights' || actualPage === 'articles') {
+          // Normalize to scenic-insights internally
+          setCurrentPage('scenic-insights');
+          if (queryParams.category) {
+            setScenicInsightsCategory(queryParams.category);
+          } else {
+            setScenicInsightsCategory(undefined);
+          }
+          if (queryParams.tag) {
+            setScenicInsightsTag(queryParams.tag);
+          } else {
+            setScenicInsightsTag(undefined);
+          }
         } else {
           setScenicInsightsCategory(undefined);
-        }
-        if (queryParams.tag) {
-          setScenicInsightsTag(queryParams.tag);
-        } else {
           setScenicInsightsTag(undefined);
         }
       } else {
-        setScenicInsightsCategory(undefined);
-        setScenicInsightsTag(undefined);
+        setCurrentPage('404');
       }
     }
   };
@@ -235,6 +263,7 @@ export default function App() {
       // Remove leading slash for navigateInternal compatibility
       const route = path.startsWith('/') ? path.substring(1) : path;
 
+      // Legacy redirects are now handled by RedirectHandler.tsx
       if (route || search) {
         navigateInternal(route + search);
       }
@@ -275,10 +304,10 @@ export default function App() {
       case 'architecture-scale-converter': return <ArchitectureScaleConverter />;
       case 'dimension-reference': return <DimensionReference />;
       case 'model-reference-scaler': return <ModelReferenceScaler />;
-      case 'design-history-timeline': return <DesignHistoryTimeline onNavigate={handleNavigation} />;
+      case 'design-history-timeline': return <DesignHistoryTimeline />;
       case 'classical-architecture-guide': return <ClassicalArchitectureGuide />;
-      case 'rosco-paint-calculator': return <RoscoPaintCalculator onNavigate={handleNavigation} />;
-      case 'commercial-paint-finder': return <CommercialPaintFinder onNavigate={handleNavigation} />;
+      case 'rosco-paint-calculator': return <RoscoPaintCalculator />;
+      case 'commercial-paint-finder': return <CommercialPaintFinder />;
       case 'blog-formatter': return <BlogFormatter />;
       case 'project':
         if (currentProjectSlug) return <ProjectDetail key={currentProjectSlug} slug={currentProjectSlug} onNavigate={handleNavigation} />;
@@ -292,9 +321,9 @@ export default function App() {
       case 'search': return <Search onNavigate={handleNavigation} />;
       case 'admin': return <Admin onNavigate={handleNavigation} />;
       case 'faq': return <FAQ onNavigate={handleNavigation} />;
-      case 'privacy-policy': return <PrivacyPolicy onNavigate={handleNavigation} />;
-      case 'accessibility': return <Accessibility onNavigate={handleNavigation} />;
-      case 'terms-of-use': return <TermsOfUse onNavigate={handleNavigation} />;
+      case 'privacy-policy': return <PrivacyPolicy />;
+      case 'accessibility': return <Accessibility />;
+      case 'terms-of-use': return <TermsOfUse />;
       case '404': return <NotFound onNavigate={handleNavigation} />;
       case 'sitemap': return <Sitemap onNavigate={handleNavigation} />;
       case 'links': return <Links onNavigate={handleNavigation} />;

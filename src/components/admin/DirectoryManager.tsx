@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Eye, EyeOff, ExternalLink, Save, X, ChevronUp, ChevronDown, Building2, Code, Palette, BookOpen, FolderOpen } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, ExternalLink, Building2, Code, Palette, BookOpen, FolderOpen, GripVertical, X } from 'lucide-react';
+import { Reorder } from 'motion/react';
+import { toast } from 'sonner';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { PrimaryButton, SecondaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
-import { 
-  DarkInput, 
-  DarkTextarea, 
-  DarkSelect, 
+import {
+  DarkInput,
+  DarkTextarea,
+  DarkSelect,
   DarkLabel,
   formContainerClasses,
   listItemClasses,
@@ -64,7 +66,7 @@ export function DirectoryManager() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'links' | 'categories'>('links');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  
+
   // Link form state
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [editingLink, setEditingLink] = useState<DirectoryLink | null>(null);
@@ -75,7 +77,7 @@ export function DirectoryManager() {
     category: 'organizations',
     enabled: true,
   });
-  
+
   // Category form state
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<DirectoryCategory | null>(null);
@@ -85,7 +87,7 @@ export function DirectoryManager() {
     description: '',
     icon: 'folder',
   });
-  
+
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -117,7 +119,7 @@ export function DirectoryManager() {
         }
       }
     } catch (error) {
-      } finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -131,15 +133,14 @@ export function DirectoryManager() {
 
     setSaving(true);
     try {
-      const endpoint = editingLink 
+      const endpoint = editingLink
         ? `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/links/${editingLink.id}`
         : `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/links`;
-      
+
       const response = await fetch(endpoint, {
         method: editingLink ? 'PUT' : 'POST',
         headers: {
-          Authorization: `Bearer ${publicAnonKey}`,
-          'X-Admin-Token': getAdminToken(),
+          Authorization: `Bearer ${getAdminToken()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -153,10 +154,12 @@ export function DirectoryManager() {
         resetLinkForm();
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to save link');
+        console.error('Save Link Error:', error);
+        alert(`Failed to save link: ${error.message || error.error || 'Unknown error'}`);
       }
     } catch (error) {
-      alert('Error saving link');
+      console.error('Save Link Exception:', error);
+      alert(`Error saving link: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -170,7 +173,7 @@ export function DirectoryManager() {
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/links/${id}`,
         {
           method: 'DELETE',
-          headers: { Authorization: `Bearer ${publicAnonKey}`, 'X-Admin-Token': getAdminToken() },
+          headers: { Authorization: `Bearer ${getAdminToken()}` },
         }
       );
 
@@ -178,7 +181,7 @@ export function DirectoryManager() {
         setLinks(links.filter(l => l.id !== id));
       }
     } catch (error) {
-      }
+    }
   };
 
   const handleToggleLink = async (link: DirectoryLink) => {
@@ -188,8 +191,7 @@ export function DirectoryManager() {
         {
           method: 'PUT',
           headers: {
-            Authorization: `Bearer ${publicAnonKey}`,
-            'X-Admin-Token': getAdminToken(),
+            Authorization: `Bearer ${getAdminToken()}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ ...link, enabled: !link.enabled }),
@@ -200,44 +202,10 @@ export function DirectoryManager() {
         setLinks(links.map(l => l.id === link.id ? { ...l, enabled: !l.enabled } : l));
       }
     } catch (error) {
-      }
+    }
   };
 
-  const handleMoveLink = async (link: DirectoryLink, direction: 'up' | 'down') => {
-    const categoryLinks = links.filter(l => l.category === link.category).sort((a, b) => a.order - b.order);
-    const currentIndex = categoryLinks.findIndex(l => l.id === link.id);
-    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    
-    if (targetIndex < 0 || targetIndex >= categoryLinks.length) return;
-    
-    const targetLink = categoryLinks[targetIndex];
-    
-    // Swap orders
-    const newLinks = links.map(l => {
-      if (l.id === link.id) return { ...l, order: targetLink.order };
-      if (l.id === targetLink.id) return { ...l, order: link.order };
-      return l;
-    });
-    
-    setLinks(newLinks);
-    
-    // Save to server
-    try {
-      await Promise.all([
-        fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/links/${link.id}`, {
-          method: 'PUT',
-          headers: { Authorization: `Bearer ${publicAnonKey}`, 'X-Admin-Token': getAdminToken(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...link, order: targetLink.order }),
-        }),
-        fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/links/${targetLink.id}`, {
-          method: 'PUT',
-          headers: { Authorization: `Bearer ${publicAnonKey}`, 'X-Admin-Token': getAdminToken(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...targetLink, order: link.order }),
-        }),
-      ]);
-    } catch (error) {
-      }
-  };
+
 
   // Category CRUD operations
   const handleSaveCategory = async () => {
@@ -248,15 +216,14 @@ export function DirectoryManager() {
 
     setSaving(true);
     try {
-      const endpoint = editingCategory 
+      const endpoint = editingCategory
         ? `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/categories/${editingCategory.id}`
         : `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/categories`;
-      
+
       const response = await fetch(endpoint, {
         method: editingCategory ? 'PUT' : 'POST',
         headers: {
-          Authorization: `Bearer ${publicAnonKey}`,
-          'X-Admin-Token': getAdminToken(),
+          Authorization: `Bearer ${getAdminToken()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -270,10 +237,12 @@ export function DirectoryManager() {
         resetCategoryForm();
       } else {
         const error = await response.json();
-        alert(error.message || 'Failed to save category');
+        console.error('Save Category Error:', error);
+        alert(`Failed to save category: ${error.message || error.error || 'Unknown error'}`);
       }
     } catch (error) {
-      alert('Error saving category');
+      console.error('Save Category Exception:', error);
+      alert(`Error saving category: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -285,7 +254,7 @@ export function DirectoryManager() {
       alert(`Cannot delete category with ${categoryLinks.length} links. Move or delete the links first.`);
       return;
     }
-    
+
     if (!confirm('Are you sure you want to delete this category?')) return;
 
     try {
@@ -293,7 +262,7 @@ export function DirectoryManager() {
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/categories/${id}`,
         {
           method: 'DELETE',
-          headers: { Authorization: `Bearer ${publicAnonKey}`, 'X-Admin-Token': getAdminToken() },
+          headers: { Authorization: `Bearer ${getAdminToken()}` },
         }
       );
 
@@ -301,7 +270,7 @@ export function DirectoryManager() {
         setCategories(categories.filter(c => c.id !== id));
       }
     } catch (error) {
-      }
+    }
   };
 
   // Form helpers
@@ -337,7 +306,7 @@ export function DirectoryManager() {
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/seed`,
         {
           method: 'POST',
-          headers: { Authorization: `Bearer ${publicAnonKey}`, 'X-Admin-Token': getAdminToken() },
+          headers: { Authorization: `Bearer ${getAdminToken()}` },
         }
       );
 
@@ -369,10 +338,10 @@ export function DirectoryManager() {
   };
 
   // Filtered links
-  const filteredLinks = selectedCategory === 'all' 
-    ? links 
+  const filteredLinks = selectedCategory === 'all'
+    ? links
     : links.filter(l => l.category === selectedCategory);
-  
+
   const sortedFilteredLinks = [...filteredLinks].sort((a, b) => a.order - b.order);
 
   if (loading) {
@@ -402,21 +371,19 @@ export function DirectoryManager() {
       <div className="flex gap-2 border-b border-gray-800 pb-2">
         <button
           onClick={() => setActiveTab('links')}
-          className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-            activeTab === 'links' 
-              ? 'bg-blue-600 text-white' 
-              : 'text-gray-400 hover:text-white hover:bg-gray-800'
-          }`}
+          className={`px-4 py-2 text-sm rounded-lg transition-colors ${activeTab === 'links'
+            ? 'bg-blue-600 text-white'
+            : 'text-gray-400 hover:text-white hover:bg-gray-800'
+            }`}
         >
           Links ({links.length})
         </button>
         <button
           onClick={() => setActiveTab('categories')}
-          className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-            activeTab === 'categories' 
-              ? 'bg-blue-600 text-white' 
-              : 'text-gray-400 hover:text-white hover:bg-gray-800'
-          }`}
+          className={`px-4 py-2 text-sm rounded-lg transition-colors ${activeTab === 'categories'
+            ? 'bg-blue-600 text-white'
+            : 'text-gray-400 hover:text-white hover:bg-gray-800'
+            }`}
         >
           Categories ({categories.length})
         </button>
@@ -437,7 +404,7 @@ export function DirectoryManager() {
                 <option key={cat.id} value={cat.slug}>{cat.name}</option>
               ))}
             </DarkSelect>
-            
+
             <PrimaryButton onClick={() => setShowLinkForm(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Add Link
@@ -451,11 +418,11 @@ export function DirectoryManager() {
                 <h3 className="text-lg font-medium text-white">
                   {editingLink ? 'Edit Link' : 'Add New Link'}
                 </h3>
-                <button type="button" onClick={resetLinkForm} className="text-gray-400 hover:text-white">
+                <button type="button" onClick={resetLinkForm} className="text-gray-400 hover:text-white" aria-label="Close">
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <DarkLabel>Title *</DarkLabel>
@@ -506,7 +473,7 @@ export function DirectoryManager() {
                   </label>
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 mt-6">
                 <CancelButton onClick={resetLinkForm}>Cancel</CancelButton>
                 <SaveButton onClick={handleSaveLink} disabled={saving}>
@@ -523,80 +490,127 @@ export function DirectoryManager() {
                 No links found. Add your first link above.
               </div>
             ) : (
-              sortedFilteredLinks.map((link, index) => {
-                const category = categories.find(c => c.slug === link.category);
-                return (
-                  <div key={link.id} className={listItemClasses}>
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="flex flex-col gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleMoveLink(link, 'up')}
-                          disabled={index === 0}
-                          className="p-1 text-gray-500 hover:text-white disabled:opacity-30"
-                        >
-                          <ChevronUp className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveLink(link, 'down')}
-                          disabled={index === sortedFilteredLinks.length - 1}
-                          className="p-1 text-gray-500 hover:text-white disabled:opacity-30"
-                        >
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-medium ${link.enabled ? 'text-white' : 'text-gray-500'}`}>
-                            {link.title}
-                          </span>
-                          <span className={badgeClasses}>
-                            {category?.name || link.category}
-                          </span>
-                          {!link.enabled && (
-                            <span className="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400">
-                              Hidden
-                            </span>
-                          )}
+              <Reorder.Group
+                axis="y"
+                values={sortedFilteredLinks}
+                onReorder={(newOrder) => {
+                  // Update local state by merging the reordered subset back into the main list
+                  // This allows reordering within a filtered view to stick
+                  const newLinks = [...links];
+
+                  // Map the new order to the global list items
+                  newOrder.forEach((item, index) => {
+                    // Update the order property of this specific item
+                    const globalItem = newLinks.find(l => l.id === item.id);
+                    if (globalItem) {
+                      globalItem.order = index;
+                    }
+                  });
+
+                  // For the UI to update smoothly, we also need to conceptually "sort" the global list
+                  // or just let the downstream 'sortedFilteredLinks' recalculation handle it?
+                  // sortedFilteredLinks is derived from 'links' + sort.
+                  // So if we update 'order' on items in 'links', the re-render will re-sort them.
+                  // BUT Reorder component needs stable identity or it might glitch if we map it back and forth.
+                  // Let's try forcing the state update:
+                  setLinks(newLinks);
+                }}
+                className="space-y-2"
+              >
+                {sortedFilteredLinks.map((link) => {
+                  const category = categories.find(c => c.slug === link.category);
+                  return (
+                    <Reorder.Item
+                      key={link.id}
+                      value={link}
+                      className={listItemClasses}
+                      onDragEnd={async () => {
+                        // Save order to server on drop
+                        // We technically only need to save the items in this category/filter view
+                        // But for simplicity, we can just save the items that changed?
+                        // Saving all items in the current filtered view is safest to ensure order consistency.
+
+                        const itemsToSave = sortedFilteredLinks;
+
+                        // We perform quiet updates (no full blocking loader)
+                        try {
+                          // Use Promise.all to save concurrently (limited by browser connections but fine for small lists)
+                          // Only save if order actually differs from server? Hard to track.
+                          // Just updating all in view is easiest logic, though bandwidth heavy.
+                          const updates = itemsToSave.map((l, i) =>
+                            fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory/links/${l.id}`, {
+                              method: 'PUT',
+                              headers: {
+                                Authorization: `Bearer ${getAdminToken()}`,
+                                'Content-Type': 'application/json'
+                              },
+                              body: JSON.stringify({ ...l, order: i }), // Ensure order is 0-indexed matches visual
+                            })
+                          );
+                          await Promise.all(updates);
+                        } catch (err) {
+                          console.error("Failed to save order", err);
+                          toast.error("Failed to save new order");
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        {/* Drag Handle */}
+                        <div className="cursor-grab active:cursor-grabbing p-1 text-gray-500 hover:text-white">
+                          <GripVertical className="w-5 h-5" />
                         </div>
-                        <div className="text-sm text-gray-500 truncate">{link.description}</div>
-                        <a 
-                          href={link.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-400 hover:text-blue-300 truncate block"
-                        >
-                          {link.url}
-                        </a>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-medium ${link.enabled ? 'text-white' : 'text-gray-500'}`}>
+                              {link.title}
+                            </span>
+                            <span className={badgeClasses}>
+                              {category?.name || link.category}
+                            </span>
+                            {!link.enabled && (
+                              <span className="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400">
+                                Hidden
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500 truncate">{link.description}</div>
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-400 hover:text-blue-300 truncate block"
+                          >
+                            {link.url}
+                          </a>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <IconButton 
-                        onClick={() => handleToggleLink(link)}
-                        title={link.enabled ? 'Hide' : 'Show'}
-                      >
-                        {link.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      </IconButton>
-                      <IconButton 
-                        onClick={() => startEditLink(link)}
-                        title="Edit"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </IconButton>
-                      <IconButton 
-                        onClick={() => handleDeleteLink(link.id)}
-                        title="Delete"
-                        variant="danger"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </IconButton>
-                    </div>
-                  </div>
-                );
-              })
+
+                      <div className="flex items-center gap-2">
+                        <IconButton
+                          onClick={() => handleToggleLink(link)}
+                          title={link.enabled ? 'Hide' : 'Show'}
+                        >
+                          {link.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </IconButton>
+                        <IconButton
+                          onClick={() => startEditLink(link)}
+                          title="Edit"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => handleDeleteLink(link.id)}
+                          title="Delete"
+                          variant="danger"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </IconButton>
+                      </div>
+                    </Reorder.Item>
+                  );
+                })}
+              </Reorder.Group>
             )}
           </div>
         </div>
@@ -619,11 +633,11 @@ export function DirectoryManager() {
                 <h3 className="text-lg font-medium text-white">
                   {editingCategory ? 'Edit Category' : 'Add New Category'}
                 </h3>
-                <button type="button" onClick={resetCategoryForm} className="text-gray-400 hover:text-white">
+                <button type="button" onClick={resetCategoryForm} className="text-gray-400 hover:text-white" aria-label="Close">
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <DarkLabel>Name *</DarkLabel>
@@ -662,7 +676,7 @@ export function DirectoryManager() {
                   </DarkSelect>
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 mt-6">
                 <CancelButton onClick={resetCategoryForm}>Cancel</CancelButton>
                 <SaveButton onClick={handleSaveCategory} disabled={saving}>
@@ -677,7 +691,7 @@ export function DirectoryManager() {
             {categories.map(category => {
               const IconComponent = CATEGORY_ICONS[category.icon] || FolderOpen;
               const linkCount = links.filter(l => l.category === category.slug).length;
-              
+
               return (
                 <div key={category.id} className={listItemClasses}>
                   <div className="flex items-center gap-4 flex-1">
@@ -690,15 +704,15 @@ export function DirectoryManager() {
                       <div className="text-xs text-gray-600">{linkCount} links</div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
-                    <IconButton 
+                    <IconButton
                       onClick={() => startEditCategory(category)}
                       title="Edit"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </IconButton>
-                    <IconButton 
+                    <IconButton
                       onClick={() => handleDeleteCategory(category.id)}
                       title="Delete"
                       variant="danger"

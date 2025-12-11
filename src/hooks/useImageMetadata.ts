@@ -42,12 +42,13 @@ export function useImageMetadata(src: string) {
         setLoading(true);
         const supabase = createClient();
         
+        // .maybeSingle() prevents 406 errors when no rows are found
         const { data, error } = await supabase
           .from('media_library')
           .select('alt_text, caption, seo_description, tags')
           .eq('bucket_id', bucket)
           .eq('file_path', filePath)
-          .single();
+          .maybeSingle();
 
         if (data && !error) {
           const row = data as { alt_text?: string; caption?: string; seo_description?: string; tags?: string[] };
@@ -63,7 +64,7 @@ export function useImageMetadata(src: string) {
         setLoading(false);
       };
 
-      fetchMetadata();
+      fetchMetadata().catch(() => {}); // Silence unhandled errors
     } catch (e) {
       // Invalid URL or other error, ignore
     }

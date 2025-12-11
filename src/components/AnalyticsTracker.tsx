@@ -15,14 +15,14 @@ export function AnalyticsTracker({ currentPage, slug }: AnalyticsTrackerProps) {
 
     // Prevent duplicate tracking of the same page (e.g. on re-renders)
     if (lastTracked.current === currentPath) return;
-    
+
     // Don't track admin pages
     if (currentPage === 'admin') return;
 
     const trackView = async () => {
       try {
         const supabase = createClient();
-        
+
         await supabase.from('page_views').insert({
           path: window.location.pathname,
           page_type: currentPage,
@@ -30,12 +30,12 @@ export function AnalyticsTracker({ currentPage, slug }: AnalyticsTrackerProps) {
           referrer: document.referrer || null,
           screen_width: window.innerWidth,
           user_agent: navigator.userAgent
-        });
+        } as any);
 
         lastTracked.current = currentPath;
-        } catch (error) {
-        // Fail silently to not impact user experience
-        }
+      } catch (error) {
+        // Suppress analytics errors (403/401) to prevent console noise
+      }
     };
 
     // Small delay to ensure it's a real visit and not a rapid redirect

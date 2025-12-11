@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { MagnifyingGlass, Copy, Hash, Tag, Check } from 'phosphor-react';
+import { useState, useEffect } from 'react';
+import { MagnifyingGlass, Hash, Tag, Check } from 'phosphor-react';
 import { motion } from 'motion/react';
+import { RelatedTools } from '../components/studio/RelatedTools';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
 // Common Commercial Paints Database
@@ -126,7 +127,7 @@ const PAINT_DATABASE: PaintColor[] = [
 // Utilities
 function hexToRgb(hex: string): [number, number, number] {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result 
+  return result
     ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
     : [0, 0, 0];
 }
@@ -140,9 +141,9 @@ function rgbToLab(rgb: [number, number, number]): [number, number, number] {
   let y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750;
   let z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041;
   x = x / 0.95047; y = y / 1.00000; z = z / 1.08883;
-  x = x > 0.008856 ? Math.pow(x, 1/3) : (7.787 * x + 16/116);
-  y = y > 0.008856 ? Math.pow(y, 1/3) : (7.787 * y + 16/116);
-  z = z > 0.008856 ? Math.pow(z, 1/3) : (7.787 * z + 16/116);
+  x = x > 0.008856 ? Math.pow(x, 1 / 3) : (7.787 * x + 16 / 116);
+  y = y > 0.008856 ? Math.pow(y, 1 / 3) : (7.787 * y + 16 / 116);
+  z = z > 0.008856 ? Math.pow(z, 1 / 3) : (7.787 * z + 16 / 116);
   return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)];
 }
 
@@ -157,11 +158,9 @@ interface MatchResult extends PaintColor {
   accuracy: number;
 }
 
-interface CommercialPaintFinderProps {
-  onNavigate: (page: string) => void;
-}
 
-export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps) {
+
+export function CommercialPaintFinder() {
   const [inputColor, setInputColor] = useState('#D9381E');
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<string>('All');
@@ -195,16 +194,16 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
   const findMatches = (hex: string) => {
     const targetRgb = hexToRgb(hex);
     const targetLab = rgbToLab(targetRgb);
-    
-    const filteredDb = selectedBrand === 'All' 
-      ? PAINT_DATABASE 
+
+    const filteredDb = selectedBrand === 'All'
+      ? PAINT_DATABASE
       : PAINT_DATABASE.filter(p => p.brand === selectedBrand);
 
     const results = filteredDb.map(paint => {
       const paintRgb = hexToRgb(paint.hex);
       const paintLab = rgbToLab(paintRgb);
       const dist = deltaE(targetLab, paintLab);
-      const accuracy = Math.max(0, 100 - (dist * 1.5)); 
+      const accuracy = Math.max(0, 100 - (dist * 1.5));
       return { ...paint, distance: dist, accuracy };
     });
 
@@ -242,7 +241,7 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
-      }
+    }
     document.body.removeChild(textarea);
   };
 
@@ -250,7 +249,7 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12">
-      
+
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto mb-12">
         <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl overflow-hidden">
@@ -283,10 +282,10 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
       {/* Calculator */}
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-[300px_1fr] gap-6">
-          
+
           {/* Left Panel: Input */}
           <div className="space-y-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-6"
@@ -294,11 +293,12 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
               <h2 className="font-pixel text-[10px] tracking-[0.3em] text-foreground/60 uppercase mb-6">
                 Input Color
               </h2>
-              
+
               <div className="space-y-6">
                 <div className="flex gap-4">
                   <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-neutral-500/30">
                     <input
+                      aria-label="Color Picker"
                       type="color"
                       value={inputColor}
                       onChange={(e) => setInputColor(e.target.value)}
@@ -329,11 +329,10 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
                       <button
                         key={b}
                         onClick={() => setSelectedBrand(b)}
-                        className={`w-full px-4 py-2 text-left text-sm rounded-2xl transition-all ${
-                          selectedBrand === b 
-                            ? 'bg-foreground text-background' 
-                            : 'bg-neutral-500/10 border border-neutral-500/20 hover:border-foreground'
-                        }`}
+                        className={`w-full px-4 py-2 text-left text-sm rounded-2xl transition-all ${selectedBrand === b
+                          ? 'bg-foreground text-background'
+                          : 'bg-neutral-500/10 border border-neutral-500/20 hover:border-foreground'
+                          }`}
                       >
                         {b}
                       </button>
@@ -344,14 +343,14 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
             </motion.div>
 
             {/* Preview */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-6"
             >
               <p className="font-pixel text-[10px] tracking-[0.3em] text-foreground/60 uppercase mb-4">Current Selection</p>
-              <div 
+              <div
                 className="w-full h-32 rounded-2xl border border-neutral-500/20 mb-4"
                 style={{ backgroundColor: inputColor }}
               />
@@ -371,7 +370,7 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
 
             <div className="grid md:grid-cols-2 gap-4">
               {matches.map((match, idx) => (
-                <motion.div 
+                <motion.div
                   key={match.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -379,18 +378,17 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
                   className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl overflow-hidden hover:border-foreground/50 transition-all group"
                 >
                   <div className="relative">
-                    <div 
+                    <div
                       className="h-32 w-full"
                       style={{ backgroundColor: match.hex }}
                     />
                     <div className="absolute top-3 left-3 bg-background/90 backdrop-blur px-2 py-1 rounded-full text-xs font-pixel">
                       #{idx + 1}
                     </div>
-                    <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs ${
-                      match.accuracy > 90 ? 'bg-green-500 text-black' : 
+                    <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs ${match.accuracy > 90 ? 'bg-green-500 text-black' :
                       match.accuracy > 80 ? 'bg-foreground text-background' :
-                      'bg-background/90 backdrop-blur text-foreground'
-                    }`}>
+                        'bg-background/90 backdrop-blur text-foreground'
+                      }`}>
                       {match.accuracy.toFixed(0)}% Match
                     </div>
                   </div>
@@ -398,11 +396,11 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
                   <div className="p-4">
                     <p className="font-pixel text-[10px] tracking-[0.3em] text-foreground/60 uppercase mb-1">{match.brand}</p>
                     <h3 className="text-lg mb-4">{match.name}</h3>
-                    
+
                     <div className="space-y-2 pt-3 border-t border-neutral-500/20">
                       <div className="flex justify-between items-center">
                         <span className="font-mono text-xs text-foreground/60">{match.code}</span>
-                        <button 
+                        <button
                           onClick={() => copyToClipboard(match.code, `code-${match.id}`)}
                           className="text-xs flex items-center gap-1 hover:text-foreground transition-colors"
                         >
@@ -412,7 +410,7 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="font-mono text-xs text-foreground/40">{match.hex}</span>
-                        <button 
+                        <button
                           onClick={() => copyToClipboard(match.hex, `hex-${match.id}`)}
                           className="text-xs flex items-center gap-1 hover:text-foreground transition-colors"
                         >
@@ -434,6 +432,8 @@ export function CommercialPaintFinder({ onNavigate }: CommercialPaintFinderProps
           </div>
         </div>
       </div>
+      {/* Related Tools */}
+      <RelatedTools currentToolId="commercial-paint-finder" />
     </div>
   );
 }

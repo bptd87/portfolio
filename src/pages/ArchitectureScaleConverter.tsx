@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Cube, CheckCircle, XCircle, Printer, Copy, Check } from 'phosphor-react';
+import { RelatedTools } from '../components/studio/RelatedTools';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
@@ -32,25 +33,25 @@ const PRINTERS: Printer[] = [
   { name: 'Ender 3 V2', buildVolume: { x: 220, y: 220, z: 250 }, category: 'Budget FDM', manufacturer: 'Creality' },
   { name: 'Ender 3 S1', buildVolume: { x: 220, y: 220, z: 270 }, category: 'Budget FDM', manufacturer: 'Creality' },
   { name: 'Anycubic Kobra', buildVolume: { x: 220, y: 220, z: 250 }, category: 'Budget FDM', manufacturer: 'Anycubic' },
-  
+
   // Mid-Range FDM
   { name: 'Prusa i3 MK3S+', buildVolume: { x: 250, y: 210, z: 210 }, category: 'Mid-Range FDM', manufacturer: 'Prusa' },
   { name: 'Bambu Lab P1P', buildVolume: { x: 256, y: 256, z: 256 }, category: 'Mid-Range FDM', manufacturer: 'Bambu Lab' },
   { name: 'Bambu Lab X1 Carbon', buildVolume: { x: 256, y: 256, z: 256 }, category: 'Premium FDM', manufacturer: 'Bambu Lab' },
-  
+
   // Large Format FDM
   { name: 'Creality CR-10', buildVolume: { x: 300, y: 300, z: 400 }, category: 'Large Format FDM', manufacturer: 'Creality' },
   { name: 'Creality CR-10 S5', buildVolume: { x: 500, y: 500, z: 500 }, category: 'Large Format FDM', manufacturer: 'Creality' },
   { name: 'Prusa XL', buildVolume: { x: 360, y: 360, z: 360 }, category: 'Large Format FDM', manufacturer: 'Prusa' },
-  
+
   // Budget Resin
   { name: 'Elegoo Mars 3', buildVolume: { x: 143, y: 89, z: 175 }, category: 'Budget Resin', manufacturer: 'Elegoo' },
   { name: 'Anycubic Photon Mono', buildVolume: { x: 130, y: 82, z: 165 }, category: 'Budget Resin', manufacturer: 'Anycubic' },
-  
+
   // Mid-Range Resin
   { name: 'Anycubic Photon Mono X', buildVolume: { x: 192, y: 120, z: 245 }, category: 'Mid-Range Resin', manufacturer: 'Anycubic' },
   { name: 'Elegoo Saturn 2', buildVolume: { x: 219, y: 123, z: 250 }, category: 'Mid-Range Resin', manufacturer: 'Elegoo' },
-  
+
   // Professional Resin
   { name: 'Formlabs Form 3', buildVolume: { x: 145, y: 145, z: 185 }, category: 'Professional Resin', manufacturer: 'Formlabs' },
   { name: 'Formlabs Form 3L', buildVolume: { x: 200, y: 335, z: 300 }, category: 'Professional Resin', manufacturer: 'Formlabs' },
@@ -63,49 +64,62 @@ export function ArchitectureScaleConverter() {
   const [selectedPrinter, setSelectedPrinter] = useState<Printer | null>(PRINTERS[0]);
   const [resultMM, setResultMM] = useState<{ x: number; y: number; z: number } | null>(null);
   const [willFit, setWillFit] = useState<boolean | null>(null);
+  const [mode, setMode] = useState<'real-to-scale' | 'scale-to-real'>('real-to-scale');
+  const [modelInput, setModelInput] = useState<string>('0'); // For reverse mode (mm)
+  const [resultReal, setResultReal] = useState<{ feet: number; inches: number } | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Calculate whenever inputs change
   useEffect(() => {
-    calculateScale();
-  }, [realFeet, realInches, selectedScale, selectedPrinter]);
+    if (mode === 'real-to-scale') {
+      const feet = parseFloat(realFeet) || 0;
+      const inches = parseFloat(realInches) || 0;
 
-  const calculateScale = () => {
-    const feet = parseFloat(realFeet) || 0;
-    const inches = parseFloat(realInches) || 0;
-    
-    if (feet <= 0 && inches <= 0) {
-      setResultMM(null);
-      setWillFit(null);
-      return;
+      if (feet <= 0 && inches <= 0) {
+        setResultMM(null);
+        setWillFit(null);
+        return;
+      }
+
+      // Real -> Scale
+      const totalInches = (feet * 12) + inches;
+      const modelInches = totalInches / selectedScale;
+      const modelMM = modelInches * 25.4;
+
+      setResultMM({ x: modelMM, y: modelMM, z: modelMM });
+
+      if (selectedPrinter) {
+        setWillFit(
+          modelMM <= selectedPrinter.buildVolume.x &&
+          modelMM <= selectedPrinter.buildVolume.y &&
+          modelMM <= selectedPrinter.buildVolume.z
+        );
+      }
+    } else {
+      // Scale -> Real
+      const mm = parseFloat(modelInput) || 0;
+      if (mm <= 0) {
+        setResultReal(null);
+        return;
+      }
+
+      const modelInches = mm / 25.4;
+      const realTotalInches = modelInches * selectedScale;
+
+      setResultReal({
+        feet: Math.floor(realTotalInches / 12),
+        inches: realTotalInches % 12
+      });
     }
+  }, [realFeet, realInches, modelInput, selectedScale, selectedPrinter, mode]);
 
-    // Convert to total inches
-    const totalInches = (feet * 12) + inches;
 
-    // Calculate model size in inches
-    const modelInches = totalInches / selectedScale;
-
-    // Convert to mm (1 inch = 25.4mm)
-    const modelMM = modelInches * 25.4;
-
-    // For now, assuming a single dimension. User would measure each axis (X, Y, Z) separately
-    setResultMM({ x: modelMM, y: modelMM, z: modelMM });
-
-    // Check if it fits
-    if (selectedPrinter) {
-      const fits = 
-        modelMM <= selectedPrinter.buildVolume.x &&
-        modelMM <= selectedPrinter.buildVolume.y &&
-        modelMM <= selectedPrinter.buildVolume.z;
-      setWillFit(fits);
-    }
-  };
 
   const copyToClipboard = async () => {
     if (!resultMM) return;
-    
+
     const textToCopy = resultMM.x.toFixed(2);
-    
+
     // Try modern Clipboard API first
     if (navigator.clipboard && navigator.clipboard.writeText) {
       try {
@@ -134,7 +148,7 @@ export function ArchitectureScaleConverter() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      }
+    }
     document.body.removeChild(textarea);
   };
 
@@ -142,7 +156,7 @@ export function ArchitectureScaleConverter() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12">
-      
+
       {/* Hero Section with Image */}
       <div className="max-w-6xl mx-auto mb-12">
         <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl overflow-hidden">
@@ -178,48 +192,71 @@ export function ArchitectureScaleConverter() {
       {/* Calculator Grid */}
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          
+
           {/* LEFT PANEL: Input */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-6 md:p-8"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <Cube size={32} weight="regular" className="text-foreground" />
-              <h2 className="font-pixel text-xs tracking-[0.3em] text-foreground/60 uppercase">
-                Input Dimensions
-              </h2>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Cube size={32} weight="regular" className="text-foreground" />
+                <h2 className="font-pixel text-xs tracking-[0.3em] text-foreground/60 uppercase">
+                  Input Data
+                </h2>
+              </div>
+              {/* Mode Toggle */}
+              <button
+                onClick={() => setMode(mode === 'real-to-scale' ? 'scale-to-real' : 'real-to-scale')}
+                className="bg-foreground/10 hover:bg-foreground/20 text-foreground/80 px-3 py-1.5 rounded-full text-[10px] font-pixel tracking-wider transition-colors"
+              >
+                {mode === 'real-to-scale' ? 'SWITCH TO REVERSE' : 'SWITCH TO STANDARD'}
+              </button>
             </div>
-            
-            {/* Real World Dimensions */}
+
+            {/* Input Fields based on Mode */}
             <div className="mb-8">
               <label className="block mb-3 font-pixel text-[10px] tracking-[0.3em] text-foreground/60 uppercase">
-                Real World Size
+                {mode === 'real-to-scale' ? 'Real World Size' : 'Model Size (mm)'}
               </label>
-              <div className="grid grid-cols-2 gap-4">
+
+              {mode === 'real-to-scale' ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider">FEET</div>
+                    <input
+                      type="number"
+                      value={realFeet}
+                      onChange={(e) => setRealFeet(e.target.value)}
+                      className="w-full px-4 py-3 bg-background border border-neutral-500/20 rounded-2xl text-foreground focus:border-foreground outline-none transition-all"
+                      placeholder="10"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider">INCHES</div>
+                    <input
+                      type="number"
+                      value={realInches}
+                      onChange={(e) => setRealInches(e.target.value)}
+                      className="w-full px-4 py-3 bg-background border border-neutral-500/20 rounded-2xl text-foreground focus:border-foreground outline-none transition-all"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              ) : (
                 <div>
-                  <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider">FEET</div>
+                  <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider">MILLIMETERS</div>
                   <input
                     type="number"
-                    value={realFeet}
-                    onChange={(e) => setRealFeet(e.target.value)}
+                    value={modelInput}
+                    onChange={(e) => setModelInput(e.target.value)}
                     className="w-full px-4 py-3 bg-background border border-neutral-500/20 rounded-2xl text-foreground focus:border-foreground outline-none transition-all"
-                    placeholder="10"
+                    placeholder="50"
                   />
                 </div>
-                <div>
-                  <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider">INCHES</div>
-                  <input
-                    type="number"
-                    value={realInches}
-                    onChange={(e) => setRealInches(e.target.value)}
-                    className="w-full px-4 py-3 bg-background border border-neutral-500/20 rounded-2xl text-foreground focus:border-foreground outline-none transition-all"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Scale Selection */}
@@ -234,11 +271,10 @@ export function ArchitectureScaleConverter() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedScale(scale.ratio)}
-                    className={`px-3 py-2 rounded-full transition-all text-sm ${
-                      selectedScale === scale.ratio
-                        ? 'bg-foreground text-background'
-                        : 'bg-neutral-500/10 border border-neutral-500/20 text-foreground hover:border-foreground'
-                    }`}
+                    className={`px-3 py-2 rounded-full transition-all text-sm ${selectedScale === scale.ratio
+                      ? 'bg-foreground text-background'
+                      : 'bg-neutral-500/10 border border-neutral-500/20 text-foreground hover:border-foreground'
+                      }`}
                   >
                     {scale.label}
                   </motion.button>
@@ -253,6 +289,7 @@ export function ArchitectureScaleConverter() {
                 Select 3D Printer
               </label>
               <select
+                aria-label="Select 3D Printer"
                 value={selectedPrinter?.name || ''}
                 onChange={(e) => {
                   const printer = PRINTERS.find(p => p.name === e.target.value);
@@ -267,7 +304,7 @@ export function ArchitectureScaleConverter() {
                 ))}
               </select>
               {selectedPrinter && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mt-3 text-xs text-foreground/60 bg-neutral-500/10 rounded-2xl p-3 border border-neutral-500/20"
@@ -280,7 +317,7 @@ export function ArchitectureScaleConverter() {
           </motion.div>
 
           {/* RIGHT PANEL: Output */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -291,119 +328,161 @@ export function ArchitectureScaleConverter() {
                 Calculated Output
               </h2>
             </div>
-            
-            {resultMM ? (
-              <div className="space-y-6">
-                {/* Result Display */}
-                <motion.div 
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                  className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-6"
-                >
-                  <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider uppercase">Model Size</div>
-                  <div className="flex items-center justify-between gap-4">
-                    <motion.div 
-                      key={resultMM.x}
-                      initial={{ scale: 1.1, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                      className="font-serif italic text-5xl"
-                    >
-                      {resultMM.x.toFixed(2)} mm
-                    </motion.div>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={copyToClipboard}
-                      className="flex-shrink-0 p-3 bg-foreground text-background rounded-2xl hover:opacity-90 transition-opacity"
-                      title="Copy number to clipboard"
-                    >
-                      {copied ? (
-                        <Check size={24} weight="bold" />
-                      ) : (
-                        <Copy size={24} weight="regular" />
-                      )}
-                    </motion.button>
-                  </div>
-                  <div className="text-sm text-foreground/70 mt-2">
-                    at {selectedScaleLabel} scale
-                  </div>
-                  {copied && (
+
+            {mode === 'real-to-scale' ? (
+              resultMM ? (
+                <div className="space-y-6">
+                  {/* Result Display */}
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-6"
+                  >
+                    <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider uppercase">Model Size</div>
+                    <div className="flex items-center justify-between gap-4">
+                      <motion.div
+                        key={resultMM.x}
+                        initial={{ scale: 1.1, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                        className="font-serif italic text-5xl"
+                      >
+                        {resultMM.x.toFixed(2)} mm
+                      </motion.div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={copyToClipboard}
+                        className="flex-shrink-0 p-3 bg-foreground text-background rounded-2xl hover:opacity-90 transition-opacity"
+                        title="Copy number to clipboard"
+                      >
+                        {copied ? (
+                          <Check size={24} weight="bold" />
+                        ) : (
+                          <Copy size={24} weight="regular" />
+                        )}
+                      </motion.button>
+                    </div>
+                    <div className="text-sm text-foreground/70 mt-2">
+                      at {selectedScaleLabel} scale
+                    </div>
+                    {copied && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="text-xs text-green-500 mt-2 font-pixel tracking-wider"
+                      >
+                        ✓ COPIED TO CLIPBOARD
+                      </motion.div>
+                    )}
+                  </motion.div>
+
+                  {/* Print Bed Visualizer */}
+                  {selectedPrinter && (
                     <motion.div
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="text-xs text-green-500 mt-2 font-pixel tracking-wider"
+                      key={selectedPrinter.name}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="relative w-full aspect-square bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden flex items-center justify-center p-8"
                     >
-                      ✓ COPIED TO CLIPBOARD
+                      {/* Bed */}
+                      <div
+                        className="border-2 border-dashed border-neutral-700 relative bg-neutral-800/50"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          maxWidth: '240px',
+                          maxHeight: '240px',
+                          aspectRatio: `${selectedPrinter.buildVolume.x}/${selectedPrinter.buildVolume.y}`
+                        }}
+                      >
+                        <div className="absolute top-2 left-2 text-[8px] text-neutral-500 font-pixel tracking-wider">PRINT BED ({selectedPrinter.buildVolume.x}x{selectedPrinter.buildVolume.y}mm)</div>
+
+                        {/* Object */}
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring" }}
+                          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${willFit ? 'bg-green-500' : 'bg-red-500'} opacity-30`}
+                          style={{
+                            width: `${(resultMM.x / selectedPrinter.buildVolume.x) * 100}%`,
+                            height: `${(resultMM.y / selectedPrinter.buildVolume.y) * 100}%`,
+                            maxWidth: '100%',
+                            maxHeight: '100%'
+                          }}
+                        />
+                        <motion.div
+                          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 ${willFit ? 'border-green-500' : 'border-red-500'}`}
+                          style={{
+                            width: `${(resultMM.x / selectedPrinter.buildVolume.x) * 100}%`,
+                            height: `${(resultMM.y / selectedPrinter.buildVolume.y) * 100}%`,
+                            maxWidth: '100%',
+                            maxHeight: '100%'
+                          }}
+                        />
+                      </div>
                     </motion.div>
                   )}
-                </motion.div>
 
-                {/* Fit Check */}
-                <motion.div 
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.05 }}
-                  className={`border rounded-3xl p-6 transition-all ${
-                    willFit 
-                      ? 'bg-green-500/10 border-green-500/30' 
+                  {/* Fit Check */}
+                  <motion.div
+                    className={`border rounded-3xl p-6 transition-all ${willFit
+                      ? 'bg-green-500/10 border-green-500/30'
                       : 'bg-red-500/10 border-red-500/30'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    {willFit ? (
-                      <>
-                        <CheckCircle size={32} weight="regular" className="text-green-500" />
-                        <div className="font-pixel text-xs tracking-wider text-green-500 uppercase">Print Viable</div>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle size={32} weight="regular" className="text-red-500" />
-                        <div className="font-pixel text-xs tracking-wider text-red-500 uppercase">Exceeds Build Volume</div>
-                      </>
-                    )}
-                  </div>
-                  
-                  {selectedPrinter && (
-                    <div className="text-xs space-y-1 text-foreground/70">
-                      <div className="font-pixel tracking-wider text-foreground">{selectedPrinter.manufacturer} {selectedPrinter.name}</div>
-                      <div>Build Volume: {selectedPrinter.buildVolume.x} × {selectedPrinter.buildVolume.y} × {selectedPrinter.buildVolume.z} mm</div>
-                      <div>Model Size: {resultMM.x.toFixed(1)} mm per dimension</div>
-                      {!willFit && (
-                        <div className="text-red-500 mt-2 pt-2 border-t border-red-500/30">
-                          → Recommendation: Select larger printer or reduce scale
-                        </div>
+                      }`}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      {willFit ? (
+                        <>
+                          <CheckCircle size={32} weight="regular" className="text-green-500" />
+                          <div className="font-pixel text-xs tracking-wider text-green-500 uppercase">Print Viable</div>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle size={32} weight="regular" className="text-red-500" />
+                          <div className="font-pixel text-xs tracking-wider text-red-500 uppercase">Exceeds Build Volume</div>
+                        </>
                       )}
                     </div>
-                  )}
-                </motion.div>
-
-                {/* Technical Details */}
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-4 text-xs space-y-1 text-foreground/60"
-                >
-                  <div className="font-pixel tracking-wider text-foreground mb-2 uppercase">Calculation Breakdown</div>
-                  <div>• Real: {realFeet}'-{realInches}" = {(parseFloat(realFeet) * 12 + parseFloat(realInches)).toFixed(2)}" total</div>
-                  <div>• Scale Ratio: 1:{selectedScale}</div>
-                  <div>• Model: {((parseFloat(realFeet) * 12 + parseFloat(realInches)) / selectedScale).toFixed(4)}"</div>
-                  <div>• Converted: {resultMM.x.toFixed(2)} mm</div>
-                  <div className="text-foreground/60 pt-2 border-t border-neutral-500/20 mt-2">
-                    Note: Measure each axis (X, Y, Z) separately for full models
-                  </div>
-                </motion.div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-64 text-foreground/40">
-                <div className="text-center">
-                  <Cube size={48} weight="regular" className="mx-auto mb-4 opacity-40" />
-                  <div className="font-pixel text-xs tracking-wider">AWAITING INPUT DATA...</div>
+                  </motion.div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center justify-center h-64 text-foreground/40">
+                  <div className="text-center">
+                    <Cube size={48} weight="regular" className="mx-auto mb-4 opacity-40" />
+                    <div className="font-pixel text-xs tracking-wider">AWAITING INPUT DATA...</div>
+                  </div>
+                </div>
+              )
+            ) : (
+              // REVERSE MODE RESULTS
+              resultReal ? (
+                <div className="space-y-6">
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-6"
+                  >
+                    <div className="text-xs text-foreground/60 mb-2 font-pixel tracking-wider uppercase">Real World Size</div>
+                    <div className="font-serif italic text-5xl">
+                      {resultReal.feet}' - {resultReal.inches.toFixed(2)}"
+                    </div>
+                    <div className="text-sm text-foreground/70 mt-2">
+                      converted from {modelInput}mm at {selectedScaleLabel}
+                    </div>
+                  </motion.div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-64 text-foreground/40">
+                  <div className="text-center">
+                    <Cube size={48} weight="regular" className="mx-auto mb-4 opacity-40" />
+                    <div className="font-pixel text-xs tracking-wider">ENTER MODEL MM SIZE...</div>
+                  </div>
+                </div>
+              )
             )}
           </motion.div>
         </div>
@@ -411,7 +490,7 @@ export function ArchitectureScaleConverter() {
         {/* Info Cards */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Usage Tips */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -441,7 +520,7 @@ export function ArchitectureScaleConverter() {
           </motion.div>
 
           {/* Example Image */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
@@ -464,6 +543,9 @@ export function ArchitectureScaleConverter() {
             </div>
           </motion.div>
         </div>
+
+        {/* Related Tools */}
+        <RelatedTools currentToolId="architecture-scale-converter" />
       </div>
     </div>
   );

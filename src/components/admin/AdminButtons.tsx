@@ -10,15 +10,15 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
 }
 
-export function PrimaryButton({ 
-  children, 
-  className = '', 
-  ...props 
+export function PrimaryButton({
+  children,
+  className = '',
+  ...props
 }: ButtonProps) {
   return (
     <button
       type="button"
-      className={`flex items-center gap-2 px-6 py-3 ${AdminTokens.button.primary} ${AdminTokens.radius.lg} shadow-lg shadow-blue-500/20 text-xs tracking-wider uppercase font-medium ${className}`}
+      className={`flex items-center gap-2 px-6 py-3 ${AdminTokens.button.primary} ${AdminTokens.radius.lg} shadow-lg shadow-blue-500/20 text-xs tracking-wider uppercase font-medium flex-shrink-0 ${className}`}
       {...props}
     >
       {children}
@@ -26,15 +26,15 @@ export function PrimaryButton({
   );
 }
 
-export function SecondaryButton({ 
-  children, 
-  className = '', 
-  ...props 
+export function SecondaryButton({
+  children,
+  className = '',
+  ...props
 }: ButtonProps) {
   return (
     <button
       type="button"
-      className={`flex items-center gap-2 px-6 py-3 border ${AdminTokens.border.primary} ${AdminTokens.border.accentHover} ${AdminTokens.text.secondary} hover:text-white ${AdminTokens.radius.lg} transition-colors text-xs tracking-wider uppercase ${className}`}
+      className={`flex items-center gap-2 px-6 py-3 border ${AdminTokens.border.primary} ${AdminTokens.border.accentHover} ${AdminTokens.text.secondary} hover:text-white ${AdminTokens.radius.lg} transition-colors text-xs tracking-wider uppercase flex-shrink-0 ${className}`}
       {...props}
     >
       {children}
@@ -42,15 +42,15 @@ export function SecondaryButton({
   );
 }
 
-export function DangerButton({ 
-  children, 
-  className = '', 
-  ...props 
+export function DangerButton({
+  children,
+  className = '',
+  ...props
 }: ButtonProps) {
   return (
     <button
       type="button"
-      className={`flex items-center gap-2 px-6 py-3 ${AdminTokens.button.danger} ${AdminTokens.radius.lg} shadow-lg shadow-red-500/20 text-xs tracking-wider uppercase font-medium ${className}`}
+      className={`flex items-center gap-2 px-6 py-3 ${AdminTokens.button.danger} ${AdminTokens.radius.lg} shadow-lg shadow-red-500/20 text-xs tracking-wider uppercase font-medium flex-shrink-0 ${className}`}
       {...props}
     >
       {children}
@@ -58,11 +58,11 @@ export function DangerButton({
   );
 }
 
-export function IconButton({ 
-  children, 
-  className = '', 
+export function IconButton({
+  children,
+  className = '',
   variant = 'default',
-  ...props 
+  ...props
 }: ButtonProps & { variant?: 'default' | 'danger' }) {
   const variantClasses = {
     default: `${AdminTokens.text.accentHover} ${AdminTokens.bg.accentHover}`,
@@ -72,7 +72,7 @@ export function IconButton({
   return (
     <button
       type="button"
-      className={`p-2 ${AdminTokens.text.tertiary} hover:text-white transition-all ${AdminTokens.radius.sm} ${variantClasses[variant]} ${className}`}
+      className={`p-2 ${AdminTokens.text.tertiary} hover:text-white transition-all ${AdminTokens.radius.sm} ${variantClasses[variant]} flex-shrink-0 ${className}`}
       {...props}
     >
       {children}
@@ -84,7 +84,7 @@ export function SaveButton({ children, className = '', ...props }: ButtonProps) 
   return (
     <button
       type="button"
-      className={`flex items-center gap-2 px-6 py-3 ${AdminTokens.button.primary} ${AdminTokens.radius.lg} shadow-lg shadow-blue-500/20 text-xs tracking-wider uppercase ${className}`}
+      className={`flex items-center gap-2 px-6 py-3 ${AdminTokens.button.primary} ${AdminTokens.radius.lg} shadow-lg shadow-blue-500/20 text-xs tracking-wider uppercase flex-shrink-0 ${className}`}
       {...props}
     >
       {children}
@@ -96,7 +96,7 @@ export function CancelButton({ children, className = '', ...props }: ButtonProps
   return (
     <button
       type="button"
-      className={`px-6 py-3 border ${AdminTokens.border.primary} hover:border-gray-500 ${AdminTokens.text.secondary} hover:text-white ${AdminTokens.radius.lg} transition-colors text-xs tracking-wider uppercase ${className}`}
+      className={`px-6 py-3 border ${AdminTokens.border.primary} hover:border-gray-500 ${AdminTokens.text.secondary} hover:text-white ${AdminTokens.radius.lg} transition-colors text-xs tracking-wider uppercase flex-shrink-0 ${className}`}
       {...props}
     >
       {children}
@@ -105,11 +105,11 @@ export function CancelButton({ children, className = '', ...props }: ButtonProps
 }
 
 // Developer Tools specific buttons
-export function DevToolButton({ 
-  children, 
-  className = '', 
+export function DevToolButton({
+  children,
+  className = '',
   variant = 'default',
-  ...props 
+  ...props
 }: ButtonProps & { variant?: 'default' | 'warning' | 'success' }) {
   const variantClasses = {
     default: 'bg-gray-700 hover:bg-gray-600 shadow-gray-700/20',

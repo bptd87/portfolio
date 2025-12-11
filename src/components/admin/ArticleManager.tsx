@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react';
 import { useForm, FormProvider, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Edit2, Trash2, Save, X, Layout, Image, FileText, Search, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit2, Trash2, Layout, Image, FileText, Search, Eye, EyeOff } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { blogPosts } from '../../data/blog-posts';
-import { BlockEditor, ContentBlock } from './BlockEditor';
+import { ContentBlock } from './BlockEditor';
 import { ImprovedBlockEditor } from './ImprovedBlockEditor';
 import { ArticlePreview } from './ArticlePreview';
 import { ImageUploader } from './ImageUploader';
 import { ArticleSEOTools } from './ArticleSEOTools';
 import { FocusPointPicker } from './FocusPointPicker';
-import { ContentFormatter } from './ContentFormatter';
+
 import { SquarespaceImporter } from './SquarespaceImporter';
 import { useCategories } from '../../hooks/useCategories';
 import { PrimaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
@@ -44,7 +44,7 @@ type ArticleFormData = z.infer<typeof articleSchema>;
 type TabId = 'content' | 'basic' | 'media' | 'seo';
 
 // Wrapper component that properly watches content changes using useWatch
-function ContentTabWrapper({ methods, categories }: { methods: any; categories: any }) {
+function ContentTabWrapper({ methods }: { methods: any }) {
   const content = useWatch({ control: methods.control, name: 'content' }) || [];
   const [showPreview, setShowPreview] = useState(false);
 
@@ -98,7 +98,7 @@ export function ArticleManager() {
   const [showForm, setShowForm] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('content');
-  const { categories, loading: categoriesLoading } = useCategories();
+  const { categories } = useCategories();
 
   const methods = useForm<ArticleFormData>({
     resolver: zodResolver(articleSchema),
@@ -308,7 +308,7 @@ export function ArticleManager() {
 
                 {/* CONTENT TAB */}
                 {activeTab === 'content' && (
-                  <ContentTabWrapper methods={methods} categories={categories} />
+                  <ContentTabWrapper methods={methods} />
                 )}
 
                 {/* BASIC INFO TAB */}
