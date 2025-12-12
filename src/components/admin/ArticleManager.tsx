@@ -21,6 +21,7 @@ import { Textarea } from './ui/Textarea';
 import { Select } from './ui/Select';
 import { Checkbox } from './ui/Checkbox';
 import { toast } from 'sonner';
+import { TagInput } from './ui/TagInput';
 
 // Zod schema for validation
 const articleSchema = z.object({
@@ -379,7 +380,12 @@ export function ArticleManager() {
 
                     <div className="h-px bg-border" />
 
-                    <Input name="tags" label="Tags (comma-separated)" placeholder="e.g., Design Philosophy, Creative Process" />
+                    <TagInput
+                      label="Tags"
+                      value={methods.watch('tags') || []}
+                      onChange={(tags) => methods.setValue('tags', tags)}
+                      placeholder="e.g., Design Philosophy, Creative Process"
+                    />
                     <Textarea name="seoDescription" label="SEO Meta Description" rows={4} maxLength={160} placeholder="Custom meta description for search engines. If left empty, the excerpt will be used." />
                   </div>
                 )}

@@ -174,7 +174,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
             type: 'project',
             title: project.title,
             subtitle: `${project.venue || 'Portfolio'} • ${project.year}`,
-            url: `/portfolio/${project.slug}`,
+            url: `/project/${project.slug}`,
             image: selectedImage,
             date: dateStr,
             icon: 'image'
@@ -192,7 +192,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
             type: 'news',
             title: item.title,
             subtitle: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            url: item.url || '#', // News might be text-only or have external link
+            url: item.url && item.url.startsWith('http') ? item.url : `/news/${item.slug || item.id}`,
             image: item.coverImage || item.thumbnail,
             date: item.date,
             icon: 'newspaper'
@@ -344,7 +344,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
             {/* Website CTA */}
             <a
               href="/"
-              onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('/'); }}
+              onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('home'); }}
               className="px-6 py-2.5 rounded-full border border-foreground/20 hover:bg-foreground/5 hover:border-foreground/40 transition-all font-pixel text-[10px] tracking-[0.2em] uppercase text-foreground/80"
             >
               VISIT WEBSITE

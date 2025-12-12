@@ -14,7 +14,8 @@ import { Select } from './ui/Select';
 import { Checkbox } from './ui/Checkbox';
 import { toast } from 'sonner';
 import { CreditsManager } from './CreditsManager';
-import { GalleryEditor, DesignNotesEditor, TagsEditor } from './ProjectTemplateFields';
+import { GalleryEditor, DesignNotesEditor } from './ProjectTemplateFields';
+import { TagInput } from './ui/TagInput';
 import { YouTubeVideosEditor } from './YouTubeVideosEditor';
 import { ProjectSEOTools } from './ProjectSEOTools';
 import { ExperientialDesignEditor } from './ExperientialDesignEditor';
@@ -197,17 +198,24 @@ export function PortfolioManager() {
         body: JSON.stringify({ ...formData, slug }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         toast.success('Project saved successfully!');
         await loadProjects();
-        // Removed auto-close to allow continued editing
-        // setShowForm(false);
-        // setEditingId(null);
+
+        // If we just created a new project, update the editingId so subsequent saves are updates, not creates
+        if (isNew) {
+          const newProject = data.success ? data.project : data;
+          if (newProject && newProject.id) {
+            setEditingId(newProject.id);
+          }
+        }
       } else {
-        const errorData = await response.json();
-        toast.error(`Failed to save project: ${errorData.error}`);
+        toast.error(`Failed to save project: ${data.error || 'Unknown error'}`);
       }
     } catch (err) {
+      console.error(err);
       toast.error('An error occurred while saving the project.');
     }
   };
@@ -533,7 +541,12 @@ export function PortfolioManager() {
                       methods.setValue('description', desc);
                     }}
                   />
-                  <TagsEditor tags={methods.watch('tags') || []} onChange={(tags) => methods.setValue('tags', tags)} />
+                  <TagInput
+                    label="Tags"
+                    value={methods.watch('tags') || []}
+                    onChange={(tags) => methods.setValue('tags', tags)}
+                    placeholder="e.g., Lighting Design, Scenic"
+                  />
                   <div className="bg-blue-500/5 border border-blue-500/20 p-4 rounded-xl">
                     <h4 className="text-sm font-medium text-blue-400 mb-2">SEO Preview</h4>
                     <p className="text-xs text-muted-foreground">

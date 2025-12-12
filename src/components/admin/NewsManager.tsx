@@ -16,6 +16,7 @@ import {
   formContainerClasses,
   listItemClasses
 } from './DarkModeStyles';
+import { TagInput } from './ui/TagInput';
 import { InfoBanner } from './InfoBanner';
 import { NewsBlockEditor } from './NewsBlockEditor';
 
@@ -409,18 +410,10 @@ export function NewsManager() {
             )}
 
             <div>
-              <DarkLabel>
-                Tags (comma-separated)
-              </DarkLabel>
-              <DarkInput
-                type="text"
-                value={formData.tags?.join(', ') || ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    tags: e.target.value.split(',').map((t) => t.trim()),
-                  })
-                }
+              <TagInput
+                label="Tags"
+                value={formData.tags || []}
+                onChange={(tags) => setFormData({ ...formData, tags })}
                 placeholder="e.g., SCR, Musical Theatre"
               />
             </div>
