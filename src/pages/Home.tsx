@@ -4,7 +4,7 @@ import { ArrowRight, ChevronDown, BookOpen, Wrench } from 'lucide-react';
 // ImageWithFallback removed (unused)
 import { API_BASE_URL } from '../utils/api';
 import { publicAnonKey } from '../utils/supabase/info';
-import heroPattern from '../assets/b3f1f9dfbb66813f626ca74d8c8b4acc67e7bdd8.png';
+import heroPattern from '../assets/hero-pattern.webp';
 
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { Navbar } from '../components/Navbar';

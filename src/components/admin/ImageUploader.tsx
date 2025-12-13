@@ -241,11 +241,18 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
 
         // Validate file type
         if (!file.type.startsWith('image/')) continue;
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) continue;
+        // Validate file size (max 10MB before optimization)
+        if (file.size > 10 * 1024 * 1024) continue;
+
+        // Optimize image before upload
+        const optimizedFile = await optimizeImage(file, {
+          maxWidth: 1920,
+          quality: 0.8,
+          format: 'image/webp'
+        });
 
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('image', optimizedFile);
 
         try {
           const response = await fetch(

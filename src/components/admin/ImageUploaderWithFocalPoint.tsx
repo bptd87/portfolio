@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Loader2, Move } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { optimizeImage } from '../../utils/image-optimizer';
 
 interface ImageUploaderWithFocalPointProps {
   value?: string;
@@ -9,11 +10,11 @@ interface ImageUploaderWithFocalPointProps {
   label: string;
 }
 
-export function ImageUploaderWithFocalPoint({ 
-  value, 
-  focalPoint = { x: 50, y: 50 }, 
-  onChange, 
-  label 
+export function ImageUploaderWithFocalPoint({
+  value,
+  focalPoint = { x: 50, y: 50 },
+  onChange,
+  label
 }: ImageUploaderWithFocalPointProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +32,9 @@ export function ImageUploaderWithFocalPoint({
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be less than 5MB');
+    // Validate file size (max 10MB before optimization)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Image must be less than 10MB');
       return;
     }
 
@@ -43,14 +44,21 @@ export function ImageUploaderWithFocalPoint({
     try {
       // Get admin token from sessionStorage
       const adminToken = sessionStorage.getItem('admin_token');
-      
+
       if (!adminToken) {
         throw new Error('Not authenticated - Please log out and log back in to the admin panel');
       }
 
+      // Optimize image before upload (convert to WebP, resize)
+      const optimizedFile = await optimizeImage(file, {
+        maxWidth: 1920,
+        quality: 0.8,
+        format: 'image/webp'
+      });
+
       // Upload to Supabase Storage via server endpoint
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', optimizedFile);
 
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/upload`,
@@ -70,11 +78,11 @@ export function ImageUploaderWithFocalPoint({
       }
 
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'Upload failed');
       }
-      
+
       onChange(data.url, localFocalPoint);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
@@ -85,11 +93,11 @@ export function ImageUploaderWithFocalPoint({
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
     if (!isSettingFocalPoint || !imageRef.current) return;
-    
+
     const rect = imageRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     const newFocalPoint = { x: Math.round(x), y: Math.round(y) };
     setLocalFocalPoint(newFocalPoint);
     onChange(value!, newFocalPoint);
@@ -119,10 +127,10 @@ export function ImageUploaderWithFocalPoint({
                 objectPosition: `${localFocalPoint.x}% ${localFocalPoint.y}%`
               }}
             />
-            
+
             {/* Focal Point Indicator */}
             {isSettingFocalPoint && (
-              <div 
+              <div
                 className="absolute w-6 h-6 -ml-3 -mt-3 border-2 border-accent-brand bg-accent-brand/20 rounded-full pointer-events-none"
                 style={{
                   left: `${localFocalPoint.x}%`,
@@ -134,11 +142,13 @@ export function ImageUploaderWithFocalPoint({
                 </div>
               </div>
             )}
-            
+
             <button
               type="button"
               onClick={handleRemove}
               className="absolute top-2 right-2 p-2 bg-black/80 text-white hover:bg-destructive transition-colors opacity-0 group-hover:opacity-100"
+              title="Remove image"
+              aria-label="Remove image"
             >
               <X className="w-4 h-4" />
             </button>
@@ -148,16 +158,15 @@ export function ImageUploaderWithFocalPoint({
             <button
               type="button"
               onClick={() => setIsSettingFocalPoint(!isSettingFocalPoint)}
-              className={`flex items-center gap-2 px-3 py-2 text-sm border transition-colors ${
-                isSettingFocalPoint 
-                  ? 'border-accent-brand bg-accent-brand/10 text-accent-brand' 
-                  : 'border-border hover:border-accent-brand'
-              }`}
+              className={`flex items-center gap-2 px-3 py-2 text-sm border transition-colors ${isSettingFocalPoint
+                ? 'border-accent-brand bg-accent-brand/10 text-accent-brand'
+                : 'border-border hover:border-accent-brand'
+                }`}
             >
               <Move className="w-4 h-4" />
               {isSettingFocalPoint ? 'Click image to set focal point' : 'Set Focal Point'}
             </button>
-            
+
             <span className="text-xs opacity-50">
               Current: {localFocalPoint.x}%, {localFocalPoint.y}%
             </span>

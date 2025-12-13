@@ -6,20 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="/favicon.png" />
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D1W9Y6LM4N"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-
-    gtag('config', 'G-D1W9Y6LM4N');
-  </script>
-
   <title>Brandonptdavis.com</title>
 
+  <!-- Preconnect to critical origins -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://zuycsuajiuqsvopiioer.supabase.co" crossorigin>
+
+  <!-- Non-blocking font loading -->
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=VT323&display=swap"
     rel="stylesheet" media="print" onload="this.media='all'">
@@ -28,13 +22,24 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=VT323&display=swap"
       rel="stylesheet">
   </noscript>
-  <!-- Model Viewer for 3D assets -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Deferred: Model Viewer for 3D assets (240KB - only load when needed) -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"
+    async></script>
+
+  <!-- Deferred: Google Analytics (non-critical for initial render) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D1W9Y6LM4N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-D1W9Y6LM4N');
+  </script>
 </body>
 
 </html>

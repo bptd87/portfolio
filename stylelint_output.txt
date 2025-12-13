@@ -1,2 +1,0 @@
-NoFilesFoundError: No files matching the pattern " **/*.css" were found.
-    at standalone (file:///D:/brand/OneDrive/Desktop/brandonptdaviscom/node_modules/stylelint/lib/standalone.mjs:302:43)

@@ -95,6 +95,8 @@ export function ParallaxImage({ src, alt, className = '', offset = 50, style, ..
             <motion.img
                 src={src}
                 alt={alt}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
                 style={{
                     y,
