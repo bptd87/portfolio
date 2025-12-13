@@ -588,54 +588,48 @@ app.get("/make-server-74296234/api/admin/posts", verifyAdminToken, async (c) => 
 app.post("/make-server-74296234/api/admin/posts", verifyAdminToken, async (c) => {
   try {
     const post = await c.req.json();
-    + '...',
+    console.log('[Posts API] Creating/updating post:', {
+      title: post.title?.substring(0, 30) + '...',
       hasContent: !!post.content,
-        contentBlocks: post.content?.length || 0,
-          category: post.category,
+      contentBlocks: post.content?.length || 0,
+      category: post.category,
     });
 
-const postId = post.id || `post-${Date.now()}`;
-// Check if post already exists
-const existing = await kv.get(`blog_post:${postId}`);
+    const postId = post.id || `post-${Date.now()}`;
 
-if (existing) {
-  // Update existing post instead of creating duplicate
-  try {
+    // Check if post already exists
+    const existing = await kv.get(`blog_post:${postId}`);
+
+    if (existing) {
+      // Update existing post instead of creating duplicate
+      await kv.set(`blog_post:${postId}`, {
+        ...existing,
+        ...post,
+        id: postId,
+        updatedAt: new Date().toISOString(),
+      });
+      return c.json({ success: true, postId, updated: true });
+    }
+
+    // Create new post
     await kv.set(`blog_post:${postId}`, {
-      ...existing,
       ...post,
       id: postId,
+      createdAt: post.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    return c.json({ success: true, postId, updated: true });
-  } catch (kvError) {
-    throw kvError;
-  }
-}
-
-try {
-  await kv.set(`blog_post:${postId}`, {
-    ...post,
-    id: postId,
-    createdAt: post.createdAt || new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  });
-  return c.json({ success: true, postId });
-} catch (kvError) {
-      ,
-  stack: kvError instanceof Error ? kvError.stack : undefined,
-      });
-throw kvError;
-    }
+    return c.json({ success: true, postId });
   } catch (err) {
-  const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-  return c.json({
-    success: false,
-    error: errorMsg,
-    message: 'Failed to save article. Please check server logs for details.'
-  }, 500);
-}
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[Posts API] Error saving post:', errorMsg);
+    return c.json({
+      success: false,
+      error: errorMsg,
+      message: 'Failed to save article. Please check server logs for details.'
+    }, 500);
+  }
 });
+
 
 app.put("/make-server-74296234/api/admin/posts/:id", verifyAdminToken, async (c) => {
   try {
