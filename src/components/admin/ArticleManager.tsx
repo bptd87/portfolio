@@ -5,8 +5,7 @@ import * as z from 'zod';
 import { Plus, Edit2, Trash2, Layout, Image, FileText, Search, Eye, EyeOff } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { blogPosts } from '../../data/blog-posts';
-import { ContentBlock } from './BlockEditor';
-import { ImprovedBlockEditor } from './ImprovedBlockEditor';
+import { WYSIWYGEditor, ContentBlock } from './WYSIWYGEditor';
 import { ArticlePreview } from './ArticlePreview';
 import { ImageUploader } from './ImageUploader';
 import { ArticleSEOTools } from './ArticleSEOTools';
@@ -50,7 +49,7 @@ function ContentTabWrapper({ methods }: { methods: any }) {
   const [showPreview, setShowPreview] = useState(false);
 
   return (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200 h-full">
+    <div className="space-y-4 h-full">
       {/* Preview Toggle */}
       <div className="flex items-center justify-between p-4 bg-secondary/10 rounded-lg border border-border">
         <div className="flex items-center gap-2">
@@ -81,7 +80,7 @@ function ContentTabWrapper({ methods }: { methods: any }) {
       {showPreview ? (
         <ArticlePreview blocks={content} />
       ) : (
-        <ImprovedBlockEditor
+        <WYSIWYGEditor
           blocks={content}
           onChange={(blocks) => {
             methods.setValue('content', blocks, { shouldDirty: true, shouldTouch: true });
@@ -156,10 +155,42 @@ export function ArticleManager() {
     setActiveTab('content');
   };
 
+  // Auto-save Logic
+  useEffect(() => {
+    if (!editingId || !showForm) return;
+
+    const subscription = methods.watch((value) => {
+      const draftKey = `article_draft_${editingId}`;
+      localStorage.setItem(draftKey, JSON.stringify({
+        ...value,
+        timestamp: Date.now()
+      }));
+    });
+
+    return () => subscription.unsubscribe();
+  }, [editingId, showForm, methods]);
+
+  // Check for auto-save on edit
   const handleEdit = (article: any) => {
+    const draftKey = `article_draft_${article.id}`;
+    const draft = localStorage.getItem(draftKey);
+    let initialData = { ...article };
+
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        const draftTime = new Date(parsed.timestamp).toLocaleString();
+        if (confirm(`Found an unsaved draft from ${draftTime}. Would you like to restore it?`)) {
+          initialData = { ...parsed, content: parsed.content || [] };
+        }
+      } catch (e) {
+        console.error('Failed to parse draft', e);
+      }
+    }
+
     methods.reset({
-      ...article,
-      content: migrateContentToBlocks(article.content),
+      ...initialData,
+      content: initialData.content ? migrateContentToBlocks(initialData.content) : [],
     });
     setEditingId(article.id);
     setShowForm(true);
@@ -188,6 +219,12 @@ export function ArticleManager() {
 
       if (response.ok) {
         toast.success('Article saved successfully!');
+
+        // Clear draft on success
+        if (editingId) {
+          localStorage.removeItem(`article_draft_${editingId}`);
+        }
+
         await loadArticles();
         setShowForm(false);
         setEditingId(null);
@@ -210,6 +247,7 @@ export function ArticleManager() {
       });
       if (response.ok) {
         toast.success('Article deleted successfully!');
+        localStorage.removeItem(`article_draft_${id}`);
         await loadArticles();
       } else {
         toast.error('Failed to delete article.');
@@ -220,8 +258,10 @@ export function ArticleManager() {
   };
 
   const handleCancel = () => {
-    setShowForm(false);
-    setEditingId(null);
+    if (confirm('Unsaved changes will be kept in draft. Close editor?')) {
+      setShowForm(false);
+      setEditingId(null);
+    }
   };
 
   if (loading) return <div className="text-center py-12 text-gray-400">Loading articles...</div>;
@@ -268,7 +308,7 @@ export function ArticleManager() {
 
       {showForm && (
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="border border-border bg-card rounded-3xl overflow-hidden flex flex-col h-[calc(100vh-200px)]">
+          <form onSubmit={methods.handleSubmit(onSubmit)} className="border border-border bg-card rounded-3xl flex flex-col h-[calc(100vh-200px)]">
             {/* Sticky Header */}
             <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-border bg-card/80 backdrop-blur-md">
               <div className="flex items-center gap-4">

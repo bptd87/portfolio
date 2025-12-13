@@ -23,18 +23,39 @@ export function AnalyticsTracker({ currentPage, slug }: AnalyticsTrackerProps) {
       try {
         const supabase = createClient();
 
-        await supabase.from('page_views').insert({
+        // Fetch basic location data (client-side)
+        let locationData = { city: null, region: null, country: null };
+        try {
+          const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+          if (res.ok) {
+            const data = await res.json();
+            locationData = {
+              city: data.city || null,
+              region: data.region || null,
+              country: data.country || null
+            };
+          }
+        } catch (e) {
+          // Ignore location fetch errors
+        }
+
+        const { error } = await supabase.from('page_views').insert({
           path: window.location.pathname,
           page_type: currentPage,
           slug: slug || null,
           referrer: document.referrer || null,
           screen_width: window.innerWidth,
-          user_agent: navigator.userAgent
+          user_agent: navigator.userAgent,
+          ...locationData
         } as any);
+
+        if (error) {
+          console.error('Analytics Insert Error:', error);
+        }
 
         lastTracked.current = currentPath;
       } catch (error) {
-        // Suppress analytics errors (403/401) to prevent console noise
+        console.error('Analytics Error:', error);
       }
     };
 

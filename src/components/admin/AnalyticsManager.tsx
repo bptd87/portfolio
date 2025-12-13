@@ -1,27 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  Eye, 
-  Globe, 
-  Clock, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  FileText 
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  Eye,
+  Globe,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
+  FileText,
+  Table,
+  Search,
+  Database
 } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { createClient } from '../../utils/supabase/client';
 import { AdminTokens } from '../../styles/admin-tokens';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
 } from 'recharts';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 interface AnalyticsStats {
   articles: number;
@@ -48,6 +57,13 @@ export function AnalyticsManager() {
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
   const [dailyTraffic, setDailyTraffic] = useState<DailyTraffic[]>([]);
   const [topPages, setTopPages] = useState<PageView[]>([]);
+  const [topLocations, setTopLocations] = useState<{ location: string; views: number }[]>([]);
+  const [deviceStats, setDeviceStats] = useState<{ name: string; value: number }[]>([]);
+  const [browserStats, setBrowserStats] = useState<{ name: string; value: number }[]>([]);
+  const [rawViews, setRawViews] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState<'overview' | 'database'>('overview');
+  const [dateRange, setDateRange] = useState<'24h' | '7d' | '30d' | '90d'>('7d');
+  const [searchTerm, setSearchTerm] = useState('');
   const [totalViews, setTotalViews] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -66,16 +82,27 @@ export function AnalyticsManager() {
         }
 
         // 2. Fetch Page Views (Direct DB Access)
-        // Get last 30 days of traffic
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const now = new Date();
+        const pastDate = new Date();
+
+        switch (dateRange) {
+          case '24h': pastDate.setHours(pastDate.getHours() - 24); break;
+          case '7d': pastDate.setDate(pastDate.getDate() - 7); break;
+          case '30d': pastDate.setDate(pastDate.getDate() - 30); break;
+          case '90d': pastDate.setDate(pastDate.getDate() - 90); break;
+        }
 
         const { data: viewsData, error } = await supabase
           .from('page_views')
-          .select('created_at, path')
-          .gte('created_at', thirtyDaysAgo.toISOString());
+          // Fetch EVERYTHING for the database view
+          .select('*')
+          .gte('created_at', pastDate.toISOString())
+          .order('created_at', { ascending: false });
+
+        if (error) console.error('Error fetching views:', error);
 
         if (!error && viewsData) {
+          setRawViews(viewsData);
           // Process Total Views
           setTotalViews(viewsData.length);
 
@@ -86,16 +113,31 @@ export function AnalyticsManager() {
             dailyMap.set(date, (dailyMap.get(date) || 0) + 1);
           });
 
-          // Fill in missing days
+          // Fill in missing days (or hours if 24h)
           const chartData: DailyTraffic[] = [];
-          for (let i = 29; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            chartData.push({
-              date: dateStr,
-              views: dailyMap.get(dateStr) || 0
-            });
+
+          if (dateRange === '24h') {
+            const days = 1;
+            for (let i = days - 1; i >= 0; i--) {
+              const d = new Date();
+              d.setDate(d.getDate() - i);
+              const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              chartData.push({
+                date: dateStr,
+                views: dailyMap.get(dateStr) || 0
+              });
+            }
+          } else {
+            const days = dateRange === '90d' ? 90 : dateRange === '30d' ? 30 : 7;
+            for (let i = days - 1; i >= 0; i--) {
+              const d = new Date();
+              d.setDate(d.getDate() - i);
+              const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              chartData.push({
+                date: dateStr,
+                views: dailyMap.get(dateStr) || 0
+              });
+            }
           }
           setDailyTraffic(chartData);
 
@@ -104,23 +146,68 @@ export function AnalyticsManager() {
           viewsData.forEach((view: any) => {
             pageMap.set(view.path, (pageMap.get(view.path) || 0) + 1);
           });
-          
+
           const sortedPages = Array.from(pageMap.entries())
             .map(([path, views]) => ({ path, views }))
             .sort((a, b) => b.views - a.views)
             .slice(0, 5);
-            
+
           setTopPages(sortedPages);
+
+          // Process Top Locations
+          const locMap = new Map<string, number>();
+          viewsData.forEach((view: any) => {
+            if (view.city && view.country) {
+              const loc = `${view.city}, ${view.country}`;
+              locMap.set(loc, (locMap.get(loc) || 0) + 1);
+            } else if (view.country) {
+              locMap.set(view.country, (locMap.get(view.country) || 0) + 1);
+            }
+          });
+
+          const sortedLocations = Array.from(locMap.entries())
+            .map(([location, views]) => ({ location, views }))
+            .sort((a, b) => b.views - a.views)
+            .slice(0, 5);
+
+          setTopLocations(sortedLocations);
+
+          // Process Device Stats
+          let mobile = 0;
+          let desktop = 0;
+          viewsData.forEach((view: any) => {
+            if (view.screen_width < 768) mobile++;
+            else desktop++;
+          });
+          setDeviceStats([
+            { name: 'Mobile', value: mobile },
+            { name: 'Desktop', value: desktop }
+          ].filter(i => i.value > 0));
+
+          // Process Browser Stats (Simple)
+          const browserMap = new Map<string, number>();
+          viewsData.forEach((view: any) => {
+            const ua = view.user_agent || '';
+            let browser = 'Other';
+            if (ua.includes('Edg/')) browser = 'Edge';
+            else if (ua.includes('Chrome/') && !ua.includes('Edg/')) browser = 'Chrome';
+            else if (ua.includes('Safari/') && !ua.includes('Chrome/')) browser = 'Safari';
+            else if (ua.includes('Firefox/')) browser = 'Firefox';
+
+            browserMap.set(browser, (browserMap.get(browser) || 0) + 1);
+          });
+          setBrowserStats(Array.from(browserMap.entries()).map(([name, value]) => ({ name, value })));
         }
 
       } catch (error) {
-        } finally {
+        console.error('Analytics Fetch Error:', error);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [dateRange]);
 
   if (loading) {
     return (
@@ -132,136 +219,327 @@ export function AnalyticsManager() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-display italic">Analytics Overview</h2>
-          <p className="text-muted-foreground">Site performance and content metrics</p>
+          <p className="text-muted-foreground">Traffic & Engagement • Last {dateRange === '24h' ? '24 Hours' : dateRange === '7d' ? '7 Days' : dateRange === '30d' ? '30 Days' : '90 Days'}</p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          Live Data
+        <div className="flex items-center gap-3">
+          {/* View Toggle */}
+          <div className="flex bg-neutral-900 rounded-lg p-1 border border-neutral-800">
+            <button
+              onClick={() => setViewMode('overview')}
+              className={`px-3 py-1.5 rounded-md text-sm transition-colors flex items-center gap-2 ${viewMode === 'overview' ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-white'}`}
+            >
+              <BarChart3 className="w-4 h-4" /> Overview
+            </button>
+            <button
+              onClick={() => setViewMode('database')}
+              className={`px-3 py-1.5 rounded-md text-sm transition-colors flex items-center gap-2 ${viewMode === 'database' ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-white'}`}
+            >
+              <Database className="w-4 h-4" /> Data Base
+            </button>
+          </div>
+
+          {/* Date Filter */}
+          <div className="flex bg-neutral-900 rounded-lg p-1 border border-neutral-800">
+            {(['24h', '7d', '30d', '90d'] as const).map((range) => (
+              <button
+                key={range}
+                onClick={() => setDateRange(range)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${dateRange === range ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}`}
+              >
+                {range.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
+          <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            Live
+          </div>
         </div>
       </div>
 
-      {/* Key Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard 
-          title="Total Projects" 
-          value={stats?.portfolio || 0} 
-          icon={Globe} 
-          trend="+2 this month" 
-          trendUp={true} 
-        />
-        <StatCard 
-          title="Articles Published" 
-          value={stats?.articles || 0} 
-          icon={FileText} 
-          trend="+1 this week" 
-          trendUp={true} 
-        />
-        <StatCard 
-          title="30-Day Views" 
-          value={totalViews} 
-          icon={Eye} 
-          trend="Real-time" 
-          trendUp={true} 
-        />
-        <StatCard 
-          title="Avg. Time on Site" 
-          value="--" 
-          icon={Clock} 
-          trend="Coming Soon" 
-          trendUp={false} 
-          isMock={true}
-        />
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Traffic Chart */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-medium">Traffic Overview (Last 30 Days)</h3>
+      {viewMode === 'database' ? (
+        <div className="bg-card border border-border rounded-xl overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+          <div className="p-4 border-b border-border flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+              <input
+                type="text"
+                placeholder="Search IP, Path, Country..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-accent-brand"
+              />
+            </div>
+            <div className="text-sm text-neutral-500">
+              Showing {rawViews.filter(v => JSON.stringify(v).toLowerCase().includes(searchTerm.toLowerCase())).length} records
+            </div>
           </div>
-          
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyTraffic}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
-                <XAxis 
-                  dataKey="date" 
-                  tick={{ fontSize: 10, fill: '#888' }} 
-                  tickLine={false}
-                  axisLine={false}
-                  interval={6}
-                />
-                <YAxis 
-                  tick={{ fontSize: 10, fill: '#888' }} 
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
-                  itemStyle={{ color: '#fff' }}
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                />
-                <Bar 
-                  dataKey="views" 
-                  fill="#D4AF37" 
-                  radius={[4, 4, 0, 0]} 
-                  maxBarSize={40}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-neutral-900/50 text-neutral-400 font-medium">
+                <tr>
+                  <th className="px-4 py-3">Time</th>
+                  <th className="px-4 py-3">Visitor Location</th>
+                  <th className="px-4 py-3">Page Path</th>
+                  <th className="px-4 py-3">Referrer</th>
+                  <th className="px-4 py-3">Device / OS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-800">
+                {rawViews
+                  .filter(v => !searchTerm || JSON.stringify(v).toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map((view) => (
+                    <tr key={view.id} className="hover:bg-neutral-900/50 transition-colors">
+                      <td className="px-4 py-3 whitespace-nowrap text-neutral-500">
+                        {new Date(view.created_at).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {view.country && <span className="text-lg">{getErrorFlag(view.country)}</span>}
+                          <span>
+                            {view.city ? `${view.city}, ` : ''}{view.country || 'Unknown'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-accent-brand">
+                        {view.path}
+                      </td>
+                      <td className="px-4 py-3 text-neutral-500 max-w-[200px] truncate" title={view.referrer}>
+                        {view.referrer ? new URL(view.referrer).hostname : '-'}
+                      </td>
+                      <td className="px-4 py-3 text-neutral-500 max-w-[200px] truncate" title={view.user_agent}>
+                        {view.screen_width < 768 ? '📱 Mobile' : '🖥️ Desktop'}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
         </div>
+      ) : (
+        <>
 
-        {/* Content Breakdown */}
-        <div className="bg-card border border-border rounded-xl p-6">
-          <h3 className="font-medium mb-6">Content Distribution</h3>
-          <div className="space-y-6">
-            <DistributionItem 
-              label="Portfolio Projects" 
-              count={stats?.portfolio || 0} 
-              total={(stats?.portfolio || 0) + (stats?.articles || 0) + (stats?.news || 0)} 
-              color="bg-blue-500" 
-            />
-            <DistributionItem 
-              label="Blog Articles" 
-              count={stats?.articles || 0} 
-              total={(stats?.portfolio || 0) + (stats?.articles || 0) + (stats?.news || 0)} 
-              color="bg-purple-500" 
-            />
-            <DistributionItem 
-              label="News Updates" 
-              count={stats?.news || 0} 
-              total={(stats?.portfolio || 0) + (stats?.articles || 0) + (stats?.news || 0)} 
-              color="bg-orange-500" 
-            />
-            <DistributionItem 
-              label="Tutorials" 
-              count={stats?.tutorials || 0} 
-              total={(stats?.portfolio || 0) + (stats?.articles || 0) + (stats?.news || 0)} 
-              color="bg-green-500" 
-            />
-          </div>
 
-          <div className="mt-8 pt-6 border-t border-border">
-            <h4 className="text-sm font-medium mb-4">Top Performing Pages (30 Days)</h4>
-            <div className="space-y-3">
-              {topPages.length > 0 ? (
-                topPages.map((page, i) => (
-                  <TopPageRow key={i} path={page.path} views={page.views} />
+
+          {/* 1. Activity Log (Top Priority) */}
+          <div className="bg-card border border-border rounded-xl p-6">
+            <h3 className="font-medium mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-accent-brand" />
+              Recent Activity (Live)
+            </h3>
+            <div className="space-y-0 divide-y divide-border/50 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {rawViews.length > 0 ? (
+                rawViews.slice(0, 50).map((view, i) => (
+                  <div key={i} className="py-3 flex items-start justify-between gap-4 text-sm group hover:bg-white/5 px-2 rounded-md transition-colors">
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium flex items-center gap-2">
+                        {view.country ? getErrorFlag(view.country) : '🌍'}
+                        {view.city ? `${view.city}, ${view.country}` : view.country || 'Unknown Location'}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate max-w-[300px] font-mono opacity-70">
+                        {view.path}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 text-right">
+                      <span className="text-xs font-medium text-accent-brand">
+                        {getTimeAgo(view.created_at)}
+                      </span>
+                      {view.referrer && (
+                        <span className="text-[10px] text-muted-foreground truncate max-w-[150px]" title={view.referrer}>
+                          via {new URL(view.referrer).hostname.replace('www.', '')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 ))
               ) : (
-                <div className="text-xs text-muted-foreground italic">No data yet</div>
+                <div className="text-center py-8 text-muted-foreground italic">No recent activity</div>
               )}
             </div>
           </div>
-        </div>
-      </div>
+
+          {/* 2. Device & Browser (Side by Side) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h3 className="font-medium mb-6">Device Breakdown</h3>
+              <div className="h-48 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={deviceStats}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={60}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {deviceStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h3 className="font-medium mb-6">Browser Share</h3>
+              <div className="h-48 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={browserStats}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={60}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {browserStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Key Metrics Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              title="Total Projects"
+              value={stats?.portfolio || 0}
+              icon={Globe}
+              trend="+2 this month"
+              trendUp={true}
+            />
+            <StatCard
+              title="Articles Published"
+              value={stats?.articles || 0}
+              icon={FileText}
+              trend="+1 this week"
+              trendUp={true}
+            />
+            <StatCard
+              title={`${dateRange.toUpperCase()} Views`}
+              value={totalViews}
+              icon={Eye}
+              trend="Real-time"
+              trendUp={true}
+            />
+            <StatCard
+              title="Avg. Time on Site"
+              value="--"
+              icon={Clock}
+              trend="Coming Soon"
+              trendUp={false}
+              isMock={true}
+            />
+          </div>
+
+          {/* 4. Main Traffic Chart + Content Distribution (Split Row) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-medium">Traffic Overview</h3>
+              </div>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dailyTraffic}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 10, fill: '#888' }}
+                      tickLine={false}
+                      axisLine={false}
+                      interval={Math.floor(dailyTraffic.length / 5)}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10, fill: '#888' }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
+                      itemStyle={{ color: '#fff' }}
+                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    />
+                    <Bar
+                      dataKey="views"
+                      fill="#D4AF37"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={40}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h3 className="font-medium mb-6">Top Locations</h3>
+              <div className="space-y-4">
+                {topLocations.length > 0 ? (
+                  topLocations.map((loc, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="truncate max-w-[180px] font-medium flex items-center gap-2">
+                        <span className="opacity-50 text-xs w-4">{i + 1}.</span>
+                        {loc.location}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 bg-secondary rounded-full overflow-hidden">
+                          <div className="h-full bg-accent-brand rounded-full" style={{ width: `${(loc.views / Math.max(1, topLocations[0].views)) * 100}%` }} />
+                        </div>
+                        <span className="font-mono text-xs opacity-70 w-8 text-right">{loc.views}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-muted-foreground italic">No location data available</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
+}
+
+// Helper for relative time (Simple implementation without date-fns)
+function getTimeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " years ago";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " months ago";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " days ago";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " hours ago";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " mins ago";
+  return Math.floor(seconds) + " seconds ago";
+}
+
+// Helper to get simple flag emoji from country code if possible, or just use code
+function getErrorFlag(countryName: string) {
+  // This is a placeholder. Real implementation would map code to flag or use a lib.
+  // For now returning a generic globe if no flag mapping
+  return '🌍';
 }
 
 function StatCard({ title, value, icon: Icon, trend, trendUp, isMock }: any) {
@@ -287,7 +565,7 @@ function StatCard({ title, value, icon: Icon, trend, trendUp, isMock }: any) {
 
 function DistributionItem({ label, count, total, color }: any) {
   const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
-  
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between text-sm">
@@ -295,9 +573,9 @@ function DistributionItem({ label, count, total, color }: any) {
         <span className="text-muted-foreground">{count} ({percentage}%)</span>
       </div>
       <div className="h-2 bg-secondary rounded-full overflow-hidden">
-        <div 
-          className={`h-full ${color} rounded-full transition-all duration-1000`} 
-          style={{ width: `${percentage}%` }} 
+        <div
+          className={`h-full ${color} rounded-full transition-all duration-1000`}
+          style={{ width: `${percentage}%` }}
         />
       </div>
     </div>
