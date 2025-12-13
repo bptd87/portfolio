@@ -231,13 +231,11 @@ export function Home({ onNavigate }: HomeProps) {
         {/* Content Overlay */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
           <div className="text-center max-w-4xl p-4"> {/* Added padding to container for italics */}
-            <FadeInUp delay={0.2} enableInView={false}>
-              <h1
-                className="font-display text-white text-5xl md:text-7xl lg:text-8xl mb-8 italic leading-tight"
-              >
-                {settings.heroTitle || 'Brandon PT Davis'}
-              </h1>
-            </FadeInUp>
+            <h1
+              className="font-display text-white text-5xl md:text-7xl lg:text-8xl mb-8 italic leading-tight"
+            >
+              {settings.heroTitle || 'Brandon PT Davis'}
+            </h1>
             <div className="font-pixel text-white text-xl md:text-2xl lg:text-3xl tracking-[0.4em] mb-12">
               <RevealText text={settings.heroSubtitle || 'ART × TECHNOLOGY × DESIGN'} delay={0.5} stagger={0.08} />
             </div>
