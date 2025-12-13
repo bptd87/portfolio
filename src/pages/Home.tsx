@@ -151,9 +151,10 @@ export function Home({ onNavigate }: HomeProps) {
 
   useEffect(() => {
     // Hide scrollbar during initial hero animation (cinematic entrance)
+    // Reduced from 2500ms to 1200ms for better LCP scores
     const timer = setTimeout(() => {
       setShowScrollbar(true);
-    }, 2500);
+    }, 1200);
     return () => clearTimeout(timer);
   }, []);
 
