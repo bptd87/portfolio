@@ -24,15 +24,19 @@ import { ApiStatus } from './admin/ApiStatus';
 import { SimpleErrorBoundary } from '../components/SimpleErrorBoundary';
 import { ArchiveManager } from '../components/admin/ArchiveManager';
 import { ModelsManager } from '../components/admin/ModelsManager';
+import { CRMManager } from '../components/admin/crm/CRMManager';
+import { FinanceManager } from '../components/admin/finance/FinanceManager';
 
 interface AdminProps {
   onNavigate: (page: string) => void;
 }
 
-type ManagerView = 'dashboard' | 'articles' | 'portfolio' | 'news' | 'links' | 'directory' | 'vault' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'api-status' | 'analytics' | 'redirects' | 'media' | 'data-sync' | 'contact' | 'archive' | 'models';
+type ManagerView = 'dashboard' | 'articles' | 'portfolio' | 'news' | 'links' | 'directory' | 'vault' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'api-status' | 'analytics' | 'redirects' | 'media' | 'data-sync' | 'contact' | 'archive' | 'models' | 'crm' | 'finance';
 
 const navItems = [
   { id: 'dashboard', title: 'Dashboard' },
+  { id: 'crm', title: 'Theatre CRM' },
+  { id: 'finance', title: 'Finance & Hours' },
   { id: 'data-sync', title: 'Data Sync' },
   { id: 'analytics', title: 'Analytics' },
   { id: 'media', title: 'Media Manager' },
@@ -226,6 +230,10 @@ export function Admin({ onNavigate }: AdminProps) {
         return <ArchiveManager />;
       case 'models':
         return <ModelsManager />;
+      case 'crm':
+        return <CRMManager />;
+      case 'finance':
+        return <FinanceManager />;
       default:
         return <AdminDashboard onSelectManager={setActiveView} />;
     }
@@ -247,6 +255,3 @@ export function Admin({ onNavigate }: AdminProps) {
     </div>
   );
 }
-
-
-

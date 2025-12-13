@@ -124,7 +124,7 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
         setDraggedBlockIndex(index);
     };
 
-    const handleDragOver = (e: React.DragEvent, index: number) => {
+    const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault(); // allow drop
         // Optional: Could add visual indicator here
     };
@@ -265,7 +265,7 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
                                 // DnD Props
                                 draggable
                                 onDragStart={() => handleDragStart(index)}
-                                onDragOver={(e) => handleDragOver(e, index)}
+                                onDragOver={(e) => handleDragOver(e)}
                                 onDrop={() => handleDrop(index)}
                                 isDragging={draggedBlockIndex === index}
                             >
@@ -368,7 +368,7 @@ function InsertButton({ showMenu, onToggle, onSelect }: {
 }
 
 // Block Wrapper with hover controls
-function BlockWrapper({ block, isSelected, onSelect, onEdit, onDelete, onMoveUp, onMoveDown, onInsertBelow, canMoveUp, canMoveDown, draggable, onDragStart, onDragOver, onDrop, isDragging, children }: {
+function BlockWrapper({ block, isSelected, onSelect, onEdit, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown, draggable, onDragStart, onDragOver, onDrop, isDragging, children }: {
     block: ContentBlock;
     isSelected: boolean;
     onSelect: () => void;
@@ -376,7 +376,7 @@ function BlockWrapper({ block, isSelected, onSelect, onEdit, onDelete, onMoveUp,
     onDelete: () => void;
     onMoveUp: () => void;
     onMoveDown: () => void;
-    onInsertBelow: () => void;
+    onInsertBelow?: () => void;
     canMoveUp: boolean;
     canMoveDown: boolean;
     draggable?: boolean;
@@ -424,11 +424,11 @@ function BlockWrapper({ block, isSelected, onSelect, onEdit, onDelete, onMoveUp,
                 {/* Top-right controls (Delete/Settings) - Absolute relative to content */}
                 <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 z-30 translate-x-full pl-2">
                     {needsModal && (
-                        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded">
+                        <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded" title="Block Settings">
                             <Settings className="w-4 h-4" />
                         </button>
                     )}
-                    <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-neutral-800 rounded">
+                    <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-neutral-800 rounded" title="Delete Block">
                         <Trash2 className="w-4 h-4" />
                     </button>
                 </div>
@@ -639,9 +639,9 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
             return (
                 <div className="my-4 space-y-2">
                     {accordionItems.map((item, idx) => (
-                        <details key={item.id || idx} open className="border border-neutral-800 rounded-lg overflow-hidden group/accordion">
-                            <summary className="bg-neutral-900 px-4 py-3 flex items-center gap-2 border-b border-neutral-800 relative group/header cursor-pointer list-none">
-                                <ChevronRight className="w-4 h-4 text-neutral-500 group-open/accordion:rotate-90 transition-transform" />
+                        <div key={item.id || idx} className="border border-neutral-800 rounded-lg overflow-hidden group/accordion">
+                            <div className="bg-neutral-900 px-4 py-3 flex items-center gap-2 border-b border-neutral-800 relative group/header cursor-pointer">
+                                <ChevronRight className="w-4 h-4 text-neutral-500 rotate-90 transition-transform" />
                                 <input
                                     type="text"
                                     value={item.title}
@@ -667,7 +667,7 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
-                            </summary>
+                            </div>
                             <div className="p-4 bg-neutral-950">
                                 <div
                                     contentEditable
@@ -682,7 +682,7 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
                                     data-placeholder="Answer..."
                                 />
                             </div>
-                        </details>
+                        </div>
                     ))}
                     <button
                         type="button"

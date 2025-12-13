@@ -121,24 +121,27 @@ export function ImageUploaderWithFocalPoint({
               ref={imageRef}
               src={value}
               alt="Preview"
-              className={`w-full h-48 object-cover ${isSettingFocalPoint ? 'cursor-crosshair' : ''}`}
+              className={`w-full transition-all duration-300 ${isSettingFocalPoint
+                ? 'h-auto max-h-[600px] object-contain cursor-crosshair bg-black/50'
+                : 'h-48 object-cover'
+                }`}
               onClick={handleImageClick}
               style={{
                 objectPosition: `${localFocalPoint.x}% ${localFocalPoint.y}%`
               }}
             />
 
-            {/* Focal Point Indicator */}
+            {/* Focal Point Indicator - Only show if we can calculate position relative to image */}
             {isSettingFocalPoint && (
               <div
-                className="absolute w-6 h-6 -ml-3 -mt-3 border-2 border-accent-brand bg-accent-brand/20 rounded-full pointer-events-none"
+                className="absolute w-6 h-6 -ml-3 -mt-3 border-2 border-white bg-accent-brand shadow-[0_0_10px_rgba(0,0,0,0.5)] rounded-full pointer-events-none z-10 box-border"
                 style={{
                   left: `${localFocalPoint.x}%`,
                   top: `${localFocalPoint.y}%`
                 }}
               >
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-1 h-1 bg-accent-brand rounded-full" />
+                  <div className="w-1.5 h-1.5 bg-white rounded-full" />
                 </div>
               </div>
             )}
@@ -164,7 +167,7 @@ export function ImageUploaderWithFocalPoint({
                 }`}
             >
               <Move className="w-4 h-4" />
-              {isSettingFocalPoint ? 'Click image to set focal point' : 'Set Focal Point'}
+              {isSettingFocalPoint ? 'Click image to set focal point' : 'Set Focal Point (Expand Image)'}
             </button>
 
             <span className="text-xs opacity-50">

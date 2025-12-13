@@ -8,11 +8,13 @@ import { AdminTokens } from '../../styles/admin-tokens';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
+  icon?: React.ElementType;
 }
 
 export function PrimaryButton({
   children,
   className = '',
+  icon: Icon,
   ...props
 }: ButtonProps) {
   return (
@@ -21,6 +23,7 @@ export function PrimaryButton({
       className={`flex items-center gap-2 px-6 py-3 ${AdminTokens.button.primary} ${AdminTokens.radius.lg} shadow-lg shadow-blue-500/20 text-xs tracking-wider uppercase font-medium flex-shrink-0 ${className}`}
       {...props}
     >
+      {Icon && <Icon className="w-4 h-4" />}
       {children}
     </button>
   );
@@ -29,6 +32,7 @@ export function PrimaryButton({
 export function SecondaryButton({
   children,
   className = '',
+  icon: Icon,
   ...props
 }: ButtonProps) {
   return (
@@ -37,6 +41,7 @@ export function SecondaryButton({
       className={`flex items-center gap-2 px-6 py-3 border ${AdminTokens.border.primary} ${AdminTokens.border.accentHover} ${AdminTokens.text.secondary} hover:text-white ${AdminTokens.radius.lg} transition-colors text-xs tracking-wider uppercase flex-shrink-0 ${className}`}
       {...props}
     >
+      {Icon && <Icon className="w-4 h-4" />}
       {children}
     </button>
   );

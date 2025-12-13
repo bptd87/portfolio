@@ -2,7 +2,7 @@
  * Admin Design Token System
  * 
  * Centralized design tokens for admin panel components.
- * Ensures consistency, easier theming, and supports light/dark mode.
+ * Theme: Premium Neutral (Zinc/Slate/White)
  * 
  * Usage:
  * import { AdminTokens } from '../styles/admin-tokens';
@@ -12,44 +12,46 @@
 export const AdminTokens = {
   // Background colors
   bg: {
-    primary: 'bg-gray-950 dark:bg-gray-950',    // Main admin background
-    secondary: 'bg-gray-900 dark:bg-gray-900',  // Card/panel background
-    tertiary: 'bg-gray-800 dark:bg-gray-800',   // Hover states
-    hover: 'hover:bg-gray-800 dark:hover:bg-gray-800',
-    accent: 'bg-blue-500/10 dark:bg-blue-500/10',
-    accentHover: 'hover:bg-blue-500/20 dark:hover:bg-blue-500/20',
-    disabled: 'bg-gray-900/30 dark:bg-gray-900/30',
+    primary: 'bg-black',    
+    secondary: 'bg-[#18181b]',  // zinc-900
+    tertiary: 'bg-[#27272a]',   // zinc-800
+    hover: 'hover:bg-[#27272a] transition-colors duration-200',
+    accent: 'bg-white text-black', 
+    accentHover: 'hover:bg-[#e4e4e7]', // zinc-200
+    disabled: 'bg-[#18181b]/50',
   },
 
   // Border colors
   border: {
-    primary: 'border-gray-700 dark:border-gray-700',
-    secondary: 'border-gray-600 dark:border-gray-600',
-    accent: 'border-blue-500/30 dark:border-blue-500/30',
-    accentHover: 'hover:border-blue-500/50 dark:hover:border-blue-500/50',
-    light: 'border-white/10 dark:border-white/10',
-    disabled: 'border-gray-800 dark:border-gray-800',
+    primary: 'border-[#3f3f46]', // zinc-700
+    secondary: 'border-[#52525b]', // zinc-600
+    accent: 'border-white/20',
+    accentHover: 'hover:border-white/40',
+    light: 'border-white/20', 
+    disabled: 'border-[#27272a]', // zinc-800
+    focus: 'focus:border-white',
   },
 
   // Text colors
   text: {
-    primary: 'text-white dark:text-white',
-    secondary: 'text-gray-400 dark:text-gray-400',
-    tertiary: 'text-gray-600 dark:text-gray-600',
-    accent: 'text-blue-400 dark:text-blue-400',
-    accentHover: 'hover:text-blue-300 dark:hover:text-blue-300',
-    disabled: 'text-gray-600 dark:text-gray-600',
-    success: 'text-green-400 dark:text-green-400',
-    error: 'text-red-400 dark:text-red-400',
-    warning: 'text-yellow-400 dark:text-yellow-400',
+    primary: 'text-[#f4f4f5]', // zinc-100
+    secondary: 'text-[#a1a1aa]', // zinc-400
+    tertiary: 'text-[#71717a]', // zinc-500
+    accent: 'text-white', 
+    inverse: 'text-black', 
+    accentHover: 'hover:text-white',
+    disabled: 'text-[#52525b]', // zinc-600
+    success: 'text-emerald-400',
+    error: 'text-red-400',
+    warning: 'text-amber-400',
   },
 
   // Border radius (standardized)
   radius: {
-    sm: 'rounded-lg',
-    md: 'rounded-xl',
-    lg: 'rounded-2xl',
-    xl: 'rounded-3xl',
+    sm: 'rounded-md',
+    md: 'rounded-lg',
+    lg: 'rounded-xl',
+    xl: 'rounded-2xl',
   },
 
   // Spacing
@@ -63,28 +65,29 @@ export const AdminTokens = {
 
   // Reusable component classes
   card: {
-    base: 'bg-gray-900 dark:bg-gray-900 border border-gray-700 dark:border-gray-700 rounded-2xl p-6 transition-all',
-    hover: 'bg-gray-900 dark:bg-gray-900 border border-gray-700 dark:border-gray-700 hover:border-blue-500/50 dark:hover:border-blue-500/50 hover:bg-gray-800 dark:hover:bg-gray-800 rounded-2xl p-6 transition-all',
-    accent: 'bg-blue-500/10 dark:bg-blue-500/10 border border-blue-500/30 dark:border-blue-500/30 rounded-2xl p-6 transition-all',
+    base: 'bg-zinc-900 border border-zinc-800 rounded-xl p-6 transition-all',
+    hover: 'bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl p-6 transition-all',
+    accent: 'bg-zinc-900 border border-white/20 rounded-xl p-6 transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)]',
   },
 
   button: {
-    primary: 'px-4 py-2 bg-blue-600 dark:bg-blue-600 text-white dark:text-white rounded-xl hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors font-medium',
-    secondary: 'px-4 py-2 bg-gray-800 dark:bg-gray-800 text-white dark:text-white border border-gray-700 dark:border-gray-700 rounded-xl hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors',
-    danger: 'px-4 py-2 bg-red-600 dark:bg-red-600 text-white dark:text-white rounded-xl hover:bg-red-700 dark:hover:bg-red-700 transition-colors font-medium',
-    disabled: 'px-4 py-2 bg-gray-900/30 dark:bg-gray-900/30 text-gray-600 dark:text-gray-600 rounded-xl cursor-not-allowed opacity-50',
+    primary: 'px-4 py-2 bg-white text-black rounded-lg hover:bg-zinc-200 transition-colors font-medium text-sm tracking-wide',
+    secondary: 'px-4 py-2 bg-zinc-900 text-zinc-300 border border-zinc-800 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-sm',
+    danger: 'px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors text-sm',
+    disabled: 'px-4 py-2 bg-zinc-900 text-zinc-600 border border-zinc-800 rounded-lg cursor-not-allowed text-sm',
   },
 
   input: {
-    base: 'w-full px-4 py-2 bg-gray-800 dark:bg-gray-800 border border-gray-700 dark:border-gray-700 rounded-xl text-white dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors',
-    error: 'w-full px-4 py-2 bg-gray-800 dark:bg-gray-800 border border-red-500/50 dark:border-red-500/50 rounded-xl text-white dark:text-white placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-red-500 dark:focus:border-red-500 transition-colors',
+    base: 'w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-white/50 focus:ring-1 focus:ring-white/20 transition-all',
+    error: 'w-full px-4 py-2.5 bg-zinc-950 border border-red-900/50 rounded-lg text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-red-500 transition-all',
   },
 
   badge: {
-    primary: 'px-3 py-1 bg-blue-500/10 dark:bg-blue-500/10 border border-blue-500/30 dark:border-blue-500/30 rounded-full text-blue-400 dark:text-blue-400 text-xs font-medium',
-    secondary: 'px-3 py-1 bg-gray-800 dark:bg-gray-800 border border-gray-700 dark:border-gray-700 rounded-full text-gray-400 dark:text-gray-400 text-xs font-medium',
-    success: 'px-3 py-1 bg-green-500/10 dark:bg-green-500/10 border border-green-500/30 dark:border-green-500/30 rounded-full text-green-400 dark:text-green-400 text-xs font-medium',
-    error: 'px-3 py-1 bg-red-500/10 dark:bg-red-500/10 border border-red-500/30 dark:border-red-500/30 rounded-full text-red-400 dark:text-red-400 text-xs font-medium',
+    primary: 'px-2.5 py-0.5 bg-white/10 border border-white/10 rounded-full text-white text-xs font-medium',
+    secondary: 'px-2.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded-full text-zinc-400 text-xs font-medium',
+    success: 'px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium',
+    error: 'px-2.5 py-0.5 bg-red-500/10 border border-red-500/20 rounded-full text-red-400 text-xs font-medium',
+    warning: 'px-2.5 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-400 text-xs font-medium',
   },
 
   // Layout utilities
@@ -105,10 +108,10 @@ export const AdminTokens = {
 
   // Status indicators
   status: {
-    success: 'flex items-center gap-2 text-green-400 dark:text-green-400',
-    error: 'flex items-center gap-2 text-red-400 dark:text-red-400',
-    warning: 'flex items-center gap-2 text-yellow-400 dark:text-yellow-400',
-    info: 'flex items-center gap-2 text-blue-400 dark:text-blue-400',
+    success: 'flex items-center gap-2 text-emerald-400',
+    error: 'flex items-center gap-2 text-red-400',
+    warning: 'flex items-center gap-2 text-amber-400',
+    info: 'flex items-center gap-2 text-zinc-400',
   },
 };
 

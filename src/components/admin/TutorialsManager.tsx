@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Plus, Edit2, Trash2, Save, X, ExternalLink, AlertCircle, ChevronDown, ChevronUp, Settings, Wand2, Loader2, Sparkles } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { DEFAULT_CATEGORIES, TUTORIALS as STATIC_TUTORIALS, type TutorialCategory } from '../../data/tutorials';
 import { BlockEditor, ContentBlock } from './BlockEditor';
 import { ImageUploader } from './ImageUploader';
-import { PrimaryButton, SecondaryButton, SaveButton, CancelButton, IconButton, DevToolButton } from './AdminButtons';
-import { InfoBanner } from './InfoBanner';
-import { 
-  DarkInput, 
-  DarkTextarea, 
-  DarkSelect, 
+import { SecondaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
+
+import {
+  DarkInput,
+  DarkTextarea,
+  DarkSelect,
   DarkLabel,
-  formContainerClasses,
-  listItemClasses,
-  badgeClasses
+  // formContainerClasses,
+  // listItemClasses,
+  // badgeClasses
 } from './DarkModeStyles';
 
 interface Tutorial {
@@ -82,14 +82,14 @@ export function TutorialsManager() {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('admin_token');
-      
+
       // Fetch tutorials
       const tutorialsResponse = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials`,
         {
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'Authorization': token ? `Bearer ${token}` : `Bearer ${publicAnonKey}`,
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -104,8 +104,8 @@ export function TutorialsManager() {
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorial-categories`,
         {
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'Authorization': token ? `Bearer ${token}` : `Bearer ${publicAnonKey}`,
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -134,8 +134,8 @@ export function TutorialsManager() {
       setLoading(true);
       setError('');
       setSuccess('');
-      const token = sessionStorage.getItem('admin_token');
-      
+      // const token = sessionStorage.getItem('admin_token');
+
       let importedCount = 0;
       let failedCount = 0;
 
@@ -153,15 +153,15 @@ export function TutorialsManager() {
               body: JSON.stringify(tutorial),
             }
           );
-          
+
           if (response.ok) {
             importedCount++;
           } else {
             failedCount++;
-            }
+          }
         } catch (err) {
           failedCount++;
-          }
+        }
       }
 
       setSuccess(`Import complete: ${importedCount} imported, ${failedCount} failed.`);
@@ -209,7 +209,7 @@ export function TutorialsManager() {
     setError('');
     setSuccess('');
     setExpandedSections(new Set(['basic']));
-    
+
     // Scroll to top to see the form
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -253,8 +253,8 @@ export function TutorialsManager() {
         return;
       }
 
-      const token = sessionStorage.getItem('admin_token');
-      
+      // const token = sessionStorage.getItem('admin_token');
+
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials`,
         {
@@ -288,7 +288,7 @@ export function TutorialsManager() {
     }
 
     try {
-      const token = sessionStorage.getItem('admin_token');
+      // const token = sessionStorage.getItem('admin_token');
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials/${id}`,
         {
@@ -375,7 +375,7 @@ export function TutorialsManager() {
   const generateWithAI = async (type: string, context: string) => {
     setAiLoading(type);
     try {
-      const token = sessionStorage.getItem('admin_token');
+      // const token = sessionStorage.getItem('admin_token');
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/ai/generate`,
         {
@@ -528,6 +528,7 @@ export function TutorialsManager() {
             <button
               onClick={handleCancel}
               className="p-2 opacity-60 hover:opacity-100 transition-opacity"
+              title="Close"
             >
               <X className="w-5 h-5" />
             </button>
@@ -543,7 +544,7 @@ export function TutorialsManager() {
                 <span className="text-sm tracking-wider uppercase">Basic Information</span>
                 {expandedSections.has('basic') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-              
+
               {expandedSections.has('basic') && (
                 <div className="p-6 space-y-6 bg-background">
                   <div>
@@ -553,8 +554,8 @@ export function TutorialsManager() {
                       value={formData.title}
                       onChange={(e) => {
                         const title = e.target.value;
-                        setFormData({ 
-                          ...formData, 
+                        setFormData({
+                          ...formData,
                           title,
                           slug: formData.slug || generateSlug(title)
                         });
@@ -653,7 +654,7 @@ export function TutorialsManager() {
                 <span className="text-sm tracking-wider uppercase">Learning Objectives</span>
                 {expandedSections.has('objectives') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-              
+
               {expandedSections.has('objectives') && (
                 <div className="p-6 space-y-4 bg-background">
                   <div className="flex justify-end">
@@ -678,6 +679,7 @@ export function TutorialsManager() {
                       <button
                         onClick={() => removeArrayItem('learningObjectives', index)}
                         className="px-4 py-3 border border-border hover:border-destructive text-destructive transition-colors"
+                        title="Remove learning objective"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -705,7 +707,7 @@ export function TutorialsManager() {
                 </div>
                 {expandedSections.has('content') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-              
+
               {expandedSections.has('content') && (
                 <div className="p-6 bg-background">
                   <p className="text-sm text-gray-400 mb-4">
@@ -728,7 +730,7 @@ export function TutorialsManager() {
                 <span className="text-sm tracking-wider uppercase">Pro Tips</span>
                 {expandedSections.has('tips') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-              
+
               {expandedSections.has('tips') && (
                 <div className="p-6 space-y-4 bg-background">
                   <div className="flex justify-end">
@@ -753,6 +755,7 @@ export function TutorialsManager() {
                       <button
                         onClick={() => removeArrayItem('proTips', index)}
                         className="px-4 py-3 border border-border hover:border-destructive text-destructive transition-colors"
+                        title="Remove pro tip"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -777,7 +780,7 @@ export function TutorialsManager() {
                 <span className="text-sm tracking-wider uppercase">Key Shortcuts</span>
                 {expandedSections.has('shortcuts') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-              
+
               {expandedSections.has('shortcuts') && (
                 <div className="p-6 space-y-4 bg-background">
                   {(formData.keyShortcuts || []).map((shortcut, index) => (
@@ -799,6 +802,7 @@ export function TutorialsManager() {
                       <button
                         onClick={() => removeArrayItem('keyShortcuts', index)}
                         className="px-4 py-3 border border-border hover:border-destructive text-destructive transition-colors"
+                        title="Remove shortcut"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -823,7 +827,7 @@ export function TutorialsManager() {
                 <span className="text-sm tracking-wider uppercase">Common Pitfalls</span>
                 {expandedSections.has('pitfalls') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-              
+
               {expandedSections.has('pitfalls') && (
                 <div className="p-6 space-y-4 bg-background">
                   <div className="flex justify-end">
@@ -848,6 +852,7 @@ export function TutorialsManager() {
                       <button
                         onClick={() => removeArrayItem('commonPitfalls', index)}
                         className="px-4 py-3 border border-border hover:border-destructive text-destructive transition-colors"
+                        title="Remove pitfall"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -872,7 +877,7 @@ export function TutorialsManager() {
                 <span className="text-sm tracking-wider uppercase">Resources & Downloads</span>
                 {expandedSections.has('resources') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-              
+
               {expandedSections.has('resources') && (
                 <div className="p-6 space-y-4 bg-background">
                   {(formData.resources || []).map((resource, index) => (
@@ -882,6 +887,7 @@ export function TutorialsManager() {
                         <button
                           onClick={() => removeArrayItem('resources', index)}
                           className="text-destructive hover:opacity-80 transition-opacity"
+                          title="Remove resource"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -927,7 +933,7 @@ export function TutorialsManager() {
                 <span className="text-sm tracking-wider uppercase">Related Tutorials</span>
                 {expandedSections.has('related') ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
-              
+
               {expandedSections.has('related') && (
                 <div className="p-6 space-y-4 bg-background">
                   {(formData.relatedTutorials || []).map((related, index) => (
@@ -937,6 +943,7 @@ export function TutorialsManager() {
                         <button
                           onClick={() => removeArrayItem('relatedTutorials', index)}
                           className="text-destructive hover:opacity-80 transition-opacity"
+                          title="Remove related tutorial"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

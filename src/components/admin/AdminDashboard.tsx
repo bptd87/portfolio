@@ -6,34 +6,35 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  FileText, 
-  Briefcase, 
-  Newspaper, 
-  Link, 
-  Play, 
-  Users, 
-  Tag, 
+import {
+  FileText,
+  Briefcase,
+  Newspaper,
+  Link,
+  Play,
+  Users,
+  Tag,
   Settings,
   Mail,
   FileUser,
   BarChart3,
   ArrowUpRight,
-  Sparkles,
   Image as ImageIcon,
-  Globe
+  Globe,
+  Building,
+  DollarSign
 } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { AdminTokens } from '../../styles/admin-tokens';
 
-type ManagerType = 'articles' | 'portfolio' | 'news' | 'links' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'contact' | 'analytics' | 'redirects' | 'media' | 'directory';
+type ManagerType = 'articles' | 'portfolio' | 'news' | 'links' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'contact' | 'analytics' | 'redirects' | 'media' | 'directory' | 'crm' | 'finance';
 
 interface DashboardCard {
   id: ManagerType;
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   description: string;
-  category: 'content' | 'organization' | 'site' | 'analytics';
+  category: 'content' | 'organization' | 'site' | 'analytics' | 'business';
   enabled: boolean;
   comingSoon?: boolean;
 }
@@ -86,6 +87,24 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
   }, []);
 
   const cards: DashboardCard[] = [
+    // BUSINESS
+    {
+      id: 'crm',
+      title: 'Theatre CRM',
+      icon: Building,
+      description: 'Manage companies & contacts',
+      category: 'business',
+      enabled: true,
+    },
+    {
+      id: 'finance',
+      title: 'Finance & Hours',
+      icon: DollarSign,
+      description: 'Track hours and invoices',
+      category: 'business',
+      enabled: true,
+      comingSoon: true,
+    },
     // CONTENT
     {
       id: 'portfolio',
@@ -249,9 +268,11 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
     organization: 'ORGANIZATION',
     site: 'SITE MANAGEMENT',
     analytics: 'ANALYTICS & TOOLS',
+    business: 'BUSINESS SUITE',
   };
 
-  const categories: Array<'content' | 'organization' | 'site' | 'analytics'> = [
+  const categories: Array<'content' | 'organization' | 'site' | 'analytics' | 'business'> = [
+    'business',
     'content',
     'organization',
     'site',
@@ -259,31 +280,18 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
-      {/* Header */}
-      <div className="mb-12">
-        <div className="flex items-center gap-3 mb-4">
-          <div className={`p-3 ${AdminTokens.bg.accent} ${AdminTokens.border.accent} rounded-2xl`}>
-            <Sparkles className={`w-6 h-6 ${AdminTokens.text.accent}`} />
-          </div>
-          <div>
-            <h1 className={`text-3xl tracking-tight ${AdminTokens.text.primary}`}>Dashboard</h1>
-            <p className={`text-sm ${AdminTokens.text.secondary}`}>Manage your scenic design portfolio</p>
-          </div>
-        </div>
-      </div>
-
+    <div className="max-w-7xl mx-auto py-8">
       {/* Cards Grid by Category */}
       <div className="space-y-12">
         {categories.map((category) => {
           const categoryCards = cards.filter((card) => card.category === category);
-          
+
           return (
             <div key={category}>
-              <h2 className={`text-xs tracking-wider uppercase ${AdminTokens.text.tertiary} mb-6 font-mono`}>
+              <h2 className={`text-xs tracking-wider uppercase ${AdminTokens.text.tertiary} mb-6 font-mono pl-1`}>
                 {categoryLabels[category]}
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {categoryCards.map((card) => {
                   const Icon = card.icon;
@@ -296,19 +304,18 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
                       onClick={() => !isDisabled && onSelectManager(card.id)}
                       disabled={isDisabled}
                       className={`
-                        group relative p-6 rounded-3xl border text-left transition-all
-                        ${
-                          isDisabled
-                            ? `${AdminTokens.bg.disabled} ${AdminTokens.border.disabled} cursor-not-allowed opacity-50`
-                            : `${AdminTokens.bg.secondary} ${AdminTokens.border.primary} hover:${AdminTokens.border.accentHover} ${AdminTokens.bg.hover} backdrop-blur`
+                        group relative p-6 rounded-xl border text-left transition-all duration-300
+                        ${isDisabled
+                          ? `${AdminTokens.bg.disabled} ${AdminTokens.border.disabled} cursor-not-allowed opacity-50`
+                          : `${AdminTokens.bg.secondary} ${AdminTokens.border.primary} hover:border-zinc-600 hover:bg-zinc-800/80`
                         }
                       `}
                     >
                       {/* Coming Soon Badge */}
                       {card.comingSoon && (
-                        <div className={`absolute top-4 right-4 px-2 py-1 ${AdminTokens.bg.accent} ${AdminTokens.border.accent} rounded-xl`}>
-                          <span className={`text-[10px] tracking-wider uppercase ${AdminTokens.text.accent} font-mono`}>
-                            Coming Soon
+                        <div className="absolute top-4 right-4 px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded-md">
+                          <span className="text-[10px] tracking-wider uppercase text-zinc-400 font-medium">
+                            Soon
                           </span>
                         </div>
                       )}
@@ -317,32 +324,27 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
                       <div className="flex items-start justify-between mb-4">
                         <div
                           className={`
-                            p-3 rounded-2xl transition-colors
-                            ${
-                              isDisabled
-                                ? 'bg-gray-800/50 border border-gray-700'
-                                : 'bg-blue-500/10 border border-blue-500/30 group-hover:bg-blue-500/20'
+                            p-2.5 rounded-lg transition-colors
+                            ${isDisabled
+                              ? 'bg-zinc-800/50 border border-zinc-800 text-zinc-600'
+                              : 'bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-white/20 text-zinc-300 group-hover:text-white'
                             }
                           `}
                         >
-                          <Icon
-                            className={`w-6 h-6 ${
-                              isDisabled ? 'text-gray-600' : 'text-blue-400'
-                            }`}
-                          />
+                          <Icon className="w-5 h-5" />
                         </div>
 
                         {/* Stat Badge or Arrow */}
                         {!isDisabled && (
                           <div className="flex items-center gap-2">
                             {stat !== null && !loading && (
-                              <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-xl">
-                                <span className="text-sm text-blue-400 font-mono">
+                              <div className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-md">
+                                <span className="text-xs text-zinc-300 font-mono">
                                   {stat}
                                 </span>
                               </div>
                             )}
-                            <ArrowUpRight className="w-5 h-5 text-gray-600 group-hover:text-blue-400 transition-colors" />
+                            <ArrowUpRight className="w-4 h-4 text-zinc-600 group-hover:text-white transition-colors" />
                           </div>
                         )}
                       </div>
@@ -350,25 +352,18 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
                       {/* Text */}
                       <div>
                         <h3
-                          className={`text-lg mb-1 ${
-                            isDisabled ? 'text-gray-600' : 'text-white'
-                          }`}
+                          className={`text-base font-medium mb-1 ${isDisabled ? 'text-zinc-600' : 'text-zinc-200 group-hover:text-white'
+                            }`}
                         >
                           {card.title}
                         </h3>
                         <p
-                          className={`text-sm ${
-                            isDisabled ? 'text-gray-700' : 'text-gray-400'
-                          }`}
+                          className={`text-sm ${isDisabled ? 'text-zinc-700' : 'text-zinc-500 group-hover:text-zinc-400'
+                            }`}
                         >
                           {card.description}
                         </p>
                       </div>
-
-                      {/* Hover effect */}
-                      {!isDisabled && (
-                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                      )}
                     </button>
                   );
                 })}

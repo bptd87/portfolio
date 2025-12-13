@@ -439,14 +439,46 @@ export function ArticleManager() {
       {!showForm && (
         <div className="space-y-3">
           {articles.map((article) => (
-            <div key={article.id} className="flex items-center justify-between p-4 border border-border hover:border-accent-brand/50 transition-colors rounded-2xl">
-              <div className="flex-1">
-                <h4 className="tracking-tight text-white">{article.title}</h4>
-                <p className="text-xs text-gray-400">{article.category} • {article.date}</p>
+            <div key={article.id} className="group flex items-center justify-between p-3 border border-border hover:border-accent-brand/50 hover:bg-zinc-900/50 transition-all rounded-xl">
+              <div className="flex items-center gap-4 flex-1">
+                {/* Thumbnail */}
+                <div className="w-16 h-12 bg-zinc-900 rounded-lg overflow-hidden border border-border group-hover:border-accent-brand/50 transition-colors shrink-0">
+                  {article.coverImage ? (
+                    <img src={article.coverImage} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                      <Image className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div>
+                  <h4 className="font-medium text-sm tracking-tight text-zinc-100 group-hover:text-white transition-colors">
+                    {article.title}
+                  </h4>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider font-medium border ${article.status === 'published'
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                        : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                      }`}>
+                      {article.status || 'Draft'}
+                    </span>
+                    <span className="text-xs text-zinc-500">•</span>
+                    <span className="text-xs text-zinc-500">{article.category}</span>
+                    <span className="text-xs text-zinc-500">•</span>
+                    <span className="text-xs text-zinc-500">{article.date || 'No Date'}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <IconButton onClick={() => handleEdit(article)}><Edit2 className="w-4 h-4" /></IconButton>
-                <IconButton onClick={() => handleDelete(article.id)} variant="danger"><Trash2 className="w-4 h-4" /></IconButton>
+
+              <div className="flex items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity px-2">
+                <IconButton onClick={() => handleEdit(article)} title="Edit Article">
+                  <Edit2 className="w-4 h-4" />
+                </IconButton>
+                <IconButton onClick={() => handleDelete(article.id)} variant="danger" title="Delete Article">
+                  <Trash2 className="w-4 h-4" />
+                </IconButton>
               </div>
             </div>
           ))}

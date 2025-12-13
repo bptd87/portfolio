@@ -441,8 +441,15 @@
     letter-spacing: inherit;
     color: inherit;
     opacity: 1;
-    background-color: #0000;
+    background-color: transparent;
     border-radius: 0;
+  }
+
+  /* Admin Dropdown Fix: Ensure options have dark background in dark mode context */
+  option {
+    background-color: #18181b;
+    /* zinc-900 */
+    color: #fff;
   }
 
   /* stylelint-disable-next-line no-duplicate-selectors */
