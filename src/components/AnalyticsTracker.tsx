@@ -50,12 +50,14 @@ export function AnalyticsTracker({ currentPage, slug }: AnalyticsTrackerProps) {
         } as any);
 
         if (error) {
-          console.error('Analytics Insert Error:', error);
+          console.error('❌ Analytics Insert Error:', error.message, error.details || '');
+        } else {
+          console.log(`✅ Tracked view for: ${currentPath} (${locationData.city || 'Unknown City'})`);
         }
 
         lastTracked.current = currentPath;
       } catch (error) {
-        console.error('Analytics Error:', error);
+        console.error('❌ Analytics Script Error:', error);
       }
     };
 
