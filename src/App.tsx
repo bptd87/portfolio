@@ -32,6 +32,7 @@ import { ProjectDetailNew as ProjectDetail } from './pages/ProjectDetailNew';
 
 // Lazy load everything else for better performance
 const About = lazy(() => import('./pages/About').then(m => ({ default: m.About })));
+const CreativeStatement = lazy(() => import('./pages/CreativeStatement').then(m => ({ default: m.CreativeStatement })));
 const CV = lazy(() => import('./pages/CV').then(m => ({ default: m.CV })));
 const Collaborators = lazy(() => import('./pages/Collaborators').then(m => ({ default: m.Collaborators })));
 const TeachingPhilosophy = lazy(() => import('./pages/TeachingPhilosophy').then(m => ({ default: m.TeachingPhilosophy })));
@@ -73,7 +74,7 @@ const DynamicArticle = lazy(() => import('./pages/scenic-insights/DynamicArticle
 // Project pages
 
 
-type Page = 'home' | 'portfolio' | 'about' | 'cv' | 'collaborators' | 'teaching-philosophy' | 'contact' | 'scenic-insights' | 'articles' | 'studio' | 'scenic-studio' | 'scenic-vault' | 'app-studio' | 'resources' | 'architecture-scale-converter' | 'dimension-reference' | 'model-reference-scaler' | 'design-history-timeline' | 'classical-architecture-guide' | 'rosco-paint-calculator' | 'commercial-paint-finder' | 'blog-formatter' | 'news' | 'news-article' | 'project' | 'project-new' | 'experiential-detail' | 'blog' | 'tutorial' | 'search' | 'admin' | 'links' | 'faq' | 'privacy-policy' | 'accessibility' | 'terms-of-use' | '404' | 'sitemap';
+type Page = 'home' | 'portfolio' | 'about' | 'creative-statement' | 'cv' | 'collaborators' | 'teaching-philosophy' | 'contact' | 'scenic-insights' | 'articles' | 'studio' | 'scenic-studio' | 'scenic-vault' | 'app-studio' | 'resources' | 'architecture-scale-converter' | 'dimension-reference' | 'model-reference-scaler' | 'design-history-timeline' | 'classical-architecture-guide' | 'rosco-paint-calculator' | 'commercial-paint-finder' | 'blog-formatter' | 'news' | 'news-article' | 'project' | 'project-new' | 'experiential-detail' | 'blog' | 'tutorial' | 'search' | 'admin' | 'links' | 'faq' | 'privacy-policy' | 'accessibility' | 'terms-of-use' | '404' | 'sitemap';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -105,7 +106,7 @@ export default function App() {
 
   // Define valid pages for 404 handling
   const VALID_PAGES = [
-    'home', 'portfolio', 'about', 'cv', 'collaborators', 'teaching-philosophy',
+    'home', 'portfolio', 'about', 'creative-statement', 'cv', 'collaborators', 'teaching-philosophy',
     'contact', 'scenic-insights', 'articles', 'studio', 'scenic-studio',
     'scenic-vault', 'app-studio', 'resources', 'architecture-scale-converter',
     'dimension-reference', 'model-reference-scaler', 'design-history-timeline',
@@ -292,6 +293,7 @@ export default function App() {
       case 'cv': return <CV />;
       case 'collaborators': return <Collaborators onNavigate={handleNavigation} />;
       case 'teaching-philosophy': return <TeachingPhilosophy onNavigate={handleNavigation} />;
+      case 'creative-statement': return <CreativeStatement onNavigate={handleNavigation} />;
       case 'contact': return <Contact />;
       case 'scenic-insights':
       case 'articles':
