@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Users, Building2, Briefcase, Sparkles, Save, X, Upload, Globe, Linkedin, Instagram, Star, Filter, ChevronDown } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { createClient } from '../../utils/supabase/client';
 import { AdminTokens } from '../../styles/admin-tokens';
+
+const supabase = createClient();
 import { PrimaryButton, SecondaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
 import { InfoBanner } from './InfoBanner';
-import { 
-  DarkInput, 
-  DarkTextarea, 
-  DarkSelect, 
+import {
+  DarkInput,
+  DarkTextarea,
+  DarkSelect,
   DarkLabel,
   formContainerClasses,
   listItemClasses,
@@ -58,6 +61,8 @@ export function CollaboratorsManager() {
   const [filterRole, setFilterRole] = useState('All Roles');
   const [sortBy, setSortBy] = useState<'name' | 'role' | 'projects' | 'featured'>('featured');
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [suggestions, setSuggestions] = useState<{ name: string; role: string; sourceProject: string }[]>([]);
 
   const emptyCollaborator: Collaborator = {
     id: '',
@@ -72,6 +77,66 @@ export function CollaboratorsManager() {
     featured: false,
     projectCount: 0,
     projects: []
+  };
+
+  const scanForSuggestions = async () => {
+    setAnalyzing(true);
+    try {
+      // Fetch all projects to get their credits directly from DB
+      const { data: projects, error } = await supabase
+        .from('portfolio_projects')
+        .select('title, credits');
+
+      if (error) throw error;
+
+      const existingNames = new Set(collaborators.map(c => c.name.toLowerCase()));
+      const newSuggestions: { name: string; role: string; sourceProject: string }[] = [];
+      const seenNames = new Set<string>(); // To avoid duplicates within suggestions
+
+      (projects || []).forEach((p: any) => {
+        if (p.credits && Array.isArray(p.credits)) {
+          p.credits.forEach((c: { name: string; role: string }) => {
+            const normalizedName = c.name.trim();
+            const lowerName = normalizedName.toLowerCase();
+
+            // If valid name, not in existing list, and not already suggested
+            if (
+              normalizedName &&
+              !existingNames.has(lowerName) &&
+              !seenNames.has(lowerName)
+            ) {
+              seenNames.add(lowerName);
+              newSuggestions.push({
+                name: normalizedName,
+                role: c.role,
+                sourceProject: p.title
+              });
+            }
+          });
+        }
+      });
+
+      setSuggestions(newSuggestions);
+      if (newSuggestions.length === 0) {
+        alert('No new collaborators found in project credits.');
+      }
+    } catch (err) {
+      console.error('Error scanning credits:', err);
+      alert('Failed to scan project credits.');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const importSuggestion = (suggestion: { name: string; role: string }) => {
+    setEditing({
+      ...emptyCollaborator,
+      name: suggestion.name,
+      role: suggestion.role,
+      type: 'person'
+    });
+    // Remove from suggestions
+    setSuggestions(prev => prev.filter(s => s.name !== suggestion.name));
   };
 
   useEffect(() => {
@@ -94,7 +159,7 @@ export function CollaboratorsManager() {
         setCollaborators(data.collaborators || []);
       }
     } catch (err) {
-      } finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -262,7 +327,7 @@ export function CollaboratorsManager() {
         alert(`Failed to delete collaborator: ${errorData.error || 'Unknown error'}`);
       }
     } catch (err) {
-      }
+    }
   };
 
   if (loading) {
@@ -314,18 +379,63 @@ export function CollaboratorsManager() {
             Manage your creative partners, venues, and companies. Use AI to research and auto-fill details.
           </p>
         </div>
-        <PrimaryButton
-          onClick={() => setEditing(emptyCollaborator)}
-        >
-          <Plus className="w-4 h-4" />
-          Add Collaborator
-        </PrimaryButton>
+        <div className="flex gap-3">
+          <button
+            onClick={scanForSuggestions}
+            disabled={analyzing}
+            className={`flex items-center gap-2 px-4 py-2 border border-gray-700 hover:bg-gray-800 rounded-lg transition-colors ${AdminTokens.text.secondary}`}
+          >
+            <Sparkles className="w-4 h-4" />
+            {analyzing ? 'Scanning...' : 'Scan Credits'}
+          </button>
+          <PrimaryButton
+            onClick={() => setEditing(emptyCollaborator)}
+          >
+            <Plus className="w-4 h-4" />
+            Add Collaborator
+          </PrimaryButton>
+        </div>
       </div>
+
+      {/* Import Suggestions Panel */}
+      {suggestions.length > 0 && (
+        <div className="bg-purple-900/20 border border-purple-500/30 rounded-3xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-purple-200 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-400" />
+              Found {suggestions.length} New Collaborators from Credits
+            </h3>
+            <button
+              onClick={() => setSuggestions([])}
+              className="text-white/40 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-60 overflow-y-auto pr-2">
+            {suggestions.map((s, idx) => (
+              <div key={idx} className="bg-purple-950/40 p-3 rounded-xl border border-purple-500/20 flex items-center justify-between group hover:border-purple-500/50 transition-colors">
+                <div>
+                  <div className="font-medium text-purple-100">{s.name}</div>
+                  <div className="text-xs text-purple-300/60">{s.role} • via {s.sourceProject}</div>
+                </div>
+                <button
+                  onClick={() => importSuggestion(s)}
+                  className="p-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                  title="Import"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Editor Modal */}
       {editing && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className={`${AdminTokens.bg.secondary} border ${AdminTokens.border.disabled} ${AdminTokens.radius.lg} max-w-2xl w-full my-8`}>
+          <div className={`border ${AdminTokens.border.disabled} ${AdminTokens.radius.lg} max-w-2xl w-full my-8 relative z-50 shadow-2xl`} style={{ backgroundColor: '#09090b' }}>
             <div className={`p-6 border-b ${AdminTokens.border.disabled}`}>
               <div className="flex items-center justify-between">
                 <h3 className={`text-xl tracking-tight ${AdminTokens.text.primary}`}>
@@ -377,15 +487,15 @@ export function CollaboratorsManager() {
                     { value: 'person', label: 'Person', icon: Users },
                     { value: 'theatre', label: 'Theatre', icon: Building2 },
                     { value: 'company', label: 'Company', icon: Briefcase },
+                    { value: 'brand', label: 'Brand', icon: Sparkles },
                   ].map(({ value, label, icon: Icon }) => (
                     <button
                       key={value}
                       onClick={() => setEditing({ ...editing, type: value as any })}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                        editing.type === value
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                      }`}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${editing.type === value
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                        }`}
                     >
                       <Icon className="w-4 h-4" />
                       {label}
@@ -455,7 +565,7 @@ export function CollaboratorsManager() {
                       </div>
                     </label>
                     <p className="text-xs text-gray-500 mt-1">
-                      {editing.type === 'person' 
+                      {editing.type === 'person'
                         ? 'Portrait headshots work best (8:10 aspect ratio)'
                         : 'Landscape images work best (16:9 aspect ratio)'}\n                    </p>
                   </div>
@@ -467,7 +577,7 @@ export function CollaboratorsManager() {
                 <DarkLabel>
                   Social Links
                 </DarkLabel>
-                
+
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-gray-400" />
                   <DarkInput
@@ -516,11 +626,10 @@ export function CollaboratorsManager() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setEditing({ ...editing, featured: !editing.featured })}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                    editing.featured
-                      ? 'bg-yellow-500 text-white'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${editing.featured
+                    ? 'bg-yellow-500 text-white'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    }`}
                 >
                   <Star className="w-4 h-4" />
                   <span className="text-xs tracking-wider uppercase">
@@ -553,7 +662,7 @@ export function CollaboratorsManager() {
       )}
 
       {/* Filter and Sort Controls */}
-      <div className="flex items-center gap-4 p-4 bg-gray-900/50 backdrop-blur border border-gray-800 rounded-3xl">
+      <div className="flex items-center gap-4 p-4 border border-gray-800 rounded-3xl relative" style={{ backgroundColor: '#09090b', zIndex: 100 }}>
         {/* Role Filter Dropdown */}
         <div className="relative">
           <button
@@ -566,9 +675,9 @@ export function CollaboratorsManager() {
             </div>
             <ChevronDown className="w-4 h-4 text-gray-400" />
           </button>
-          
+
           {showRoleDropdown && (
-            <div className="absolute top-full left-0 mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto">
+            <div className="absolute top-full left-0 mt-1 border border-gray-700 rounded-lg shadow-lg max-h-96 overflow-y-auto min-w-[200px]" style={{ backgroundColor: '#09090b', zIndex: 101 }}>
               {ROLE_CATEGORIES.map((role) => (
                 <button
                   key={role}
@@ -576,9 +685,8 @@ export function CollaboratorsManager() {
                     setFilterRole(role);
                     setShowRoleDropdown(false);
                   }}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-800 transition-colors ${
-                    filterRole === role ? 'bg-blue-500/20 text-blue-400' : 'text-gray-300'
-                  }`}
+                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-800 transition-colors ${filterRole === role ? 'bg-blue-500/20 text-blue-400' : 'text-gray-300'
+                    }`}
                 >
                   {role}
                 </button>
@@ -599,11 +707,10 @@ export function CollaboratorsManager() {
             <button
               key={value}
               onClick={() => setSortBy(value as any)}
-              className={`px-3 py-1.5 rounded text-xs tracking-wider uppercase transition-colors ${
-                sortBy === value
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-              }`}
+              className={`px-3 py-1.5 rounded text-xs tracking-wider uppercase transition-colors ${sortBy === value
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                }`}
             >
               {label}
             </button>
@@ -648,9 +755,8 @@ export function CollaboratorsManager() {
                           <img src={collab.avatar} alt="" className="w-16 h-9 rounded-lg object-cover object-center" />
                         )
                       ) : (
-                        <div className={`rounded-lg bg-gray-800 flex items-center justify-center ${
-                          collab.type === 'person' ? 'w-8 h-10' : 'w-16 h-9'
-                        }`}>
+                        <div className={`rounded-lg bg-gray-800 flex items-center justify-center ${collab.type === 'person' ? 'w-8 h-10' : 'w-16 h-9'
+                          }`}>
                           {collab.type === 'person' && <Users className="w-5 h-5 text-gray-400" />}
                           {collab.type === 'theatre' && <Building2 className="w-5 h-5 text-gray-400" />}
                           {collab.type === 'company' && <Briefcase className="w-5 h-5 text-gray-400" />}

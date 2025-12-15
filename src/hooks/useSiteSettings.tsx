@@ -12,34 +12,37 @@ interface SiteSettings {
   // Homepage Hero
   heroTitle?: string;
   heroSubtitle?: string;
-  
+
   // About/Bio
   bioText?: string;
   profileImageUrl?: string;
-  
+  introText?: string;
+  aboutText?: string;
+  philosophyText?: string;
+
   // Contact Information
   contactEmail?: string;
   contactPhone?: string;
   contactLocation?: string;
   availabilityStatus?: string;
-  
+
   // CV/Resume
   phone?: string;
   email?: string;
   location?: string;
   website?: string;
-  upcomingProductions?: Array<{production: string; director?: string; designer?: string; company: string; year: string}>;
-  recentProductions?: Array<{production: string; director?: string; designer?: string; company: string; year: string}>;
-  assistantDesignProductions?: Array<{production: string; director?: string; designer?: string; company: string; year: string}>;
+  upcomingProductions?: Array<{ production: string; director?: string; designer?: string; company: string; year: string }>;
+  recentProductions?: Array<{ production: string; director?: string; designer?: string; company: string; year: string }>;
+  assistantDesignProductions?: Array<{ production: string; director?: string; designer?: string; company: string; year: string }>;
   resumeUrl?: string;
   resumeFilename?: string;
   resumeLastUpdated?: string;
-  
+
   // SEO Defaults
   siteTitle?: string;
   siteDescription?: string;
   defaultOgImage?: string;
-  
+
   // Footer
   footerCopyright?: string;
 }

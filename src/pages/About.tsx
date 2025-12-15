@@ -5,6 +5,7 @@ import portraitImage from 'figma:asset/d3b5f45814466ec04f12883840ad987a5e5d22dc.
 import { PhotoGallery } from '../components/shared/PhotoGallery';
 import { CounterAnimation } from '../components/shared/CounterAnimation';
 import { useSiteSettings } from '../hooks/useSiteSettings';
+import { projectId, publicAnonKey } from '../utils/supabase/info';
 
 interface AboutProps {
   onNavigate: (page: string) => void;
@@ -65,26 +66,70 @@ export function About({ onNavigate }: AboutProps) {
   }, [selectedPhoto]);
 
   const siteSettings = useSiteSettings();
+  const [galleryPhotos, setGalleryPhotos] = React.useState<typeof personalPhotos>([]);
+  const [loadingGallery, setLoadingGallery] = React.useState(true);
+  const [showFullBio, setShowFullBio] = React.useState(false);
+
+  // Fetch gallery photos from database
+  React.useEffect(() => {
+    const fetchGalleryPhotos = async () => {
+      try {
+        const response = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/about-gallery`,
+          {
+            headers: {
+              'Authorization': `Bearer ${publicAnonKey}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.photos && data.photos.length > 0) {
+            setGalleryPhotos(data.photos.map((photo: any) => ({
+              src: photo.image_url,
+              alt: photo.alt_text,
+              caption: photo.caption
+            })));
+          } else {
+            // Fallback to hardcoded photos if no data
+            setGalleryPhotos(personalPhotos);
+          }
+        } else {
+          setGalleryPhotos(personalPhotos);
+        }
+      } catch (error) {
+        console.error('Error fetching gallery photos:', error);
+        setGalleryPhotos(personalPhotos);
+      } finally {
+        setLoadingGallery(false);
+      }
+    };
+
+    fetchGalleryPhotos();
+  }, []);
+
+  const displayPhotos = galleryPhotos.length > 0 ? galleryPhotos : personalPhotos;
 
   return (
     <div className="min-h-screen pt-16 pb-24 bg-white dark:bg-black">
-      
+
       {/* Hero Section - Cinematic */}
       <section className="py-20 px-6 lg:px-12 relative overflow-hidden">
         {/* Subtle gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/5 dark:from-white/5 via-transparent to-transparent" />
-        
+
         <div className="max-w-[1800px] mx-auto relative z-10">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
             <h1 className="font-display text-black dark:text-white text-7xl md:text-8xl lg:text-9xl mb-6 leading-[0.9]">
-              Brandon PT<br/>Davis
+              Brandon PT<br />Davis
             </h1>
             <p className="text-black/60 dark:text-white/60 text-xl md:text-2xl max-w-3xl leading-relaxed">
-              Scenic designer, educator, and creative technologist crafting immersive environments where story and space converge.
+              {siteSettings.settings?.bioText || 'Scenic designer, educator, and creative technologist crafting immersive environments where story and space converge.'}
             </p>
           </motion.div>
         </div>
@@ -94,9 +139,9 @@ export function About({ onNavigate }: AboutProps) {
       <section className="px-6 lg:px-12 pb-24">
         <div className="max-w-[1800px] mx-auto">
           <div className="grid lg:grid-cols-[450px_1fr] gap-16 lg:gap-24">
-            
+
             {/* Left Column - Portrait */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -105,8 +150,8 @@ export function About({ onNavigate }: AboutProps) {
             >
               {/* Portrait */}
               <div className="aspect-[3/4] overflow-hidden rounded-3xl bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 group">
-                <img 
-                  src={portraitImage} 
+                <img
+                  src={portraitImage}
                   alt="Brandon PT Davis"
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                 />
@@ -119,19 +164,19 @@ export function About({ onNavigate }: AboutProps) {
               <div className="grid grid-cols-2 gap-4 mt-6">
                 <div className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6 text-center">
                   <div className="font-pixel text-[9px] text-black/40 dark:text-white/40 tracking-[0.3em] mb-2">EXPERIENCE</div>
-                  <CounterAnimation value={15} suffix="+" className="text-black dark:text-white text-4xl font-display block mb-1" />
+                  <CounterAnimation value={15} suffix="+" className="text-cyan-600 dark:text-cyan-400 text-4xl font-display block mb-1" />
                   <div className="text-black/60 dark:text-white/60 text-sm">Years</div>
                 </div>
                 <div className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl p-6 text-center">
                   <div className="font-pixel text-[9px] text-black/40 dark:text-white/40 tracking-[0.3em] mb-2">PRODUCTIONS</div>
-                  <CounterAnimation value={130} suffix="+" className="text-black dark:text-white text-4xl font-display block mb-1" />
+                  <CounterAnimation value={130} suffix="+" className="text-blue-600 dark:text-blue-400 text-4xl font-display block mb-1" />
                   <div className="text-black/60 dark:text-white/60 text-sm">Credits</div>
                 </div>
               </div>
             </motion.div>
 
             {/* Right Column - Bio */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -142,12 +187,20 @@ export function About({ onNavigate }: AboutProps) {
               <div>
                 <h2 className="font-pixel text-[10px] text-black/40 dark:text-white/40 tracking-[0.3em] mb-6">INTRODUCTION</h2>
                 <div className="space-y-6 text-black/80 dark:text-white/80 text-xl md:text-2xl leading-relaxed">
-                  <p>
-                    I believe scenic design is a form of storytelling—one that starts before the actors speak and lingers after the final bow. My work lives at the intersection of craft and concept, using physical space to shape emotion, tension, and rhythm.
-                  </p>
-                  <p>
-                    With over 15 years of experience in theatre and immersive environments, I've designed productions across the country, collaborated with inspiring creatives, and mentored the next generation of designers.
-                  </p>
+                  {siteSettings.settings?.introText ? (
+                    siteSettings.settings.introText.split('\n\n').map((paragraph, i) => (
+                      <p key={i}>{paragraph}</p>
+                    ))
+                  ) : (
+                    <>
+                      <p>
+                        I believe scenic design is a form of storytelling—one that starts before the actors speak and lingers after the final bow. My work lives at the intersection of craft and concept, using physical space to shape emotion, tension, and rhythm.
+                      </p>
+                      <p>
+                        With over 15 years of experience in theatre and immersive environments, I've designed productions across the country, collaborated with inspiring creatives, and mentored the next generation of designers.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -155,18 +208,37 @@ export function About({ onNavigate }: AboutProps) {
               <div className="border-t border-black/10 dark:border-white/10 pt-12">
                 <h2 className="font-pixel text-[10px] text-black/40 dark:text-white/40 tracking-[0.3em] mb-6">ABOUT BRANDON</h2>
                 <div className="space-y-6 text-black/70 dark:text-white/70 text-lg md:text-xl leading-relaxed">
-                  <p>
-                    Brandon PT Davis (he/him) is a scenic designer who transforms theatrical spaces into immersive visual landscapes where story and space move together in harmony. Based in Southern California, Brandon's work is rooted in a lifelong curiosity about how design shapes experience.
-                  </p>
-                  <p>
-                    Brandon holds a BFA in Theatre Arts from Stephens College and is completing his MFA in Scenic Design from the University of California, Irvine. His designs are recognized for their thoughtful balance—merging minimalism with layered materiality, and grounded realism with playful invention.
-                  </p>
-                  <p>
-                    As a member of United Scenic Artists Local 829 and with over 130 productions to his credit, Brandon brings expertise across theatrical design, experiential environments, and themed entertainment. He has designed for regional theatres nationwide including South Coast Repertory, New Swan Theatre Festival, Okoboji Summer Theatre, and The Great American Melodrama.
-                  </p>
-                  <p>
-                    In addition to design work, Brandon is passionate about education, having taught at UC Irvine, Stephens College, and University of Texas-El Paso. He also develops macOS productivity software specifically for theatre designers and freelance creatives.
-                  </p>
+                  {siteSettings.settings?.aboutText ? (
+                    <>
+                      {siteSettings.settings.aboutText.split('\n\n').slice(0, showFullBio ? undefined : 2).map((paragraph, i) => (
+                        <p key={i}>{paragraph}</p>
+                      ))}
+                      {siteSettings.settings.aboutText.split('\n\n').length > 2 && (
+                        <button
+                          onClick={() => setShowFullBio(!showFullBio)}
+                          className="text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 font-medium transition-colors inline-flex items-center gap-2 group"
+                        >
+                          {showFullBio ? 'Show Less' : 'Read More'}
+                          <span className={`transform transition-transform ${showFullBio ? 'rotate-180' : ''}`}>↓</span>
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        Brandon PT Davis (he/him) is a scenic designer who transforms theatrical spaces into immersive visual landscapes where story and space move together in harmony. Based in Southern California, Brandon's work is rooted in a lifelong curiosity about how design shapes experience.
+                      </p>
+                      <p>
+                        Brandon holds a BFA in Theatre Arts from Stephens College and is completing his MFA in Scenic Design from the University of California, Irvine. His designs are recognized for their thoughtful balance—merging minimalism with layered materiality, and grounded realism with playful invention.
+                      </p>
+                      <p>
+                        As a member of United Scenic Artists Local 829 and with over 130 productions to his credit, Brandon brings expertise across theatrical design, experiential environments, and themed entertainment. He has designed for regional theatres nationwide including South Coast Repertory, New Swan Theatre Festival, Okoboji Summer Theatre, and The Great American Melodrama.
+                      </p>
+                      <p>
+                        In addition to design work, Brandon is passionate about education, having taught at UC Irvine, Stephens College, and University of Texas-El Paso. He also develops macOS productivity software specifically for theatre designers and freelance creatives.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -178,7 +250,7 @@ export function About({ onNavigate }: AboutProps) {
       {/* Credentials Bar */}
       <section className="px-6 lg:px-12 pb-24">
         <div className="max-w-[1800px] mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -187,17 +259,17 @@ export function About({ onNavigate }: AboutProps) {
           >
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div className="text-center">
-                <GraduationCap className="w-6 h-6 text-black/40 dark:text-white/40 mx-auto mb-3" />
+                <GraduationCap className="w-6 h-6 mx-auto mb-3" style={{ stroke: '#06b6d4' }} />
                 <div className="text-black dark:text-white font-display text-lg mb-1">MFA Scenic Design</div>
                 <div className="font-pixel text-[8px] text-black/30 dark:text-white/30 tracking-[0.2em]">UC IRVINE</div>
               </div>
               <div className="text-center">
-                <MapPin className="w-6 h-6 text-black/40 dark:text-white/40 mx-auto mb-3" />
+                <MapPin className="w-6 h-6 mx-auto mb-3" style={{ stroke: '#ec4899' }} />
                 <div className="text-black dark:text-white font-display text-lg mb-1">Southern California</div>
                 <div className="font-pixel text-[8px] text-black/30 dark:text-white/30 tracking-[0.2em]">NATIONWIDE WORK</div>
               </div>
               <div className="text-center">
-                <Award className="w-6 h-6 text-black/40 dark:text-white/40 mx-auto mb-3" />
+                <Award className="w-6 h-6 mx-auto mb-3" style={{ stroke: '#3b82f6' }} />
                 <div className="text-black dark:text-white font-display text-lg mb-1">USA Local 829</div>
                 <div className="font-pixel text-[8px] text-black/30 dark:text-white/30 tracking-[0.2em]">UNION MEMBER</div>
               </div>
@@ -211,6 +283,53 @@ export function About({ onNavigate }: AboutProps) {
         </div>
       </section>
 
+      {/* Creative Statement Section */}
+      {siteSettings.settings?.philosophyText && (
+        <section className="px-6 lg:px-12 pb-24">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-900 dark:to-neutral-800 border border-black/10 dark:border-white/10"
+            >
+              {/* Background Image */}
+              {displayPhotos[0] && (
+                <div className="absolute inset-0 opacity-10 dark:opacity-5">
+                  <img
+                    src={displayPhotos[0].src}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Content */}
+              <div className="relative z-10 p-8 md:p-12 lg:p-16">
+                <div className="max-w-4xl">
+                  <h2 className="font-pixel text-[10px] text-black/40 dark:text-white/40 tracking-[0.3em] mb-8">
+                    CREATIVE STATEMENT
+                  </h2>
+
+                  <div className="space-y-6 text-black/80 dark:text-white/80 text-lg md:text-xl leading-relaxed">
+                    {siteSettings.settings.philosophyText.split('\n\n').map((paragraph, i) => (
+                      <p key={i}>{paragraph}</p>
+                    ))}
+                  </div>
+
+                  {/* Signature */}
+                  <div className="mt-12 pt-8 border-t border-black/10 dark:border-white/10">
+                    <p className="text-black dark:text-white font-display text-xl">Brandon PT Davis</p>
+                    <p className="text-black/60 dark:text-white/60 text-sm mt-1">Scenic Designer</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
       {/* Photo Gallery Section */}
       <section className="px-6 lg:px-12 pb-24">
         <div className="max-w-[1800px] mx-auto">
@@ -218,15 +337,15 @@ export function About({ onNavigate }: AboutProps) {
             <h2 className="text-sm tracking-wider opacity-40 mb-2">BEHIND THE SCENES</h2>
             <p className="text-xl md:text-2xl opacity-80">Moments from the studio, stage, and classroom</p>
           </div>
-          
-          <PhotoGallery photos={personalPhotos} columns={3} />
+
+          <PhotoGallery photos={displayPhotos} columns={3} />
         </div>
       </section>
 
       {/* Explore More - Hub Cards */}
       <section className="px-6 lg:px-12 pb-24">
         <div className="max-w-[1800px] mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -237,7 +356,7 @@ export function About({ onNavigate }: AboutProps) {
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            
+
             {/* News Card */}
             <motion.button
               initial={{ opacity: 0, y: 20 }}
@@ -341,7 +460,7 @@ export function About({ onNavigate }: AboutProps) {
       {/* Contact Section */}
       <section className="px-6 lg:px-12">
         <div className="max-w-[1800px] mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -349,14 +468,14 @@ export function About({ onNavigate }: AboutProps) {
           >
             <h2 className="font-pixel text-[10px] text-white/40 tracking-[0.3em] mb-6">GET IN TOUCH</h2>
             <p className="font-display text-white text-4xl md:text-5xl mb-12">
-              Let's collaborate on<br/>your next production
+              Let's collaborate on<br />your next production
             </p>
 
             {/* Contact Info */}
             <div className="grid md:grid-cols-2 gap-6 mb-12 max-w-3xl mx-auto">
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                 <div className="font-pixel text-[9px] text-white/40 mb-3 tracking-[0.3em]">EMAIL</div>
-                <a 
+                <a
                   href="mailto:brandon@brandonptdavis.com"
                   className="text-lg text-white hover:text-white/70 transition-colors"
                 >
@@ -367,25 +486,25 @@ export function About({ onNavigate }: AboutProps) {
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
                 <div className="font-pixel text-[9px] text-white/40 mb-3 tracking-[0.3em]">SOCIAL</div>
                 <div className="flex justify-center gap-6 text-sm">
-                  <a 
-                    href="https://instagram.com" 
-                    target="_blank" 
+                  <a
+                    href="https://instagram.com"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-white/60 hover:text-white transition-colors"
                   >
                     Instagram
                   </a>
-                  <a 
-                    href="https://linkedin.com" 
-                    target="_blank" 
+                  <a
+                    href="https://linkedin.com"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-white/60 hover:text-white transition-colors"
                   >
                     LinkedIn
                   </a>
-                  <a 
-                    href="https://youtube.com" 
-                    target="_blank" 
+                  <a
+                    href="https://youtube.com"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-white/60 hover:text-white transition-colors"
                   >

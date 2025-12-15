@@ -245,6 +245,12 @@ export function Navbar({ onNavigate }: NavbarProps) {
                       >
                         TEACHING PHILOSOPHY
                       </button>
+                      <button
+                        onClick={() => handleNavClick('creative-statement')}
+                        className="block w-full font-pixel text-xl tracking-[0.12em] text-white/60 hover:text-white transition-colors text-center"
+                      >
+                        CREATIVE STATEMENT
+                      </button>
                     </div>
                   )}
                 </div>

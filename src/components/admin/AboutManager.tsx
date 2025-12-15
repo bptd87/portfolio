@@ -19,6 +19,17 @@ interface AboutContent {
   location?: string;
   education?: string;
   specialties?: string;
+  introText?: string;
+  aboutText?: string;
+  philosophyText?: string;
+}
+
+interface GalleryPhoto {
+  id?: string;
+  image_url: string;
+  caption: string;
+  alt_text: string;
+  display_order: number;
 }
 
 const defaultContent: AboutContent = {
@@ -28,10 +39,22 @@ const defaultContent: AboutContent = {
   location: 'Southern California',
   education: '',
   specialties: 'Scenic Design, Technical Direction, 3D Modeling, Experiential Design',
+  introText: '',
+  aboutText: '',
+  philosophyText: `My passion for scenic design falls somewhere between a love of architecture, history, and narrative storytelling. I'm drawn to projects that have meaning and impact for the communities they serve. I'm especially interested in productions where the design does more than illustrate a setting and becomes part of how the story resonates.
+
+I value every collaborator involved in bringing a production to life. That starts with the hidden collaborator, the playwright, and extends to the director, the creative team, and the production teams. I also enjoy working closely with company managers, carpenters, and artisans to realize the best version of the creative team's vision within each unique venue.
+
+My process often begins with a lot of ideas that pull in different directions. Early conversations with the director focus on the text: What do they see, and how can we shape a shared vision? From that point forward, I build digital models to explore and sculpt the world. I'm never afraid to start over, no matter where we are in the process.
+
+I love the energy of collaborative design conversations, when ideas start bouncing between departments and the production finds its rhythm. Technically, I thrive in the transition from rendering to drafting, translating concepts into fully buildable spaces. I'm drawn to designs where structure and detail work together, and where every choice supports both the narrative and the performers onstage.
+
+Whether I'm working on a classic or a new play, my goal is to create environments that feel inevitable once they're revealed. Ideally, the design feels like it couldn't have been any other way, even if it took many revisions and collaborative breakthroughs to get there.`,
 };
 
 export function AboutManager() {
   const [content, setContent] = useState(defaultContent);
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -45,8 +68,9 @@ export function AboutManager() {
   const loadContent = async () => {
     try {
       setLoading(true);
-      
-      const response = await fetch(
+
+      // Fetch site settings
+      const settingsResponse = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/settings`,
         {
           headers: {
@@ -55,10 +79,27 @@ export function AboutManager() {
         }
       );
 
-      if (response.ok) {
-        const data = await response.json();
+      if (settingsResponse.ok) {
+        const data = await settingsResponse.json();
         if (data.settings) {
           setContent({ ...defaultContent, ...data.settings });
+        }
+      }
+
+      // Fetch gallery photos
+      const galleryResponse = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/about-gallery`,
+        {
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`,
+          },
+        }
+      );
+
+      if (galleryResponse.ok) {
+        const galleryData = await galleryResponse.json();
+        if (galleryData.photos) {
+          setGalleryPhotos(galleryData.photos);
         }
       }
     } catch (error) {
@@ -71,30 +112,48 @@ export function AboutManager() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      
+
       if (!adminToken) {
         alert('You are not logged in. Please log in to the admin panel first.');
         return;
       }
-      
-      const response = await fetch(
+
+      // Save site settings
+      const settingsResponse = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/settings`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
+            'Authorization': `Bearer ${adminToken}`,
           },
           body: JSON.stringify(content),
         }
       );
 
-      if (response.ok) {
+      if (!settingsResponse.ok) {
+        showMessage('error', 'Failed to save settings');
+        return;
+      }
+
+      // Save gallery photos
+      const galleryResponse = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/about-gallery`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`,
+          },
+          body: JSON.stringify({ photos: galleryPhotos }),
+        }
+      );
+
+      if (galleryResponse.ok) {
         showMessage('success', 'About page updated successfully!');
         setHasUnsavedChanges(false);
       } else {
-        showMessage('error', 'Failed to save changes');
+        showMessage('error', 'Failed to save gallery photos');
       }
     } catch (error) {
       showMessage('error', 'Error saving changes');
@@ -142,11 +201,10 @@ export function AboutManager() {
       {/* Message Banner */}
       {message && (
         <div
-          className={`mb-6 px-4 py-3 rounded-3xl border flex items-center gap-3 ${
-            message.type === 'success'
-              ? 'bg-green-500/10 border-green-500/30 text-green-400'
-              : 'bg-red-500/10 border-red-500/30 text-red-400'
-          }`}
+          className={`mb-6 px-4 py-3 rounded-3xl border flex items-center gap-3 ${message.type === 'success'
+            ? 'bg-green-500/10 border-green-500/30 text-green-400'
+            : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}
         >
           {message.type === 'success' ? (
             <CheckCircle className="w-5 h-5" />
@@ -164,7 +222,7 @@ export function AboutManager() {
             <User className="w-5 h-5 text-blue-400" />
             Biography
           </h3>
-          
+
           <div className="space-y-4">
             <div>
               <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
@@ -181,14 +239,40 @@ export function AboutManager() {
 
             <div>
               <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
-                Full Biography (Optional)
+                Introduction Section
               </label>
               <textarea
-                value={content.fullBio || ''}
-                onChange={(e: any) => updateField('fullBio', (e.target as HTMLTextAreaElement).value)}
-                rows={8}
+                value={content.introText || ''}
+                onChange={(e: any) => updateField('introText', (e.target as HTMLTextAreaElement).value)}
+                rows={6}
                 className={AdminTokens.input.base + ' resize-none'}
-                placeholder="Extended biography with more details about your background, experience, and philosophy"
+                placeholder="Introduction text that appears in the first section of the About page"
+              />
+            </div>
+
+            <div>
+              <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
+                About Brandon Section
+              </label>
+              <textarea
+                value={content.aboutText || ''}
+                onChange={(e: any) => updateField('aboutText', (e.target as HTMLTextAreaElement).value)}
+                rows={10}
+                className={AdminTokens.input.base + ' resize-none'}
+                placeholder="Main biography text for the 'About Brandon' section"
+              />
+            </div>
+
+            <div>
+              <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
+                Philosophy/Additional Section (Optional)
+              </label>
+              <textarea
+                value={content.philosophyText || ''}
+                onChange={(e: any) => updateField('philosophyText', (e.target as HTMLTextAreaElement).value)}
+                rows={6}
+                className={AdminTokens.input.base + ' resize-none'}
+                placeholder="Additional text for philosophy or teaching approach section"
               />
             </div>
 
@@ -226,7 +310,7 @@ export function AboutManager() {
             <ImageIcon className="w-5 h-5 text-blue-400" />
             Profile Image
           </h3>
-          
+
           <div>
             <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
               Headshot / Portrait
@@ -239,6 +323,103 @@ export function AboutManager() {
             <p className="text-xs text-gray-500 mt-2">
               This image appears on the About page and can be used throughout the site
             </p>
+          </div>
+        </div>
+
+        {/* Photo Gallery Section */}
+        <div className={AdminTokens.card.base}>
+          <h3 className="text-lg text-white mb-4 flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-blue-400" />
+            Photo Gallery (6 Photos)
+          </h3>
+
+          <p className="text-xs text-gray-400 mb-6">
+            Manage the 6 photos that appear in the "Behind the Scenes" section of your Bio page.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[0, 1, 2, 3, 4, 5].map((index) => {
+              const photo = galleryPhotos[index];
+              return (
+                <div key={index} className="space-y-3">
+                  <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden relative group">
+                    {photo?.image_url ? (
+                      <>
+                        <img
+                          src={photo.image_url}
+                          alt={photo.alt_text}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => {
+                            const newPhotos = [...galleryPhotos];
+                            newPhotos.splice(index, 1);
+                            setGalleryPhotos(newPhotos);
+                            setHasUnsavedChanges(true);
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ✕
+                        </button>
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-500">
+                        <ImageIcon className="w-8 h-8" />
+                      </div>
+                    )}
+                  </div>
+
+                  <ImageUploader
+                    value={photo?.image_url || ''}
+                    onChange={(url: string) => {
+                      const newPhotos = [...galleryPhotos];
+                      if (newPhotos[index]) {
+                        newPhotos[index].image_url = url;
+                      } else {
+                        newPhotos[index] = {
+                          image_url: url,
+                          caption: '',
+                          alt_text: `Gallery photo ${index + 1}`,
+                          display_order: index + 1
+                        };
+                      }
+                      setGalleryPhotos(newPhotos);
+                      setHasUnsavedChanges(true);
+                    }}
+                    label={`Photo ${index + 1}`}
+                  />
+
+                  {photo && (
+                    <>
+                      <input
+                        type="text"
+                        value={photo.caption || ''}
+                        onChange={(e) => {
+                          const newPhotos = [...galleryPhotos];
+                          newPhotos[index].caption = e.target.value;
+                          setGalleryPhotos(newPhotos);
+                          setHasUnsavedChanges(true);
+                        }}
+                        className={AdminTokens.input.base}
+                        placeholder="Caption"
+                      />
+                      <input
+                        type="text"
+                        value={photo.alt_text || ''}
+                        onChange={(e) => {
+                          const newPhotos = [...galleryPhotos];
+                          newPhotos[index].alt_text = e.target.value;
+                          setGalleryPhotos(newPhotos);
+                          setHasUnsavedChanges(true);
+                        }}
+                        className={AdminTokens.input.base}
+                        placeholder="Alt text (for accessibility)"
+                      />
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

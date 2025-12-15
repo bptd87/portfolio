@@ -368,6 +368,78 @@ app.post("/make-server-74296234/api/admin/settings", verifyAdminToken, async (c)
   }
 });
 
+// ===== ABOUT GALLERY =====
+// Get about gallery photos (public endpoint)
+app.get("/make-server-74296234/api/about-gallery", async (c) => {
+  try {
+    console.log('🖼️ Fetching about gallery photos...');
+    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    
+    const { data, error } = await supabase
+      .from('about_gallery')
+      .select('*')
+      .order('display_order', { ascending: true });
+    
+    if (error) {
+      console.error('❌ Error fetching gallery:', error);
+      return c.json({ error: error.message }, 500);
+    }
+    
+    console.log(`✅ Fetched ${data?.length || 0} gallery photos`);
+    return c.json({ photos: data || [] });
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('❌ Error fetching gallery:', err);
+    return c.json({ error: errorMsg }, 500);
+  }
+});
+
+// Save about gallery photos (admin only)
+app.post("/make-server-74296234/api/admin/about-gallery", verifyAdminToken, async (c) => {
+  try {
+    console.log('🖼️ Saving about gallery photos...');
+    const { photos } = await c.req.json();
+    
+    if (!Array.isArray(photos)) {
+      return c.json({ error: 'Photos must be an array' }, 400);
+    }
+    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Delete all existing photos
+    await supabase.from('about_gallery').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    
+    // Insert new photos
+    if (photos.length > 0) {
+      const { error } = await supabase
+        .from('about_gallery')
+        .insert(photos.map((photo, index) => ({
+          image_url: photo.image_url || photo.src,
+          caption: photo.caption,
+          alt_text: photo.alt_text || photo.alt,
+          display_order: index + 1
+        })));
+      
+      if (error) {
+        console.error('❌ Error saving gallery:', error);
+        return c.json({ error: error.message }, 500);
+      }
+    }
+    
+    console.log(`✅ Saved ${photos.length} gallery photos`);
+    return c.json({ success: true, count: photos.length });
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('❌ Error saving gallery:', err);
+    return c.json({ error: errorMsg }, 500);
+  }
+});
+
 // ===== AI ASSISTANT =====
 app.post("/make-server-74296234/api/admin/ai/generate", verifyAdminToken, async (c) => {
   try {
