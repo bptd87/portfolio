@@ -67,6 +67,29 @@ export function Admin({ onNavigate }: AdminProps) {
   const [loading, setLoading] = useState(false);
   const [activeView, setActiveView] = useState<ManagerView>('dashboard');
 
+  // Check for existing session on mount
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('admin_token', session.access_token);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+      if (session) {
+        sessionStorage.setItem('admin_token', session.access_token);
+      } else {
+        sessionStorage.removeItem('admin_token');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');

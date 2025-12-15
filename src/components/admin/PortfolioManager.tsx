@@ -3,8 +3,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Plus, Save, X, Trash2, Pencil, Layout, Image, Users, Tags, FileJson } from 'lucide-react';
-import { projectId } from '../../utils/supabase/info';
-import { projects as hardcodedProjects } from '../../data/projects';
+
 import { useCategories } from '../../hooks/useCategories';
 import { PrimaryButton, SaveButton, IconButton } from './AdminButtons';
 import { InfoBanner } from './InfoBanner';
@@ -23,6 +22,9 @@ import { RenderingEditor } from './RenderingEditor';
 import { ImageUploaderWithFocalPoint } from './ImageUploaderWithFocalPoint';
 import { SimpleGalleryEditor } from './SimpleGalleryEditor';
 import { SEOImageFixer } from './SEOImageFixer';
+import { createClient } from '../../utils/supabase/client';
+
+const supabase = createClient();
 
 
 // Zod schema for validation
@@ -35,7 +37,7 @@ const projectSchema = z.object({
   clientName: z.string().optional(), // For Experiential
   client: z.string().optional(), // For Rendering
   year: z.coerce.number().min(1900, 'Invalid year').max(new Date().getFullYear() + 1, 'Invalid year'),
-  month: z.coerce.number().min(1).max(12),
+  month: z.any().optional(), // Relaxed validation as it is conditional
   featured: z.boolean(),
   published: z.boolean().optional(), // New field
   description: z.string().min(1, 'Description is required'),
@@ -50,12 +52,12 @@ const projectSchema = z.object({
   designNotes: z.array(z.string()).optional(),
 
   // Experiential specific
-  role: z.string().optional(),
-  challenge: z.string().optional(),
-  solution: z.string().optional(),
-  keyFeatures: z.any().optional(),
-  process: z.any().optional(),
-  team: z.any().optional(),
+  role: z.string().nullable().optional(),
+  challenge: z.string().nullable().optional(),
+  solution: z.string().nullable().optional(),
+  keyFeatures: z.any().nullable().optional(),
+  process: z.any().nullable().optional(),
+  team: z.any().nullable().optional(),
   metrics: z.any().optional(),
   testimonial: z.any().optional(),
   experientialContent: z.any().optional(), // Renamed to avoid conflict with generic content
@@ -79,23 +81,43 @@ export function PortfolioManager() {
   const [sortBy, setSortBy] = useState<'date' | 'title' | 'category'>('date');
   const { categories } = useCategories();
 
+
   const methods = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
+      title: '',
+      description: '',
+      category: 'Scenic Design',
+      subcategory: '',
+      venue: '',
+      location: '',
+      clientName: '',
+      client: '',
+      year: new Date().getFullYear(),
+      month: 1,
+      cardImage: '',
+      featured: false,
+      published: true,
       galleries: {
         hero: [],
         heroCaptions: [],
-        heroAlt: [], // New
+        heroAlt: [],
         process: [],
         processCaptions: [],
-        processAlt: [] // New 
+        processAlt: []
       },
       credits: [],
       tags: [],
       youtubeVideos: [],
       designNotes: [],
-      featured: false,
-      published: true // Default to true
+      videoUrls: [],
+      softwareUsed: [],
+      projectOverview: '',
+      keyFeatures: [],
+      metrics: [],
+      team: [],
+      process: [],
+      experientialContent: []
     }
   });
 
@@ -105,44 +127,57 @@ export function PortfolioManager() {
 
   const loadProjects = async () => {
     try {
-      const token = sessionStorage.getItem('admin_token');
+      // 1. Try fetching from SQL Table first
+      const { data: sqlProjects, error } = await supabase
+        .from('portfolio_projects')
+        .select('*')
+        .order('year', { ascending: false });
 
-      if (!token) {
-        console.error('❌ No admin token found in sessionStorage');
-        toast.error('Please log in again');
+      if (error) {
+        console.error('Error fetching projects:', error);
+        toast.error('Failed to load projects from database');
         return;
       }
 
-      console.log('🔑 Using admin token:', token.substring(0, 20) + '...');
+      if (sqlProjects) {
+        // Transform SQL snake_case to CamelCase if needed or use as is
+        // Our schema uses snake_case in DB but we might need mapping
+        // OR we updated our app to handle both.
+        // For simplicity, let's map DB fields to our frontend structure
+        const mappedProjects = sqlProjects.map((p: any) => ({
+          ...p,
+          cardImage: p.card_image || '',
+          youtubeVideos: p.youtube_videos || [],
+          videoUrls: p.youtube_videos || [],
+          designNotes: p.design_notes || [],
+          clientName: p.client_name || '',
+          role: p.role || '',
+          challenge: p.challenge || '',
+          solution: p.solution || '',
+          keyFeatures: p.key_features || [],
+          softwareUsed: p.software_used || [], // Ensure array
+          projectOverview: p.project_overview || '',
+          process: p.process || [],
+          team: p.team || [],
+          metrics: p.metrics || [],
+          testimonial: p.testimonial || null,
+          experientialContent: p.content || [],
+          // Safe defaults for others
+          description: p.description || '',
+          venue: p.venue || '',
+          location: p.location || '',
+          credits: p.credits || [],
+          galleries: p.galleries || { hero: [], heroCaptions: [], process: [], processCaptions: [] },
+          tags: p.tags || []
+        }));
 
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        console.error('Edge Function API failed:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.error('Response:', errorText);
-        setProjects(hardcodedProjects);
-        toast.error('Failed to load projects from server, using local data');
-      } else {
-        const data = await response.json();
-        const projectsList = data.success ? data.projects : data;
-        setProjects(projectsList);
-        toast.success(`Loaded ${projectsList.length} projects from server`);
+        setProjects(mappedProjects);
       }
     } catch (error) {
       console.error('Error loading projects:', error);
-      setProjects(hardcodedProjects);
-      toast.error('Error connecting to server, using local data');
+      toast.error('Error connecting to server.');
     }
   };
-
   const handleCreate = () => {
     methods.reset({
       title: '',
@@ -155,7 +190,10 @@ export function PortfolioManager() {
       tags: [],
       galleries: { hero: [], heroCaptions: [], process: [], processCaptions: [] },
       youtubeVideos: [],
-      designNotes: []
+      videoUrls: [],
+      designNotes: [],
+      softwareUsed: [],
+      projectOverview: ''
     });
     setEditingId('new');
     setShowForm(true);
@@ -171,7 +209,19 @@ export function PortfolioManager() {
       tags: project.tags || [],
       youtubeVideos: project.youtubeVideos || [],
       designNotes: project.designNotes || [],
-      published: project.published !== undefined ? project.published : true // Default to true for existing projects
+      role: project.role || '',
+      challenge: project.challenge || '',
+      solution: project.solution || '',
+      clientName: project.clientName || '',
+      month: project.month || '', // Ensure not null for Select component
+      published: project.published !== undefined ? project.published : true, // Default to true for existing projects
+      videoUrls: project.videoUrls || [],
+      softwareUsed: project.softwareUsed || [],
+      projectOverview: project.projectOverview || '',
+      keyFeatures: project.keyFeatures || [],
+      metrics: project.metrics || [],
+      team: project.team || [],
+      process: project.process || []
     };
     methods.reset(safeProject);
     setEditingId(project.id);
@@ -181,64 +231,98 @@ export function PortfolioManager() {
 
   const onSubmit = async (formData: ProjectFormData) => {
     try {
-      const token = sessionStorage.getItem('admin_token');
       const isNew = editingId === 'new';
-      const slug = isNew ? (formData.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '') : projects.find(p => p.id === editingId)?.slug;
+      // Generate slug if new or missing, simplified logic
+      let slug = formData.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '';
 
-      const url = isNew
-        ? `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`
-        : `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects/${editingId}`;
-
-      const response = await fetch(url, {
-        method: isNew ? 'POST' : 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...formData, slug }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success('Project saved successfully!');
-        await loadProjects();
-
-        // If we just created a new project, update the editingId so subsequent saves are updates, not creates
-        if (isNew) {
-          const newProject = data.success ? data.project : data;
-          if (newProject && newProject.id) {
-            setEditingId(newProject.id);
-          }
-        }
-      } else {
-        toast.error(`Failed to save project: ${data.error || 'Unknown error'}`);
+      if (!isNew && editingId) {
+        const loadedP = projects.find(p => p.id === editingId);
+        if (loadedP && loadedP.slug) slug = loadedP.slug;
       }
-    } catch (err) {
-      console.error(err);
-      toast.error('An error occurred while saving the project.');
+
+      // Transform to DB Schema
+      const dbPayload = {
+        title: formData.title,
+        slug: slug,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        venue: formData.venue,
+        location: formData.location,
+        year: formData.year,
+        description: formData.description,
+        featured: formData.featured,
+        published: formData.published,
+        card_image: formData.cardImage,
+        credits: formData.credits,
+        galleries: formData.galleries,
+        tags: formData.tags,
+        youtube_videos: formData.category?.includes('Rendering') ? formData.videoUrls : formData.youtubeVideos,
+        month: parseInt(String(formData.month || 0)) || null,
+        design_notes: formData.designNotes,
+
+        // Experiential & Rendering Specific Mappings
+        client_name: formData.clientName || formData.client, // Merge both frontend fields to single DB col
+        role: formData.role,
+        challenge: formData.challenge,
+        solution: formData.solution,
+        key_features: formData.keyFeatures,
+        process: formData.process,
+        team: formData.team,
+        metrics: formData.metrics,
+        testimonial: formData.testimonial,
+        software_used: formData.softwareUsed,
+        project_overview: formData.projectOverview,
+        content: formData.experientialContent,
+      };
+
+      console.log('Saving Project Payload:', dbPayload);
+
+      let error;
+      if (isNew) {
+        const { data, error: insertError } = await supabase
+          .from('portfolio_projects' as any)
+          .insert([dbPayload] as any)
+          .select()
+          .single();
+        error = insertError;
+        if (data) setEditingId((data as any).id);
+      } else {
+        const { error: updateError } = await supabase
+          .from('portfolio_projects' as any)
+          // @ts-ignore
+          .update(dbPayload)
+          .eq('id', editingId as string);
+        error = updateError;
+      }
+
+      if (error) {
+        console.error('Supabase Error Detail:', error);
+        throw error;
+      }
+
+      toast.success('Project saved successfully!');
+      await loadProjects();
+
+    } catch (err: any) {
+      console.error('Full Save Error:', err);
+      toast.error(`Failed to save: ${err.message || err.details || 'Unknown error'}`);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this project?')) return;
     try {
-      const token = sessionStorage.getItem('admin_token');
-      if (!token) {
-        toast.error('Please log in again');
-        return;
-      }
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (response.ok) {
-        toast.success('Project deleted successfully!');
-        await loadProjects();
-      } else {
-        toast.error('Failed to delete project.');
-      }
+      const { error } = await supabase
+        .from('portfolio_projects')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Project deleted successfully!');
+      await loadProjects();
     } catch (err) {
+      console.error(err);
       toast.error('An error occurred while deleting the project.');
     }
   };
@@ -281,12 +365,24 @@ export function PortfolioManager() {
 
   const category = methods.watch('category');
 
+  // Construct context for AI
+  const contextTitle = methods.watch('title');
+  const contextCredits = methods.watch('credits') || [];
+  const contextDesigner = contextCredits.find((c: any) => c.role.toLowerCase().includes('scenic') || c.role.toLowerCase().includes('designer'))?.name;
+  const projectContext = `${contextTitle} (${category})${contextDesigner ? ` - Design by ${contextDesigner}` : ''}`;
+
   const tabs = [
     { id: 'basic', label: 'Basic Info', icon: Layout },
     { id: 'media', label: category === 'Experiential Design' ? 'Content' : 'Media & Gallery', icon: Image },
     { id: 'details', label: 'Credits & Notes', icon: Users },
     { id: 'seo', label: 'SEO & Tags', icon: Tags },
   ] as const;
+
+  const onError = (errors: any) => {
+    console.error('Form Validation Errors:', errors);
+    const missingFields = Object.keys(errors).join(', ');
+    toast.error(`Please check the form. Missing/Invalid: ${missingFields}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -296,6 +392,8 @@ export function PortfolioManager() {
         <div className="flex gap-2">
           {!showForm && (
             <>
+
+
               <div className="flex items-center gap-2 mr-2">
                 <span className="text-xs text-muted-foreground uppercase tracking-wider">Sort by:</span>
                 <select
@@ -327,7 +425,7 @@ export function PortfolioManager() {
 
       {showForm && (
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="border border-border bg-card rounded-3xl overflow-hidden">
+          <form onSubmit={methods.handleSubmit(onSubmit, onError)} className="border border-border bg-card rounded-3xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h3 className="tracking-tight text-lg font-medium">{editingId === 'new' ? 'Create New Project' : 'Edit Project'}</h3>
@@ -368,7 +466,11 @@ export function PortfolioManager() {
                   <Input name="title" label="Project Title" required placeholder="e.g. Million Dollar Quartet" />
                   <div className="grid grid-cols-2 gap-6">
                     <Select name="category" label="Category" required>
-                      {categories.portfolio.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+                      <option value="Scenic Design">Scenic Design</option>
+                      <option value="Experiential Design">Experiential Design</option>
+                      <option value="Rendering & Visualization">Rendering & Visualization</option>
+                      <option value="Design Documentation">Design Documentation</option>
+                      <option value="Archive">Archive</option>
                     </Select>
                     <Input name="subcategory" label="Subcategory" placeholder="e.g. Musical, Play, Opera" />
                   </div>
@@ -382,7 +484,7 @@ export function PortfolioManager() {
                   ) : category === 'Rendering & Visualization' ? (
                     <div className="grid grid-cols-2 gap-6">
                       <Input name="client" label="Client / Project Name" placeholder="e.g. Personal Project" />
-                      <Input name="year" label="Year" type="number" required />
+                      {/* Year is common, removed duplicate from here */}
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-6">
@@ -391,19 +493,18 @@ export function PortfolioManager() {
                     </div>
                   )}
 
-                  {category !== 'Rendering & Visualization' && (
-                    <div className="grid grid-cols-2 gap-6">
-                      <Input name="year" label="Year" type="number" required />
-                      <Select name="month" label="Month" required>
-                        <option value="">Select month...</option>
-                        {Array.from({ length: 12 }, (_, i) => (
-                          <option key={i + 1} value={String(i + 1)}>
-                            {new Date(0, i).toLocaleString('default', { month: 'long' })}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                  )}
+                  {/* Common Year/Month for ALL categories now */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <Input name="year" label="Year" type="number" required />
+                    <Select name="month" label="Month" required={category !== 'Rendering & Visualization'}>
+                      <option value="">Select month...</option>
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <option key={i + 1} value={String(i + 1)}>
+                          {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
 
                   <Textarea name="description" label="Description" required rows={5} placeholder="Project description..." />
                   <div className="flex items-center gap-6">
@@ -429,30 +530,30 @@ export function PortfolioManager() {
                   </div>
 
 
-                  {category === 'Experiential Design' ? (
+                  {category?.includes('Experiential') ? (
                     <ExperientialDesignEditor
-                      data={methods.getValues() as any}
+                      data={methods.watch() as any}
                       onChange={(newData) => {
                         // Merge new data into form
                         Object.entries(newData).forEach(([key, value]) => {
-                          methods.setValue(key as any, value);
+                          methods.setValue(key as any, value, { shouldValidate: true, shouldDirty: true });
                         });
                       }}
                       currentCover={methods.watch('cardImage')}
                       onSetCover={(url) => methods.setValue('cardImage', url)}
                     />
-                  ) : category === 'Rendering & Visualization' ? (
+                  ) : category?.includes('Rendering') ? (
                     <RenderingEditor
-                      data={methods.getValues() as any}
+                      data={methods.watch() as any}
                       onChange={(newData) => {
                         Object.entries(newData).forEach(([key, value]) => {
-                          methods.setValue(key as any, value);
+                          methods.setValue(key as any, value, { shouldValidate: true, shouldDirty: true });
                         });
                       }}
                       currentCover={methods.watch('cardImage')}
                       onSetCover={(url) => methods.setValue('cardImage', url)}
                     />
-                  ) : category === 'Design Documentation' ? (
+                  ) : category?.includes('Documentation') ? (
                     <SimpleGalleryEditor
                       label="Gallery Images"
                       images={methods.watch('galleries.process') || []}
@@ -474,6 +575,7 @@ export function PortfolioManager() {
                         images={methods.watch('galleries.hero') || []}
                         captions={methods.watch('galleries.heroCaptions') || []}
                         altTexts={methods.watch('galleries.heroAlt') || []}
+                        projectContext={projectContext}
                         onChange={(images, captions, altTexts) => {
                           methods.setValue('galleries.hero', images);
                           methods.setValue('galleries.heroCaptions', captions);
@@ -490,6 +592,7 @@ export function PortfolioManager() {
                         images={methods.watch('galleries.process') || []}
                         captions={methods.watch('galleries.processCaptions') || []}
                         altTexts={methods.watch('galleries.processAlt') || []}
+                        projectContext={projectContext}
                         onChange={(images, captions, altTexts) => {
                           methods.setValue('galleries.process', images);
                           methods.setValue('galleries.processCaptions', captions);

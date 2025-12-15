@@ -364,6 +364,12 @@
     outline: auto;
   }
 
+  /* CSS Containment removed to prevent scroll issues */
+  section {
+    contain: none !important;
+    overflow: visible !important;
+  }
+
   progress {
     vertical-align: baseline;
     /* stylelint-disable-next-line property-no-vendor-prefix */
@@ -9081,4 +9087,27 @@ html {
     opacity: var(--tw-exit-opacity, 1);
     transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0) scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1)) rotate(var(--tw-exit-rotate, 0));
   }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Global Scroll Lock Utility - Javascript Toggled */
+.hide-scroll-global {
+  overflow: hidden !important;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.hide-scroll-global::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }

@@ -14,12 +14,193 @@ interface GalleryEditorProps {
   images: string[];
   captions: string[];
   altTexts?: string[]; // New optional prop
+  projectContext?: string; // New: context for AI
   onChange: (images: string[], captions: string[], altTexts?: string[]) => void;
   currentCover?: string;
   onSetCover?: (url: string) => void;
 }
 
-export function GalleryEditor({ label, images, captions, altTexts = [], onChange, currentCover, onSetCover }: GalleryEditorProps) {
+interface GalleryItemProps {
+  item: any;
+  index: number;
+  currentCover?: string;
+  analyzingIndex: number | null;
+  uploading: number | null;
+  onUpdateImage: (index: number, value: string) => void;
+  onUpdateCaption: (index: number, value: string) => void;
+  onUpdateAltText: (index: number, value: string) => void;
+  onGenerateAltText: (index: number, url: string) => void;
+  onFileUpload: (index: number, file: File) => void;
+  onSetCover?: (url: string) => void;
+  onRemove: (index: number) => void;
+}
+
+function GalleryItem({
+  item,
+  index,
+  currentCover,
+  analyzingIndex,
+  uploading,
+  onUpdateImage,
+  onUpdateCaption,
+  onUpdateAltText,
+  onGenerateAltText,
+  onFileUpload,
+  onSetCover,
+  onRemove
+}: GalleryItemProps) {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={item}
+      id={item.url}
+      dragListener={false}
+      dragControls={dragControls}
+      className="relative"
+    >
+      <div className="flex items-center gap-3 border border-border p-3 bg-card/50">
+
+        {/* Drag Handle */}
+        <div
+          className="cursor-move p-2 opacity-50 hover:opacity-100 touch-none"
+          style={{ touchAction: 'none' }}
+          onPointerDown={(e) => dragControls.start(e)}
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
+
+        {/* Thumbnail preview */}
+        <div className="w-20 h-20 flex-shrink-0 bg-black/5 dark:bg-white/5 border border-border overflow-hidden relative">
+          {item.url ? (
+            <>
+              <img
+                src={item.url}
+                alt="Preview"
+                className="w-full h-full object-cover"
+                draggable={false}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              {currentCover === item.url && (
+                <div className="absolute top-0 right-0 bg-accent-brand text-white px-1 text-[10px] tracking-wider uppercase z-10">
+                  COVER
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-xs opacity-30">
+              No image
+            </div>
+          )}
+        </div>
+
+        {/* Input and controls */}
+        <div className="flex-1 flex flex-col gap-2">
+          <input
+            type="text"
+            value={item.url}
+            onChange={(e) => onUpdateImage(index, e.target.value)}
+            placeholder="Image URL"
+            className="w-full px-3 py-1.5 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
+          />
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={item.caption}
+              onChange={(e) => onUpdateCaption(index, e.target.value)}
+              placeholder="Caption (Public Visible)"
+              className="flex-1 px-3 py-1.5 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
+            />
+
+            <div className="flex-1 flex items-center gap-1">
+              <input
+                type="text"
+                value={item.alt}
+                onChange={(e) => onUpdateAltText(index, e.target.value)}
+                placeholder="Alt Text (SEO Hidden)"
+                className="w-full px-3 py-1.5 bg-background border border-border border-dashed focus:border-accent-brand focus:outline-none text-xs text-muted-foreground"
+              />
+
+              {/* AI Button - Flex Item */}
+              <button
+                type="button"
+                onClick={() => onGenerateAltText(index, item.url)}
+                disabled={analyzingIndex === index || !item.url}
+                className="p-1.5 border border-purple-500/30 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 transition-colors disabled:opacity-30 h-full flex items-center justify-center bg-purple-500/5"
+                title="Generate Alt Text with AI"
+              >
+                {analyzingIndex === index ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Wand2 className="w-3.5 h-3.5" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Upload button */}
+          <div className="relative z-10">
+            <input
+              type="file"
+              accept="image/*"
+              aria-label="Upload image"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onFileUpload(index, file);
+              }}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              disabled={uploading === index}
+            />
+            <button
+              type="button"
+              disabled={uploading === index}
+              className="relative p-2 bg-accent-brand/10 border border-accent-brand/20 text-accent-brand hover:bg-accent-brand/20 transition-colors disabled:opacity-50"
+              title="Upload image"
+            >
+              <Upload className="w-3 h-3" />
+            </button>
+          </div>
+
+          {/* Set as Cover button */}
+          {onSetCover && item.url && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSetCover(item.url);
+              }}
+              disabled={currentCover === item.url}
+              title={currentCover === item.url ? 'Current cover' : 'Set as cover'}
+              className="relative z-20 px-2 py-2 border border-border hover:border-accent-brand hover:text-accent-brand transition-colors text-[10px] tracking-wider uppercase disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {currentCover === item.url ? '✓' : 'CVR'}
+            </button>
+          )}
+
+          {/* Remove button */}
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            className="relative z-20 p-2 opacity-60 hover:opacity-100 hover:text-destructive transition-all"
+            title="Remove image"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+    </Reorder.Item>
+  );
+}
+
+
+export function GalleryEditor({ label, images, captions, altTexts = [], onChange, currentCover, onSetCover, projectContext }: GalleryEditorProps) {
   const [uploading, setUploading] = React.useState<number | null>(null);
   const [bulkUploading, setBulkUploading] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
@@ -121,6 +302,12 @@ export function GalleryEditor({ label, images, captions, altTexts = [], onChange
   const updateCaption = (index: number, value: string) => {
     const newCaptions = [...captions];
     newCaptions[index] = value;
+
+    // Optimistic local update
+    const newItems = [...items];
+    if (newItems[index]) newItems[index].caption = value;
+    setItems(newItems);
+
     onChange(images, newCaptions, altTexts);
   };
 
@@ -157,7 +344,10 @@ export function GalleryEditor({ label, images, captions, altTexts = [], onChange
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ imageUrl: url })
+          body: JSON.stringify({
+            imageUrl: url,
+            context: projectContext
+          })
         });
 
         const data = await response.json();
@@ -173,7 +363,7 @@ export function GalleryEditor({ label, images, captions, altTexts = [], onChange
 
       // Client side AI
       console.log('Using local AI key...');
-      const result = await analyzeImage(url, key);
+      const result = await analyzeImage(url, key, projectContext);
       updateAltText(index, result.altText || result.caption);
       toast.success('Generated Alt Text!');
 
@@ -311,159 +501,38 @@ export function GalleryEditor({ label, images, captions, altTexts = [], onChange
 
       <Reorder.Group axis="y" values={items} onReorder={handleReorder} className="space-y-3">
         {items.map((item, index) => (
-          <Reorder.Item key={item.key} value={item} className="relative">
-            <div className="flex items-center gap-3 border border-border p-3 bg-card/50">
-
-              {/* Drag Handle */}
-              <div
-                className="cursor-move p-2 opacity-50 hover:opacity-100 touch-none"
-                style={{ touchAction: 'none' }}
-                onPointerDown={(e) => e.preventDefault()} // Help prevent scrolling on touch
-              >
-                <GripVertical className="w-4 h-4" />
-              </div>
-
-              {/* Thumbnail preview */}
-              <div className="w-20 h-20 flex-shrink-0 bg-black/5 dark:bg-white/5 border border-border overflow-hidden relative">
-                {item.url ? (
-                  <>
-                    <img
-                      src={item.url}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                      draggable={false} // Prevent native drag
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                    {currentCover === item.url && (
-                      <div className="absolute top-0 right-0 bg-accent-brand text-white px-1 text-[10px] tracking-wider uppercase z-10">
-                        COVER
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xs opacity-30">
-                    No image
-                  </div>
-                )}
-              </div>
-
-              {/* Input and controls */}
-              <div className="flex-1 flex flex-col gap-2">
-                <input
-                  type="text"
-                  value={item.url}
-                  onChange={(e) => updateImage(index, e.target.value)}
-                  placeholder="Image URL"
-                  className="w-full px-3 py-1.5 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
-                />
-
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={item.caption}
-                    onChange={(e) => updateCaption(index, e.target.value)}
-                    placeholder="Caption (Public Visible)"
-                    className="flex-1 px-3 py-1.5 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
-                  />
-
-                  <div className="flex-1 flex items-center gap-1">
-                    <input
-                      type="text"
-                      value={item.alt}
-                      onChange={(e) => updateAltText(index, e.target.value)}
-                      placeholder="Alt Text (SEO Hidden)"
-                      className="w-full px-3 py-1.5 bg-background border border-border border-dashed focus:border-accent-brand focus:outline-none text-xs text-muted-foreground"
-                    />
-
-                    {/* AI Button - Flex Item */}
-                    <button
-                      type="button"
-                      onClick={() => generateAltText(index, item.url)}
-                      disabled={analyzingIndex === index || !item.url}
-                      className="p-1.5 border border-purple-500/30 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 transition-colors disabled:opacity-30 h-full flex items-center justify-center bg-purple-500/5"
-                      title="Generate Alt Text with AI"
-                    >
-                      {analyzingIndex === index ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Wand2 className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action buttons */}
-              <div className="flex items-center gap-1 flex-shrink-0">
-                {/* Upload button */}
-                <div className="relative z-10">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    aria-label="Upload image"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileUpload(index, file);
-                    }}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    disabled={uploading === index}
-                  />
-                  <button
-                    type="button"
-                    disabled={uploading === index}
-                    className="relative p-2 bg-accent-brand/10 border border-accent-brand/20 text-accent-brand hover:bg-accent-brand/20 transition-colors disabled:opacity-50"
-                    title="Upload image"
-                  >
-                    <Upload className="w-3 h-3" />
-                  </button>
-                </div>
-
-                {/* Set as Cover button */}
-                {onSetCover && item.url && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onSetCover(item.url);
-                    }}
-                    disabled={currentCover === item.url}
-                    title={currentCover === item.url ? 'Current cover' : 'Set as cover'}
-                    className="relative z-20 px-2 py-2 border border-border hover:border-accent-brand hover:text-accent-brand transition-colors text-[10px] tracking-wider uppercase disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {currentCover === item.url ? '✓' : 'CVR'}
-                  </button>
-                )}
-
-                {/* Remove button */}
-                <button
-                  type="button"
-                  onClick={() => removeImage(index)}
-                  className="relative z-20 p-2 opacity-60 hover:opacity-100 hover:text-destructive transition-all"
-                  title="Remove image"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-          </Reorder.Item>
+          <GalleryItem
+            key={item.key}
+            item={item}
+            index={index}
+            currentCover={currentCover}
+            analyzingIndex={analyzingIndex}
+            uploading={uploading}
+            onUpdateImage={updateImage}
+            onUpdateCaption={updateCaption}
+            onUpdateAltText={updateAltText}
+            onGenerateAltText={generateAltText}
+            onFileUpload={handleFileUpload}
+            onSetCover={onSetCover}
+            onRemove={removeImage}
+          />
         ))}
       </Reorder.Group>
 
-      {items.length === 0 && (
-        <div className={`border-2 border-dashed ${isDragging ? 'border-accent-brand bg-accent-brand/5' : 'border-border'} p-12 text-center transition-colors`}>
-          <Upload className={`w-8 h-8 mx-auto mb-3 ${isDragging ? 'text-accent-brand' : 'opacity-30'}`} />
-          <p className="text-sm tracking-wider uppercase opacity-60 mb-1">
-            {isDragging ? 'Drop images here' : 'Drag & Drop Images'}
-          </p>
-          <p className="text-xs opacity-40">
-            or click "Bulk Upload" above
-          </p>
-        </div>
-      )}
-    </div>
+      {
+        items.length === 0 && (
+          <div className={`border-2 border-dashed ${isDragging ? 'border-accent-brand bg-accent-brand/5' : 'border-border'} p-12 text-center transition-colors`}>
+            <Upload className={`w-8 h-8 mx-auto mb-3 ${isDragging ? 'text-accent-brand' : 'opacity-30'}`} />
+            <p className="text-sm tracking-wider uppercase opacity-60 mb-1">
+              {isDragging ? 'Drop images here' : 'Drag & Drop Images'}
+            </p>
+            <p className="text-xs opacity-40">
+              or click "Bulk Upload" above
+            </p>
+          </div>
+        )
+      }
+    </div >
   );
 }
 

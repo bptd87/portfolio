@@ -68,6 +68,8 @@ export const AdminTokens = {
     base: 'bg-zinc-900 border border-zinc-800 rounded-xl p-6 transition-all',
     hover: 'bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl p-6 transition-all',
     accent: 'bg-zinc-900 border border-white/20 rounded-xl p-6 transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)]',
+    glass: 'backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl rounded-xl p-6',
+    glassHover: 'hover:bg-white/10 hover:border-white/20 transition-all duration-300',
   },
 
   button: {

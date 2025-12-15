@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus, X, Image as ImageIcon, ChevronUp, ChevronDown, Trash2, Star, Layers } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 
@@ -37,8 +37,8 @@ interface RenderingEditorProps {
   onSetCover?: (url: string) => void;
 }
 
-export function RenderingEditor({ 
-  data, 
+export function RenderingEditor({
+  data,
   onChange,
   currentCover,
   onSetCover,
@@ -47,8 +47,8 @@ export function RenderingEditor({
   const [softwareInput, setSoftwareInput] = useState('');
 
   const toggleGallery = (index: number) => {
-    setExpandedGalleries(prev => 
-      prev.includes(index) 
+    setExpandedGalleries(prev =>
+      prev.includes(index)
         ? prev.filter(i => i !== index)
         : [...prev, index]
     );
@@ -56,7 +56,7 @@ export function RenderingEditor({
 
   const addGallery = () => {
     const newGalleries = [
-      ...(data.galleries || []),
+      ...(Array.isArray(data.galleries) ? data.galleries : []),
       {
         heading: 'New Render Gallery',
         description: '',
@@ -69,7 +69,7 @@ export function RenderingEditor({
   };
 
   const updateGallery = (index: number, field: keyof Gallery, value: any) => {
-    const newGalleries = [...(data.galleries || [])];
+    const newGalleries = [...(Array.isArray(data.galleries) ? data.galleries : [])];
     newGalleries[index] = {
       ...newGalleries[index],
       [field]: value,
@@ -78,23 +78,23 @@ export function RenderingEditor({
   };
 
   const removeGallery = (index: number) => {
-    const newGalleries = (data.galleries || []).filter((_, i) => i !== index);
+    const newGalleries = (Array.isArray(data.galleries) ? data.galleries : []).filter((_, i) => i !== index);
     onChange({ ...data, galleries: newGalleries });
     setExpandedGalleries(expandedGalleries.filter(i => i !== index));
   };
 
   const moveGallery = (index: number, direction: 'up' | 'down') => {
-    const newGalleries = [...(data.galleries || [])];
+    const newGalleries = [...(Array.isArray(data.galleries) ? data.galleries : [])];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    
+
     if (targetIndex < 0 || targetIndex >= newGalleries.length) return;
-    
+
     [newGalleries[index], newGalleries[targetIndex]] = [newGalleries[targetIndex], newGalleries[index]];
     onChange({ ...data, galleries: newGalleries });
   };
 
   const updateImage = (galleryIndex: number, imageIndex: number, field: 'url' | 'caption', value: string) => {
-    const newGalleries = [...(data.galleries || [])];
+    const newGalleries = [...(Array.isArray(data.galleries) ? data.galleries : [])];
     newGalleries[galleryIndex].images[imageIndex] = {
       ...newGalleries[galleryIndex].images[imageIndex],
       [field]: value,
@@ -103,7 +103,7 @@ export function RenderingEditor({
   };
 
   const removeImage = (galleryIndex: number, imageIndex: number) => {
-    const newGalleries = [...(data.galleries || [])];
+    const newGalleries = [...(Array.isArray(data.galleries) ? data.galleries : [])];
     newGalleries[galleryIndex].images = newGalleries[galleryIndex].images.filter((_, i) => i !== imageIndex);
     onChange({ ...data, galleries: newGalleries });
   };
@@ -182,7 +182,7 @@ export function RenderingEditor({
         <textarea
           value={data.projectOverview || ''}
           onChange={(e) => onChange({ ...data, projectOverview: e.target.value })}
-          placeholder="Tell the story of this visualization... What was the vision? What challenges did you solve? What makes this work special? Write in a narrative voice that engages readers.\n\nExample: 'This project began with a simple question: how do you visualize a space that doesn\'t exist yet? Working closely with the architect, we developed a rendering approach that...'" 
+          placeholder="Tell the story of this visualization... What was the vision? What challenges did you solve? What makes this work special? Write in a narrative voice that engages readers.\n\nExample: 'This project began with a simple question: how do you visualize a space that doesn\'t exist yet? Working closely with the architect, we developed a rendering approach that...'"
           rows={8}
           className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:border-accent-brand focus:outline-none focus:ring-2 focus:ring-accent-brand/20 resize-none font-serif text-base leading-relaxed"
         />
@@ -219,10 +219,12 @@ export function RenderingEditor({
                 placeholder="Cinema 4D, Vectorworks..."
                 className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:border-accent-brand focus:outline-none text-sm"
               />
-              <button 
+              <button
                 type="button"
                 onClick={addSoftware}
                 className="px-4 bg-accent-brand text-white rounded-lg hover:opacity-90 transition-opacity"
+                aria-label="Add software"
+                title="Add software"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -231,7 +233,7 @@ export function RenderingEditor({
               {(data.softwareUsed || []).map((soft, i) => (
                 <span key={i} className="inline-flex items-center gap-2 px-3 py-1 bg-secondary border border-border rounded-full text-xs">
                   {soft}
-                  <button type="button" onClick={() => removeSoftware(soft)} className="hover:text-destructive transition-colors">
+                  <button type="button" onClick={() => removeSoftware(soft)} className="hover:text-destructive transition-colors" aria-label={`Remove ${soft}`} title={`Remove ${soft}`}>
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -289,7 +291,7 @@ export function RenderingEditor({
                       placeholder="Step Title (e.g. Wireframe)"
                       className="w-full font-medium bg-transparent border-b border-border focus:border-accent-brand focus:outline-none pb-1 mr-4"
                     />
-                    <button type="button" onClick={() => removeProcessStep(index)} className="opacity-40 hover:opacity-100 hover:text-destructive">
+                    <button type="button" onClick={() => removeProcessStep(index)} className="opacity-40 hover:opacity-100 hover:text-destructive" aria-label="Remove step" title="Remove step">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -337,7 +339,7 @@ export function RenderingEditor({
         )}
 
         <div className="space-y-4">
-          {(data.galleries || []).map((gallery, galleryIndex) => (
+          {(Array.isArray(data.galleries) ? data.galleries : []).map((gallery, galleryIndex) => (
             <div key={galleryIndex} className="border border-border bg-card">
               {/* Gallery Header */}
               <div className="flex items-center justify-between p-4 border-b border-border bg-secondary">
@@ -405,6 +407,8 @@ export function RenderingEditor({
                         value={gallery.layout || '1-col'}
                         onChange={(e) => updateGallery(galleryIndex, 'layout', e.target.value)}
                         className="w-full px-4 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                        aria-label="Select layout style"
+                        title="Select layout style"
                       >
                         <option value="1-col">Full Width (1 Column)</option>
                         <option value="2-col">Grid (2 Columns)</option>
@@ -454,11 +458,10 @@ export function RenderingEditor({
                                 {onSetCover && image.url && (
                                   <button type="button"
                                     onClick={() => onSetCover(image.url)}
-                                    className={`p-1.5 border transition-colors ${
-                                      currentCover === image.url
-                                        ? 'bg-accent-brand text-white border-accent-brand'
-                                        : 'border-border opacity-40 hover:opacity-100'
-                                    }`}
+                                    className={`p-1.5 border transition-colors ${currentCover === image.url
+                                      ? 'bg-accent-brand text-white border-accent-brand'
+                                      : 'border-border opacity-40 hover:opacity-100'
+                                      }`}
                                     title={currentCover === image.url ? 'Current cover image' : 'Set as cover image'}
                                   >
                                     <Star className="w-4 h-4" />
@@ -467,14 +470,16 @@ export function RenderingEditor({
                                 <button type="button"
                                   onClick={() => removeImage(galleryIndex, imageIndex)}
                                   className="p-1.5 opacity-40 hover:opacity-100 hover:text-destructive"
+                                  aria-label="Remove image"
+                                  title="Remove image"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
                               </div>
                             </div>
                             {image.url && (
-                              <img 
-                                src={image.url} 
+                              <img
+                                src={image.url}
                                 alt={image.caption || `Preview ${imageIndex + 1}`}
                                 className="w-full h-48 object-cover border border-border"
                                 onError={(e) => {
@@ -490,7 +495,7 @@ export function RenderingEditor({
                     <ImageUploader
                       label="Add Render to Gallery"
                       onChange={(url) => {
-                        const newGalleries = [...(data.galleries || [])];
+                        const newGalleries = [...(Array.isArray(data.galleries) ? data.galleries : [])];
                         newGalleries[galleryIndex].images.push({ url, caption: '' });
                         onChange({ ...data, galleries: newGalleries });
                       }}
@@ -539,6 +544,8 @@ export function RenderingEditor({
                 <button type="button"
                   onClick={() => removeVideoUrl(index)}
                   className="p-2 opacity-40 hover:opacity-100 hover:text-destructive"
+                  aria-label="Remove video"
+                  title="Remove video"
                 >
                   <X className="w-4 h-4" />
                 </button>

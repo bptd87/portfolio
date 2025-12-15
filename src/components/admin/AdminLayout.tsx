@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { LogOut, ExternalLink, Menu } from 'lucide-react';
 import { AdminTokens } from '../../styles/admin-tokens';
+import { TimeTrackerWidget } from './finance/TimeTrackerWidget';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -61,6 +62,7 @@ export function AdminLayout({ children, activeView, onNavigate, onSiteNavigation
           </div>
         </main>
       </div>
+      <TimeTrackerWidget />
     </div>
   );
 }

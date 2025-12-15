@@ -10,6 +10,7 @@ interface ImageUploaderProps {
   onChange: (url: string) => void;
   label: string;
   bucketName?: string;
+  className?: string;
 }
 
 interface ImageGalleryManagerProps {
@@ -18,7 +19,7 @@ interface ImageGalleryManagerProps {
   onChange: (images: Array<{ url: string; caption?: string; alt?: string }>) => void;
 }
 
-export function ImageUploader({ value, onChange, label, bucketName = 'make-74296234-images' }: ImageUploaderProps) {
+export function ImageUploader({ value, onChange, label, bucketName = 'make-74296234-images', className = '' }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -138,13 +139,13 @@ export function ImageUploader({ value, onChange, label, bucketName = 'make-74296
   };
 
   return (
-    <div>
+    <div className={className}>
       <label className="block text-xs tracking-wider uppercase opacity-60 mb-2">
         {label}
       </label>
 
       {value ? (
-        <div className="relative border border-border overflow-hidden group w-full max-w-[320px] aspect-video rounded-lg">
+        <div className="relative border border-border overflow-hidden group w-full h-full rounded-lg">
           <img
             src={value}
             alt="Preview"
@@ -161,7 +162,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'make-74296
         </div>
       ) : (
         <label
-          className={`block border-2 border-dashed transition-colors cursor-pointer ${isDragging
+          className={`block border-2 border-dashed transition-colors cursor-pointer w-full h-full min-h-[100px] flex flex-col justify-center ${isDragging
             ? 'border-accent-brand bg-accent-brand/5'
             : 'border-border hover:border-accent-brand'
             }`}
@@ -169,17 +170,16 @@ export function ImageUploader({ value, onChange, label, bucketName = 'make-74296
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <div className="flex flex-col items-center justify-center py-12 px-4">
+          <div className="flex flex-col items-center justify-center py-4 px-4">
             {uploading ? (
               <>
-                <Loader2 className="w-10 h-10 text-accent-brand mb-3 animate-spin" />
-                <p className="text-sm text-gray-400">Uploading...</p>
+                <Loader2 className="w-8 h-8 text-accent-brand mb-2 animate-spin" />
+                <p className="text-xs text-gray-400">Uploading...</p>
               </>
             ) : (
               <>
-                <Upload className={`w-10 h-10 mb-3 ${isDragging ? 'text-accent-brand scale-110' : 'text-accent-brand'} transition-transform`} />
-                <p className="text-sm opacity-80 mb-1">{isDragging ? 'Drop image here' : 'Click to upload or drag & drop'}</p>
-                <p className="text-xs opacity-50">PNG, JPG, WebP up to 5MB</p>
+                <Upload className={`w-8 h-8 mb-2 ${isDragging ? 'text-accent-brand scale-110' : 'text-accent-brand'} transition-transform`} />
+                <p className="text-xs opacity-80 mb-1 text-center">{isDragging ? 'Drop' : 'Click/Drop'}</p>
               </>
             )}
           </div>

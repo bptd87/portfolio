@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
@@ -121,7 +121,16 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
       // Find the category name from the slug
       const category = categories.find(cat => cat.slug === selectedFilter);
       if (category) {
-        filtered = filtered.filter(p => p.category === category.name);
+        // Special case for Rendering category to handle legacy/variant data
+        if (category.slug === 'rendering-visualization' || category.slug === 'rendering') {
+          filtered = filtered.filter(p =>
+            p.category === 'Rendering & Visualization' ||
+            p.category === 'Rendering' ||
+            p.category === 'Visualization'
+          );
+        } else {
+          filtered = filtered.filter(p => p.category === category.name);
+        }
       }
     }
 
@@ -548,7 +557,8 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
                     {(() => {
                       const allImages = [
                         ...(filteredProjects[currentProjectIndex].galleries?.process || []),
-                        ...(filteredProjects[currentProjectIndex].galleries?.hero || [])
+                        ...(filteredProjects[currentProjectIndex].galleries?.hero || []),
+                        ...(filteredProjects[currentProjectIndex].galleries?.additional?.flatMap((g: any) => g.images.map((img: any) => img.url)) || [])
                       ];
 
                       const displayImages = allImages.slice(0, 3);

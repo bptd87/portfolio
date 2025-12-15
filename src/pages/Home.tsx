@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, BookOpen, Wrench } from 'lucide-react';
 // ImageWithFallback removed (unused)
 import { API_BASE_URL } from '../utils/api';
 import { publicAnonKey } from '../utils/supabase/info';
+import { createClient } from '../utils/supabase/client';
 import heroPattern from '../assets/hero-pattern.webp';
 
 import { useSiteSettings } from '../hooks/useSiteSettings';
@@ -74,47 +75,53 @@ export function Home({ onNavigate }: HomeProps) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch projects from API instead of KV store
-        const projectsResponse = await fetch(`${API_BASE_URL}/api/projects`, {
-          headers: { 'Authorization': `Bearer ${publicAnonKey}` }
-        });
+        const supabase = createClient();
 
-        if (!projectsResponse.ok) {
-          const errorText = await projectsResponse.text();
-          throw new Error(`Projects API returned ${projectsResponse.status}: ${errorText}`);
+        // Fetch projects from SQL Database
+        const { data: projectsData, error } = await supabase
+          .from('portfolio_projects')
+          .select('*')
+          .eq('published', true)
+          .eq('featured', true)
+          .order('year', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching projects:', error);
+          // Fallback or just empty
         }
 
-        const projectsResult = await projectsResponse.json();
-        if (projectsResult.success && projectsResult.projects && projectsResult.projects.length > 0) {
-          // Filter for featured projects only AND published projects
-          const featuredProjectsData = projectsResult.projects.filter((project: any) => project.featured === true && project.published !== false);
-          const projectsArray = featuredProjectsData.sort((a: any, b: any) => {
-            // Sort by date if available, otherwise by title
+        if (projectsData && projectsData.length > 0) {
+          const projectsArray = projectsData.map((p: any) => ({
+            ...p,
+            cardImage: p.card_image,
+            coverImage: p.card_image, // Fallback
+            focusPoint: p.focus_point || { x: 50, y: 50 } // if we add this col later
+          })).sort((a: any, b: any) => {
             if (a.year && b.year) {
-              return parseInt(b.year) - parseInt(a.year);
+              if (Number(a.year) !== Number(b.year)) {
+                return Number(b.year) - Number(a.year);
+              }
+              // If years are equal, sort by month desc
+              return (b.month || 0) - (a.month || 0);
             }
-            return (a.title || '').localeCompare(b.title || '');
+            return 0;
           });
-
           setFeaturedProjects(projectsArray.slice(0, 8));
         }
 
-        // Fetch latest news from API instead of KV store
+        // Fetch latest news from API (Keep as is for now, or migrate later)
         const newsResponse = await fetch(`${API_BASE_URL}/api/news`, {
           headers: { 'Authorization': `Bearer ${publicAnonKey}` }
         });
         const newsResult = await newsResponse.json();
         if (newsResult.success && newsResult.news && newsResult.news.length > 0) {
           const newsArray = newsResult.news.sort((a: any, b: any) => {
-            // Sort by date, most recent first
             return new Date(b.date).getTime() - new Date(a.date).getTime();
           });
-
-          // Take most recent 5 news items for the carousel
           setLatestNews(newsArray.slice(0, 5));
         }
 
-        // Fetch collaborators for marquee
+        // Fetch collaborators (Keep as is)
         try {
           const collabResponse = await fetch(`${API_BASE_URL}/api/collaborators`, {
             headers: { 'Authorization': `Bearer ${publicAnonKey}` }
@@ -136,6 +143,7 @@ export function Home({ onNavigate }: HomeProps) {
           ]);
         }
       } catch (error) {
+        console.error('Home fetch error:', error);
       } finally {
         setLoading(false);
       }
@@ -223,8 +231,6 @@ export function Home({ onNavigate }: HomeProps) {
           src={heroPattern}
           alt=""
           className="absolute top-0 left-0 w-0 h-0 opacity-0 pointer-events-none"
-          // @ts-ignore
-          fetchPriority="high"
           loading="eager"
         />
 

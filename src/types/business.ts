@@ -25,9 +25,9 @@ export interface Contact {
   id: string;
   created_at?: string;
   company_id: string;
-  first_name: string;
+  name: string;
+  first_name?: string;
   last_name?: string;
-  name?: string; // Virtual property for UI convenience (first + last)
   role?: string;
   email?: string;
   phone?: string;

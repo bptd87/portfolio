@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import VisitorMap from './VisitorMap';
 import {
   BarChart3,
   TrendingUp,
@@ -150,25 +151,29 @@ export function AnalyticsManager() {
           const sortedPages = Array.from(pageMap.entries())
             .map(([path, views]) => ({ path, views }))
             .sort((a, b) => b.views - a.views)
-            .slice(0, 5);
+            .slice(0, 10);
 
           setTopPages(sortedPages);
 
           // Process Top Locations
           const locMap = new Map<string, number>();
           viewsData.forEach((view: any) => {
-            if (view.city && view.country) {
-              const loc = `${view.city}, ${view.country}`;
+            // Build location string: City, Region, Country
+            const parts = [view.city, view.region, view.country].filter(Boolean);
+            if (parts.length > 0) {
+              const loc = parts.join(', ');
               locMap.set(loc, (locMap.get(loc) || 0) + 1);
-            } else if (view.country) {
-              locMap.set(view.country, (locMap.get(view.country) || 0) + 1);
+            } else {
+              // Fallback
+              const unknown = 'Unknown Location';
+              locMap.set(unknown, (locMap.get(unknown) || 0) + 1);
             }
           });
 
           const sortedLocations = Array.from(locMap.entries())
             .map(([location, views]) => ({ location, views }))
             .sort((a, b) => b.views - a.views)
-            .slice(0, 5);
+            .slice(0, 10);
 
           setTopLocations(sortedLocations);
 
@@ -338,7 +343,7 @@ export function AnalyticsManager() {
                     <div className="flex flex-col gap-1">
                       <span className="font-medium flex items-center gap-2">
                         {view.country ? getErrorFlag(view.country) : '🌍'}
-                        {view.city ? `${view.city}, ${view.country}` : view.country || 'Unknown Location'}
+                        {[view.city, view.region, view.country].filter(Boolean).join(', ') || 'Unknown Location'}
                       </span>
                       <span className="text-xs text-muted-foreground truncate max-w-[300px] font-mono opacity-70">
                         {view.path}
@@ -450,44 +455,98 @@ export function AnalyticsManager() {
 
           {/* 4. Main Traffic Chart + Content Distribution (Split Row) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-medium">Traffic Overview</h3>
+
+            {/* LEFT COLUMN: Traffic + Top Pages */}
+            <div className="lg:col-span-2 space-y-6">
+
+              {/* Traffic Overview */}
+              <div className="bg-card border border-border rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-medium">Traffic Overview</h3>
+                </div>
+                <div className="h-48 w-full"> {/* Reduced height from h-64 to h-48 */}
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dailyTraffic}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: '#888' }}
+                        tickLine={false}
+                        axisLine={false}
+                        interval={Math.floor(dailyTraffic.length / 5)}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: '#888' }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
+                        itemStyle={{ color: '#fff' }}
+                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                      />
+                      <Bar
+                        dataKey="views"
+                        fill="#D4AF37"
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={40}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dailyTraffic}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 10, fill: '#888' }}
-                      tickLine={false}
-                      axisLine={false}
-                      interval={Math.floor(dailyTraffic.length / 5)}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 10, fill: '#888' }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
-                      itemStyle={{ color: '#fff' }}
-                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                    />
-                    <Bar
-                      dataKey="views"
-                      fill="#D4AF37"
-                      radius={[4, 4, 0, 0]}
-                      maxBarSize={40}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+
+              {/* Webpage Popularity (Moved here) */}
+              <div className="bg-card border border-border rounded-xl p-6">
+                <h3 className="font-medium mb-6">Webpage Popularity (Top Pages)</h3>
+                <div className="space-y-4">
+                  {topPages.length > 0 ? (
+                    topPages.map((page, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm group hover:bg-white/5 p-2 rounded-md transition-colors">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <span className="font-mono text-xs opacity-50 w-4">{i + 1}.</span>
+                          <span className="truncate font-mono text-xs text-accent-brand" title={page.path}>
+                            {page.path}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden hidden sm:block">
+                            <div
+                              className="h-full bg-white/40 rounded-full"
+                              style={{ width: `${(page.views / Math.max(1, topPages[0].views)) * 100}%` }}
+                            />
+                          </div>
+                          <span className="font-medium min-w-[3rem] text-right">{page.views}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground italic">No page data available</div>
+                  )}
+                </div>
               </div>
+
             </div>
 
-            <div className="bg-card border border-border rounded-xl p-6">
+            {/* RIGHT COLUMN: Top Locations */}
+            <div className="bg-card border border-border rounded-xl p-6 h-fit">
               <h3 className="font-medium mb-6">Top Locations</h3>
+              {/* Visitor Map Visualization */}
+              <div className="mb-6">
+                <VisitorMap data={
+                  (() => {
+                    // Aggregate views by State (Region) for US only
+                    const stateMap = new Map<string, number>();
+                    rawViews.forEach((view: any) => {
+                      if (view.country === 'United States' && view.region) {
+                        stateMap.set(view.region, (stateMap.get(view.region) || 0) + 1);
+                      }
+                    });
+                    return Array.from(stateMap.entries()).map(([name, views]) => ({ name, views }));
+                  })()
+                } />
+              </div>
+
               <div className="space-y-4">
                 {topLocations.length > 0 ? (
                   topLocations.map((loc, i) => (

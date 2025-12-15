@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
-import { ImageUploader } from './ImageUploader';
-import { ImprovedBlockEditor } from './ImprovedBlockEditor';
+import { Plus, Trash2, ChevronDown, ChevronUp, Video, Layers } from 'lucide-react';
+import { ImageGalleryManager } from './ImageUploader';
 import { ContentBlock } from './BlockEditor';
 import { GalleryEditor } from './ProjectTemplateFields';
 
@@ -31,6 +30,18 @@ interface Testimonial {
   quote: string;
   author: string;
   role: string;
+}
+
+interface AdditionalGallery {
+  id: string;
+  heading: string;
+  description: string;
+  images: Array<{
+    url: string;
+    caption: string;
+    alt?: string;
+  }>;
+  layout: '1-col' | '2-col' | '3-col' | 'masonry';
 }
 
 // Local interfaces for Experiential specific structured data
@@ -63,7 +74,11 @@ interface ExperientialProject {
   galleries?: {
     hero?: string[];
     heroCaptions?: string[];
+    additional?: AdditionalGallery[];
   };
+
+  // Video Links
+  videoUrls?: string[];
 
   // Additional content blocks
   content?: ContentBlock[];
@@ -88,6 +103,78 @@ export function ExperientialDesignEditor({
         ? prev.filter(s => s !== section)
         : [...prev, section]
     );
+  };
+
+  // Video Handlers
+  const addVideoUrl = () => {
+    const newVideos = [...(data.videoUrls || []), ''];
+    onChange({ ...data, videoUrls: newVideos });
+  };
+
+  const updateVideoUrl = (index: number, value: string) => {
+    const newVideos = [...(data.videoUrls || [])];
+    newVideos[index] = value;
+    onChange({ ...data, videoUrls: newVideos });
+  };
+
+  const removeVideoUrl = (index: number) => {
+    const newVideos = (data.videoUrls || []).filter((_, i) => i !== index);
+    onChange({ ...data, videoUrls: newVideos });
+  };
+
+  // Additional Gallery Handlers
+  const addAdditionalGallery = () => {
+    const newGallery: AdditionalGallery = {
+      id: crypto.randomUUID(),
+      heading: 'New Gallery',
+      description: '',
+      images: [],
+      layout: '3-col'
+    };
+
+    onChange({
+      ...data,
+      galleries: {
+        ...data.galleries,
+        additional: [...(data.galleries?.additional || []), newGallery]
+      }
+    });
+  };
+
+  const updateAdditionalGallery = (index: number, field: keyof AdditionalGallery, value: any) => {
+    const newAdditional = [...(data.galleries?.additional || [])];
+    newAdditional[index] = { ...newAdditional[index], [field]: value };
+
+    onChange({
+      ...data,
+      galleries: {
+        ...data.galleries,
+        additional: newAdditional
+      }
+    });
+  };
+
+  const removeAdditionalGallery = (index: number) => {
+    const newAdditional = (data.galleries?.additional || []).filter((_, i) => i !== index);
+    onChange({
+      ...data,
+      galleries: {
+        ...data.galleries,
+        additional: newAdditional
+      }
+    });
+  };
+
+  const updateGalleryImages = (galleryIndex: number, newImages: Array<{ url: string; caption: string; alt?: string; }>) => {
+    const newAdditional = [...(data.galleries?.additional || [])];
+    newAdditional[galleryIndex].images = newImages;
+    onChange({
+      ...data,
+      galleries: {
+        ...data.galleries,
+        additional: newAdditional
+      }
+    });
   };
 
   // Key Features handlers
@@ -393,60 +480,19 @@ export function ExperientialDesignEditor({
                     )}
                   </div>
                   <div className="bg-muted/20 p-3 rounded-lg border border-border">
-                    <ImageUploader
-                      value=""
-                      onChange={(url) => {
+                    <ImageGalleryManager
+                      label="Add another image to this step"
+                      images={step.images?.map((url, i) => ({ url, caption: step.imageCaptions?.[i] || '' })) || []}
+                      onChange={(newImages) => {
                         const newProcess = [...(data.process || [])];
-                        const currentImages = newProcess[index].images || [];
-                        const currentCaptions = newProcess[index].imageCaptions || [];
                         newProcess[index] = {
                           ...newProcess[index],
-                          images: [...currentImages, url],
-                          imageCaptions: [...currentCaptions, '']
+                          images: newImages.map(img => img.url),
+                          imageCaptions: newImages.map(img => img.caption || '')
                         };
                         onChange({ ...data, process: newProcess });
                       }}
-                      label="📸 Add another image to this step"
                     />
-
-                    {step.images && step.images.length > 0 && (
-                      <div className="mt-3 space-y-2">
-                        {step.images.map((img, imgIndex) => (
-                          <div key={imgIndex} className="flex items-center gap-2 p-2 bg-background rounded border border-border">
-                            <img src={img} alt="" className="w-12 h-12 object-cover rounded" />
-                            <input
-                              type="text"
-                              value={step.imageCaptions?.[imgIndex] || ''}
-                              onChange={(e) => {
-                                const newProcess = [...(data.process || [])];
-                                const newCaptions = [...(newProcess[index].imageCaptions || [])];
-                                newCaptions[imgIndex] = e.target.value;
-                                newProcess[index] = { ...newProcess[index], imageCaptions: newCaptions };
-                                onChange({ ...data, process: newProcess });
-                              }}
-                              placeholder="Image caption..."
-                              className="flex-1 px-2 py-1 bg-background border border-border focus:border-accent-brand focus:outline-none text-xs"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newProcess = [...(data.process || [])];
-                                newProcess[index] = {
-                                  ...newProcess[index],
-                                  images: step.images!.filter((_, i) => i !== imgIndex),
-                                  imageCaptions: step.imageCaptions?.filter((_, i) => i !== imgIndex) || []
-                                };
-                                onChange({ ...data, process: newProcess });
-                              }}
-                              className="p-1 hover:text-destructive"
-                              title="Remove image"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -658,29 +704,126 @@ export function ExperientialDesignEditor({
         )}
       </div>
 
-      {/* Additional Content Blocks Section */}
+
+      {/* ADDITIONAL GALLERIES */}
       <div>
         <button type="button"
-          onClick={() => toggleSection('content')}
+          onClick={() => toggleSection('additionalGalleries')}
           className="w-full flex items-center justify-between p-3 bg-accent-brand/5 border border-accent-brand/20 hover:bg-accent-brand/10 transition-colors"
         >
-          <div className="text-left">
-            <div className="text-xs tracking-wider uppercase font-medium">Additional Content Blocks ({(data.content || []).length})</div>
-            <div className="text-[10px] text-muted-foreground mt-0.5">Advanced: Mix text, images, headings & videos (like a blog post)</div>
+          <div className="text-left flex items-center gap-2">
+            <Layers className="w-4 h-4 text-accent-brand" />
+            <div>
+              <div className="text-xs tracking-wider uppercase font-medium">Additional Galleries ({(data.galleries?.additional || []).length})</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">Renderings, Drafting, Live Event Photos, etc.</div>
+            </div>
           </div>
-          <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('content') ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('additionalGalleries') ? 'rotate-180' : ''}`} />
         </button>
 
-        {expandedSections.includes('content') && (
-          <div className="border border-t-0 border-accent-brand/20 p-4 min-h-[500px]">
-            {/* Rich Block Editor */}
-            <ImprovedBlockEditor
-              blocks={data.content || []}
-              onChange={(newBlocks) => onChange({ ...data, content: newBlocks })}
-            />
+        {expandedSections.includes('additionalGalleries') && (
+          <div className="border border-t-0 border-accent-brand/20 p-4 space-y-6">
+
+            <div className="flex justify-end">
+              <button type="button" onClick={addAdditionalGallery} className="flex items-center gap-2 px-3 py-1.5 bg-accent-brand text-white text-xs rounded hover:opacity-90">
+                <Plus className="w-3 h-3" /> Add Gallery Section
+              </button>
+            </div>
+
+            {(data.galleries?.additional || []).map((gallery, gIndex) => (
+              <div key={gallery.id} className="border border-white/10 rounded bg-white/5 p-4">
+                <div className="flex items-start justify-between mb-4 pb-4 border-b border-white/10">
+                  <div className="flex-1 grid grid-cols-2 gap-4 mr-4">
+                    <div>
+                      <label className="text-[10px] uppercase text-muted-foreground mb-1 block">Gallery Title</label>
+                      <input
+                        type="text"
+                        value={gallery.heading}
+                        onChange={(e) => updateAdditionalGallery(gIndex, 'heading', e.target.value)}
+                        className="w-full bg-black/20 border border-white/10 rounded px-3 py-1.5 text-sm"
+                        placeholder="e.g. Renderings"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase text-muted-foreground mb-1 block">Layout</label>
+                      <select
+                        value={gallery.layout}
+                        onChange={(e) => updateAdditionalGallery(gIndex, 'layout', e.target.value)}
+                        className="w-full bg-black/20 border border-white/10 rounded px-3 py-1.5 text-sm"
+                        aria-label="Select gallery layout"
+                        title="Select gallery layout"
+                      >
+                        <option value="1-col">1 Column (Full Width)</option>
+                        <option value="2-col">2 Columns</option>
+                        <option value="3-col">3 Columns</option>
+                        <option value="masonry">Masonry</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button onClick={() => removeAdditionalGallery(gIndex)} className="text-red-400 hover:text-red-300 p-1" title="Remove video URL" aria-label="Remove video URL">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Images in this gallery - Using ImageGalleryManager for Bulk Upload & Alt Text */}
+                <div className="mt-4">
+                  <ImageGalleryManager
+                    label="Gallery Images"
+                    images={(gallery.images || []).map(img => ({ ...img, caption: img.caption || '' }))}
+                    onChange={(newImages) => updateGalleryImages(gIndex, newImages)}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {/* MEDIA / VIDEOS */}
+      <div>
+        <button type="button"
+          onClick={() => toggleSection('videos')}
+          className="w-full flex items-center justify-between p-3 bg-accent-brand/5 border border-accent-brand/20 hover:bg-accent-brand/10 transition-colors"
+        >
+          <div className="text-left flex items-center gap-2">
+            <Video className="w-4 h-4 text-accent-brand" />
+            <div>
+              <div className="text-xs tracking-wider uppercase font-medium">Video Links ({(data.videoUrls || []).length})</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">YouTube, Vimeo, etc.</div>
+            </div>
+          </div>
+          <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.includes('videos') ? 'rotate-180' : ''}`} />
+        </button>
+
+        {expandedSections.includes('videos') && (
+          <div className="border border-t-0 border-accent-brand/20 p-4">
+            <div className="space-y-3">
+              {(data.videoUrls || []).map((url, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={url}
+                    onChange={(e) => updateVideoUrl(index, e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..."
+                    className="flex-1 bg-background border border-border px-3 py-2 text-sm rounded focus:border-accent-brand outline-none"
+                  />
+                  <button onClick={() => removeVideoUrl(index)} className="p-2 text-muted-foreground hover:text-destructive" aria-label="Remove video URL" title="Remove video URL">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addVideoUrl}
+                className="w-full py-2 border border-dashed border-accent-brand/30 text-accent-brand text-xs font-medium uppercase tracking-wider hover:bg-accent-brand/5 transition-colors"
+              >
+                + Add Video Link
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

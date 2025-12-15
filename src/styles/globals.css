@@ -207,9 +207,7 @@
     margin: 0;
     padding: 0;
 
-    @supports (scrollbar-gutter: auto) {
-      scrollbar-gutter: auto !important;
-    }
+
   }
 
   html,
@@ -313,15 +311,15 @@
     background-clip: padding-box;
   }
 
-  /* Firefox - thin scrollbar */
-  * {
+  /* Firefox - thin scrollbar - Apply to root only, not * */
+  html {
     @supports (scrollbar-width: thin) {
       scrollbar-width: thin;
       scrollbar-color: rgb(255 255 255 / 30%) transparent;
     }
   }
 
-  .dark * {
+  .dark html {
     @supports (scrollbar-width: thin) {
       scrollbar-color: rgb(255 255 255 / 40%) transparent;
     }

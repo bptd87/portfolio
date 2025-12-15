@@ -120,10 +120,10 @@ export function RenderingProjectDetail({ slug, onNavigate }: RenderingProjectDet
       year: project.year,
       // Tags are for SEO, softwareUsed is for software
       tags: project.tags || [],
-      softwareUsed: project.softwareUsed || [],
+      softwareUsed: project.softwareUsed || project.software_used || [],
       // Content
       description: project.description,
-      projectOverview: [project.description, ...(project.designNotes || [])].join('\n\n'),
+      projectOverview: project.projectOverview || project.project_overview || [project.description, ...(project.designNotes || [])].join('\n\n'),
       galleries: [
         // Hero gallery (first)
         ...(!hasGalleryImages && project.cardImage ? [{

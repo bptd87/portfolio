@@ -228,6 +228,76 @@ const verifyAdminToken = async (c: any, next: any) => {
   }
 };
 
+// ===== DATABASE MIGRATION =====
+app.post("/make-server-74296234/api/admin/migrate-portfolio", verifyAdminToken, async (c) => {
+  try {
+    console.log('🔄 Starting server-side portfolio migration...');
+    
+    // 1. Initialize Supabase Admin Client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // 2. Fetch all legacy projects from KV
+    console.log('📥 Fetching legacy projects from KV...');
+    const projects = await kv.getByPrefix('project:');
+    
+    if (!projects || projects.length === 0) {
+      console.log('⚠️ No legacy projects found.');
+      return c.json({ success: true, message: 'No projects to migrate', count: 0 });
+    }
+
+    console.log(`📦 Found ${projects.length} projects. Starting migration...`);
+    let successCount = 0;
+    let failCount = 0;
+
+    // 3. Insert each project into SQL table
+    for (const p of projects) {
+       // Map legacy fields to DB schema
+       const dbPayload = {
+          id: p.id,
+          title: p.title,
+          slug: p.slug || p.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          category: p.category,
+          subcategory: p.subcategory,
+          venue: p.venue,
+          location: p.location,
+          year: p.year,
+          description: p.description,
+          featured: p.featured,
+          published: p.published !== undefined ? p.published : true,
+          card_image: p.cardImage, // legacy camelCase -> snake_case
+          credits: p.credits || [],
+          galleries: p.galleries || {},
+          tags: p.tags || [],
+          youtube_videos: p.youtubeVideos || [],
+      };
+
+      const { error } = await supabase.from('portfolio_projects').upsert(dbPayload);
+
+      if (error) {
+        console.error(`❌ Failed to migrate ${p.title}:`, error);
+        failCount++;
+      } else {
+        successCount++;
+      }
+    }
+
+    console.log(`✅ Migration complete: ${successCount} success, ${failCount} failed.`);
+    return c.json({ 
+      success: true, 
+      count: successCount, 
+      failed: failCount,
+      message: `Successfully migrated ${successCount} projects.` 
+    });
+
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('❌ Migration error:', err);
+    return c.json({ success: false, error: errorMsg }, 500);
+  }
+});
+
 // ===== DASHBOARD STATS =====
 // Get counts for all content types (no auth required for stats display)
 app.get("/make-server-74296234/api/admin/stats", async (c) => {
@@ -644,7 +714,7 @@ app.post("/make-server-74296234/api/admin/ai/analyze-image", async (c) => {
        // return c.json({ error: 'Unauthorized' }, 401);
     }
 
-    const { imageUrl } = await c.req.json();
+    const { imageUrl, context } = await c.req.json();
     const apiKey = Deno.env.get('OPENAI_API_KEY');
 
     if (!apiKey) {
@@ -652,7 +722,7 @@ app.post("/make-server-74296234/api/admin/ai/analyze-image", async (c) => {
       return c.json({ error: 'OpenAI API key not configured on server' }, 500);
     }
 
-    const result = await analyzeImageWithOpenAI(imageUrl, apiKey);
+    const result = await analyzeImageWithOpenAI(imageUrl, apiKey, context);
 
     return c.json({ 
       success: true, 
@@ -1168,34 +1238,42 @@ app.get("/make-server-74296234/api/admin/projects", verifyAdminToken, async (c) 
 
 // ===== PUBLIC PROJECTS API (NO AUTH REQUIRED) =====
 // Get all published projects
+// Get all published projects
 app.get("/make-server-74296234/api/projects", async (c) => {
   try {
-    console.log('📂 Fetching all projects...');
-    const projects = await kv.getByPrefix('project:');
+    console.log('📂 Fetching all projects from SQL...');
+    
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    const { data: projects, error } = await supabase
+      .from('portfolio_projects')
+      .select('*')
+      .eq('published', true)
+      .order('year', { ascending: false })
+      .order('month', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
     console.log(`✅ Found ${projects.length} projects`);
     
-    // Sort by year (descending - newest first), then by month (descending - newest first)
-    const sortedProjects = projects.sort((a, b) => {
-      const yearA = a.year ?? 0;
-      const yearB = b.year ?? 0;
-      
-      // First sort by year (newest first)
-      if (yearA !== yearB) {
-        return yearB - yearA;
-      }
-      
-      // If year is the same, sort by month (newest first)
-      const monthA = a.month ?? 0;
-      const monthB = b.month ?? 0;
-      return monthB - monthA;
-    });
+    // Map SQL snake_case to frontend camelCase
+    const mappedProjects = projects.map((p: any) => ({
+      ...p,
+      cardImage: p.card_image,
+      youtubeVideos: p.youtube_videos,
+      designNotes: p.design_notes,
+      // JSON fields (credits, galleries, tags) require no mapping if stored as JSON
+    }));
     
-    console.log('✅ Projects sorted and ready to send');
-    return c.json({ success: true, projects: sortedProjects });
+    return c.json({ success: true, projects: mappedProjects });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
     console.error('❌ Error fetching projects:', err);
-    console.error('❌ Error stack:', err instanceof Error ? err.stack : 'No stack trace');
     return c.json({ success: false, error: errorMsg }, 500);
   }
 });
@@ -1297,19 +1375,35 @@ app.post("/make-server-74296234/api/projects/:id/unlike", async (c) => {
 app.get("/make-server-74296234/api/projects/:slug", async (c) => {
   try {
     const slug = c.req.param('slug');
-    console.log('📁 Fetching project by slug:', slug);
+    console.log('📁 Fetching project by slug from SQL:', slug);
     
-    // Search all projects for matching slug
-    const allProjects = await kv.getByPrefix('project:');
-    const project = allProjects.find((p: any) => p.slug === slug || p.id === slug);
-    
-    if (!project) {
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // Fetch project
+    const { data: project, error } = await supabase
+      .from('portfolio_projects')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (error || !project) {
       console.log('❌ Project not found:', slug);
       return c.json({ error: 'Project not found' }, 404);
     }
     
-    console.log('✅ Project found:', project.title);
-    return c.json({ success: true, project });
+    // Map SQL snake_case to frontend camelCase
+    const mappedProject = {
+      ...project,
+      cardImage: project.card_image,
+      youtubeVideos: project.youtube_videos,
+      designNotes: project.design_notes,
+    };
+    
+    console.log('✅ Project found:', mappedProject.title);
+    return c.json({ success: true, project: mappedProject });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
     console.error('❌ Error fetching project:', err);
