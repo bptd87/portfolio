@@ -88,7 +88,7 @@ export function ParallaxImage({ src, alt, className = '', offset = 50, style, ..
     });
 
     // Scale up slightly to prevent whitespace when moving
-    const scale = 1.1;
+    const scale = 1.25;
 
     return (
         <div ref={ref} className={`overflow-hidden relative ${className}`}>

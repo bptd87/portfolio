@@ -60,8 +60,15 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
 
         const data = await response.json();
         if (data.success && data.projects && data.projects.length > 0) {
-          // Filter out unpublished projects (drafts)
-          const publishedProjects = data.projects.filter((p: any) => p.published !== false);
+          // Filter out unpublished projects (drafts) and map fields
+          const publishedProjects = data.projects
+            .filter((p: any) => p.published !== false)
+            .map((p: any) => ({
+              ...p,
+              focusPoint: p.focus_point,
+              cardImage: p.card_image || p.cardImage,
+              coverImage: p.cover_image || p.coverImage
+            }));
           if (publishedProjects.length > 0) {
           }
           setProjects(publishedProjects);

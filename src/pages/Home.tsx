@@ -292,7 +292,7 @@ export function Home({ onNavigate }: HomeProps) {
                       ? `${project.focusPoint.x}% ${project.focusPoint.y}%`
                       : 'center center',
                   }}
-                  offset={60}
+                  offset={30}
                 />
               </div>
               <div className={`absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40 transition-opacity duration-300 ${navigatingProject?.id === project.id ? 'opacity-0' : ''

@@ -168,7 +168,8 @@ export function PortfolioManager() {
           location: p.location || '',
           credits: p.credits || [],
           galleries: p.galleries || { hero: [], heroCaptions: [], process: [], processCaptions: [] },
-          tags: p.tags || []
+          tags: p.tags || [],
+          focusPoint: p.focus_point || { x: 50, y: 50 }
         }));
 
         setProjects(mappedProjects);
@@ -273,6 +274,7 @@ export function PortfolioManager() {
         software_used: formData.softwareUsed,
         project_overview: formData.projectOverview,
         content: formData.experientialContent,
+        focus_point: formData.focusPoint,
       };
 
       console.log('Saving Project Payload:', dbPayload);
