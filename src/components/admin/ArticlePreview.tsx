@@ -1,5 +1,5 @@
 import React from 'react';
-import { ContentBlock } from './BlockEditor';
+import { ContentBlock } from './WYSIWYGEditor';
 import { Info, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 interface ArticlePreviewProps {
@@ -53,9 +53,9 @@ export function ArticlePreview({ blocks }: ArticlePreviewProps) {
 
       case 'list':
         const items = block.content.split('\n').filter(item => item.trim());
-        const ListTag = block.metadata?.listType === 'numbered' ? 'ol' : 'ul';
+        const ListTag = block.metadata?.listType === 'number' ? 'ol' : 'ul';
         return (
-          <ListTag key={block.id} className={`my-6 space-y-2 ${block.metadata?.listType === 'numbered' ? 'list-decimal' : 'list-disc'} list-inside`}>
+          <ListTag key={block.id} className={`my-6 space-y-2 ${block.metadata?.listType === 'number' ? 'list-decimal' : 'list-disc'} list-inside`}>
             {items.map((item, idx) => (
               <li key={idx} className="text-gray-200">{item}</li>
             ))}
@@ -176,16 +176,16 @@ export function ArticlePreview({ blocks }: ArticlePreviewProps) {
         );
 
       case 'accordion':
-        const accordionItems = block.metadata?.items || [];
+        const accordionItems = block.metadata?.accordionItems || [];
         return (
           <div key={block.id} className="my-6 space-y-2">
             {accordionItems.map((item: any, idx: number) => (
               <details key={idx} className="group bg-secondary/20 border border-border rounded-lg overflow-hidden">
                 <summary className="cursor-pointer p-4 font-medium text-white hover:bg-secondary/30 transition-colors">
-                  {item.question}
+                  {item.title || item.question}
                 </summary>
                 <div className="p-4 pt-0 text-gray-300">
-                  {item.answer}
+                  {item.content || item.answer}
                 </div>
               </details>
             ))}

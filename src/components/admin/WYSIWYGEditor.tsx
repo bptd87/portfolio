@@ -5,7 +5,7 @@ import {
     Image as ImageIcon, Film, LayoutGrid, Type, Quote, List, AlertCircle,
     ChevronLeft, ChevronRight, Settings, Bold, Italic, Underline,
     AlignLeft, AlignCenter, AlignRight, AlignJustify, Link2,
-    Minus, MoveVertical, FoldVertical
+    Minus, MoveVertical, FoldVertical, Code
 } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 
@@ -42,6 +42,7 @@ const BLOCK_TYPES = [
     { type: 'video', icon: Film, label: 'Video' },
     { type: 'quote', icon: Quote, label: 'Quote' },
     { type: 'list', icon: List, label: 'List' },
+    { type: 'code', icon: Code, label: 'Code' },
     { type: 'callout', icon: AlertCircle, label: 'Callout' },
     { type: 'accordion', icon: FoldVertical, label: 'Accordion' },
     { type: 'spacer', icon: MoveVertical, label: 'Space' },
@@ -54,6 +55,7 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
     const [editingBlock, setEditingBlock] = useState<ContentBlock | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [draggedBlockIndex, setDraggedBlockIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     // Ensure at least one empty paragraph
     useEffect(() => {
@@ -77,13 +79,14 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
                     type === 'gallery' ? { galleryStyle: 'carousel', images: [] } :
                         type === 'callout' ? { calloutType: 'info' } :
                             type === 'spacer' ? { height: 'medium' } :
-                                type === 'accordion' ? { accordionItems: [{ id: '1', title: 'Question', content: '' }] } : {},
+                                type === 'code' ? { language: 'javascript' } :
+                                    type === 'accordion' ? { accordionItems: [{ id: '1', title: 'Question', content: '' }] } : {},
         };
         const newBlocks = [...blocks];
         newBlocks.splice(atIndex, 0, newBlock);
         onChange(newBlocks);
         setShowInsertMenu(null);
-        if (['image', 'gallery', 'video', 'accordion'].includes(type) && type !== 'accordion') {
+        if (['image', 'gallery', 'video', 'code', 'accordion'].includes(type) && type !== 'accordion') {
             setEditingBlock(newBlock);
         }
     }, [blocks, onChange]);
@@ -119,17 +122,35 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
         });
     };
 
-    // Drag and Drop Handlers
-    const handleDragStart = (index: number) => {
-        setDraggedBlockIndex(index);
+    // Drag and Drop Handlers - Only from grip handle
+    const handleDragStart = (index: number, e: React.DragEvent) => {
+        // Only allow drag if starting from grip handle
+        if ((e.target as HTMLElement).closest('[data-drag-handle]')) {
+            setDraggedBlockIndex(index);
+            e.dataTransfer.effectAllowed = 'move';
+        } else {
+            e.preventDefault();
+        }
     };
 
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault(); // allow drop
-        // Optional: Could add visual indicator here
+    const handleDragOver = (targetIndex: number, e: React.DragEvent) => {
+        // Only allow drop if we're actually dragging
+        if (draggedBlockIndex !== null && draggedBlockIndex !== targetIndex) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'move';
+            setDragOverIndex(targetIndex);
+        }
     };
 
-    const handleDrop = (targetIndex: number) => {
+    const handleDragLeave = () => {
+        setDragOverIndex(null);
+    };
+
+    const handleDrop = (targetIndex: number, e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
         if (draggedBlockIndex === null) return;
 
         const newBlocks = [...blocks];
@@ -138,32 +159,58 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
 
         onChange(newBlocks);
         setDraggedBlockIndex(null);
+        setDragOverIndex(null);
     };
 
-    const handlePaste = useCallback((e: React.ClipboardEvent<HTMLElement>, index: number) => {
+    const handleDragEnd = () => {
+        setDraggedBlockIndex(null);
+        setDragOverIndex(null);
+    };
+
+    const handlePaste = useCallback((e: React.ClipboardEvent<HTMLElement>, index: number, block: ContentBlock) => {
+        // If pasting into a text block, allow default paste behavior but clean it
+        if (['paragraph', 'heading', 'quote'].includes(block.type)) {
+            // Don't prevent default - let browser paste, then clean up
+            setTimeout(() => {
+                const blockElement = document.querySelector(`[data-block-id="${block.id}"]`) as HTMLElement;
+                if (blockElement) {
+                    const contentElement = blockElement.querySelector('p, h1, h2, h3, blockquote') as HTMLElement;
+                    if (contentElement) {
+                        // Clean up pasted content
+                        const cleaned = contentElement.innerHTML
+                            .replace(/style="[^"]*"/gi, '')
+                            .replace(/class="[^"]*"/gi, '')
+                            .replace(/<span[^>]*>/gi, '')
+                            .replace(/<\/span>/gi, '')
+                            .replace(/<font[^>]*>/gi, '')
+                            .replace(/<\/font>/gi, '');
+                        contentElement.innerHTML = cleaned;
+                        updateBlock(block.id, { content: cleaned });
+                    }
+                }
+            }, 10);
+            return; // Allow default paste
+        }
+        
+        // For other blocks or multi-line paste, create new blocks
         e.preventDefault();
         const html = e.clipboardData.getData('text/html');
         const text = e.clipboardData.getData('text/plain');
 
-        // Use utility to process content
         const newBlocks = processPaste(html, text);
-
         if (newBlocks.length > 0) {
             const updatedBlocks = [...blocks];
-            // Insert after current block
             updatedBlocks.splice(index + 1, 0, ...newBlocks);
             onChange(updatedBlocks);
         }
-    }, [blocks, onChange]);
+    }, [blocks, onChange, updateBlock]);
 
     const selectedBlock = blocks.find(b => b.id === selectedBlockId);
 
     return (
-        <div ref={containerRef} className="relative space-y-4">
-            {/* Editor Container with Toolbar */}
-            <div className="bg-neutral-950 border border-neutral-800 rounded-xl shadow-inner min-h-[500px]">
-                {/* Permanent Toolbar - Sticky */}
-                <div className="sticky top-0 z-40 flex items-center gap-1 p-2 bg-neutral-900/95 backdrop-blur border-b border-neutral-800 overflow-x-auto min-h-[52px]">
+        <div ref={containerRef} className="relative">
+            {/* Fixed Toolbar - Always Visible at Top */}
+            <div className="sticky top-0 z-50 flex items-center gap-1 p-3 bg-neutral-900 border border-neutral-800 border-b-2 border-b-neutral-700 rounded-t-xl overflow-x-auto shadow-lg">
 
                     {/* Block Type Switcher */}
                     <div className="flex items-center px-2 border-r border-neutral-800 mr-2">
@@ -234,10 +281,12 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
                             <Link2 className="w-4 h-4" />
                         </button>
                     </div>
-                </div>
+            </div>
 
+            {/* Editor Container - Scrollable */}
+            <div className="bg-neutral-950 border border-neutral-800 border-t-0 rounded-b-xl shadow-inner" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
                 {/* Main Editor Area - Flex Gutter Layout */}
-                <article className="prose prose-invert prose-lg max-w-none px-8 pl-16 py-8 min-h-[400px] focus:outline-none">
+                <article className="prose prose-invert prose-lg max-w-none px-8 pl-16 py-8 min-h-[500px] focus:outline-none">
                     {blocks.map((block, index) => (
                         <div key={block.id} className="relative">
 
@@ -248,6 +297,11 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
                                 onToggle={() => setShowInsertMenu(showInsertMenu === index ? null : index)}
                                 onSelect={(type) => addBlock(type, index)}
                             />
+
+                            {/* Drop Indicator Above */}
+                            {dragOverIndex === index && draggedBlockIndex !== null && draggedBlockIndex !== index && (
+                                <div className="h-1 bg-accent-brand rounded-full mb-2 mx-4 animate-pulse" />
+                            )}
 
                             {/* Block Wrapper with DnD */}
                             <BlockWrapper
@@ -262,19 +316,22 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
                                 canMoveUp={index > 0}
                                 canMoveDown={index < blocks.length - 1}
 
-                                // DnD Props
-                                draggable
-                                onDragStart={() => handleDragStart(index)}
-                                onDragOver={(e) => handleDragOver(e)}
-                                onDrop={() => handleDrop(index)}
+                                // DnD Props - only from grip handle
+                                draggable={false}
+                                onDragStart={(e) => handleDragStart(index, e)}
+                                onDragOver={(e) => handleDragOver(index, e)}
+                                onDragLeave={handleDragLeave}
+                                onDrop={(e) => handleDrop(index, e)}
+                                onDragEnd={handleDragEnd}
                                 isDragging={draggedBlockIndex === index}
+                                isDragOver={dragOverIndex === index && draggedBlockIndex !== null && draggedBlockIndex !== index}
                             >
                                 <BlockContent
                                     block={block}
                                     onChange={(updates) => updateBlock(block.id, updates)}
                                     onEditRequest={() => setEditingBlock(block)}
                                     onOpenMenu={() => setShowInsertMenu(index)}
-                                    onPaste={(e) => handlePaste(e, index)}
+                                    onPaste={(e) => handlePaste(e, index, block)}
                                 />
                             </BlockWrapper>
                         </div>
@@ -368,7 +425,7 @@ function InsertButton({ showMenu, onToggle, onSelect }: {
 }
 
 // Block Wrapper with hover controls
-function BlockWrapper({ block, isSelected, onSelect, onEdit, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown, draggable, onDragStart, onDragOver, onDrop, isDragging, children }: {
+function BlockWrapper({ block, isSelected, onSelect, onEdit, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown, draggable, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd, isDragging, isDragOver, children }: {
     block: ContentBlock;
     isSelected: boolean;
     onSelect: () => void;
@@ -380,22 +437,26 @@ function BlockWrapper({ block, isSelected, onSelect, onEdit, onDelete, onMoveUp,
     canMoveUp: boolean;
     canMoveDown: boolean;
     draggable?: boolean;
-    onDragStart?: () => void;
+    onDragStart?: (e: React.DragEvent) => void;
     onDragOver?: (e: React.DragEvent) => void;
-    onDrop?: () => void;
+    onDragLeave?: () => void;
+    onDrop?: (e: React.DragEvent) => void;
+    onDragEnd?: () => void;
     isDragging?: boolean;
+    isDragOver?: boolean;
     children: React.ReactNode;
 }) {
     const needsModal = ['image', 'gallery', 'video'].includes(block.type);
 
     return (
         <div
+            data-block-id={block.id}
             className={`group relative flex items-start -ml-12 pl-2 rounded-lg transition-all ${isSelected ? 'ring-2 ring-accent-brand ring-offset-2 ring-offset-neutral-950' : ''
-                } ${isDragging ? 'opacity-50 border-2 border-dashed border-accent-brand' : ''}`}
+                } ${isDragging ? 'opacity-50 border-2 border-dashed border-accent-brand' : ''}
+                ${isDragOver ? 'border-l-4 border-l-accent-brand bg-accent-brand/5' : ''}`}
             onClick={onSelect}
-            draggable={draggable}
-            onDragStart={onDragStart}
             onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
             onDrop={onDrop}
         >
             {/* Left Gutter (Controls) - Flex column, prevents overlap */}
@@ -405,10 +466,13 @@ function BlockWrapper({ block, isSelected, onSelect, onEdit, onDelete, onMoveUp,
                     <ChevronUp className="w-4 h-4" />
                 </button>
                 <div
-                    className="p-1.5 rounded-full bg-neutral-800 text-neutral-500 cursor-grab active:cursor-grabbing hover:bg-neutral-700 hover:text-neutral-300 transition-colors flex items-center justify-center"
+                    data-drag-handle
+                    draggable
+                    onDragStart={onDragStart}
+                    className="p-1.5 rounded-full bg-neutral-800 text-neutral-500 cursor-grab active:cursor-grabbing hover:bg-neutral-700 hover:text-neutral-300 transition-colors flex items-center justify-center select-none"
                     title="Drag to move"
-                    onMouseDown={() => {
-                        // Let parent handle drag
+                    onMouseDown={(e) => {
+                        e.stopPropagation(); // Prevent block selection when clicking grip
                     }}
                 >
                     <GripVertical className="w-4 h-4" />
@@ -478,6 +542,12 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
         case 'heading':
             const level = block.metadata?.level || 2;
             const Tag = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
+            // Match prose heading sizes
+            const headingClasses = {
+                1: 'text-4xl font-bold mt-8 mb-4',
+                2: 'text-3xl font-bold mt-6 mb-3',
+                3: 'text-2xl font-semibold mt-4 mb-2',
+            };
             return (
                 <Tag
                     contentEditable
@@ -485,7 +555,7 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
                     onBlur={handleTextChange}
                     onPaste={onPaste}
                     dangerouslySetInnerHTML={{ __html: block.content || '<br>' }}
-                    className="focus:outline-none min-h-[1em]"
+                    className={`focus:outline-none min-h-[1em] ${headingClasses[level as keyof typeof headingClasses] || headingClasses[2]}`}
                     data-placeholder="Heading..."
                 />
             );
@@ -635,69 +705,7 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
             );
 
         case 'accordion':
-            const accordionItems = block.metadata?.accordionItems || [{ id: '1', title: 'Question', content: '' }];
-            return (
-                <div className="my-4 space-y-2">
-                    {accordionItems.map((item, idx) => (
-                        <div key={item.id || idx} className="border border-neutral-800 rounded-lg overflow-hidden group/accordion">
-                            <div className="bg-neutral-900 px-4 py-3 flex items-center gap-2 border-b border-neutral-800 relative group/header cursor-pointer">
-                                <ChevronRight className="w-4 h-4 text-neutral-500 rotate-90 transition-transform" />
-                                <input
-                                    type="text"
-                                    value={item.title}
-                                    onClick={(e) => e.stopPropagation()}
-                                    onChange={(e) => {
-                                        const newItems = [...accordionItems];
-                                        newItems[idx] = { ...item, title: e.target.value };
-                                        onChange({ metadata: { ...block.metadata, accordionItems: newItems } });
-                                    }}
-                                    placeholder="Question / Title"
-                                    className="bg-transparent border-none p-0 text-neutral-200 font-medium focus:ring-0 placeholder-neutral-600 focus:outline-none flex-1"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        const newItems = accordionItems.filter((_, i) => i !== idx);
-                                        onChange({ metadata: { ...block.metadata, accordionItems: newItems } });
-                                    }}
-                                    className="p-1 hover:bg-neutral-800 rounded text-neutral-500 hover:text-red-400 opacity-0 group-hover/header:opacity-100 transition-opacity"
-                                    title="Remove item"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <div className="p-4 bg-neutral-950">
-                                <div
-                                    contentEditable
-                                    suppressContentEditableWarning
-                                    onBlur={(e) => {
-                                        const newItems = [...accordionItems];
-                                        newItems[idx] = { ...item, content: e.currentTarget.innerHTML };
-                                        onChange({ metadata: { ...block.metadata, accordionItems: newItems } });
-                                    }}
-                                    dangerouslySetInnerHTML={{ __html: item.content || '<br>' }}
-                                    className="focus:outline-none min-h-[1em] text-neutral-300"
-                                    data-placeholder="Answer..."
-                                />
-                            </div>
-                        </div>
-                    ))}
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const newItems = [...accordionItems, { id: `item-${Date.now()}`, title: '', content: '' }];
-                            onChange({ metadata: { ...block.metadata, accordionItems: newItems } });
-                        }}
-                        className="flex items-center gap-2 text-xs text-neutral-500 hover:text-accent-brand transition-colors px-2 py-2"
-                    >
-                        <Plus className="w-4 h-4" /> Add Question
-                    </button>
-                </div>
-            );
+            return <AccordionBlock block={block} onChange={onChange} />;
 
         case 'spacer':
             const heights = { small: 'h-8', medium: 'h-16', large: 'h-32' };
@@ -717,6 +725,22 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
                         ))}
                     </div>
                     <span className="text-xs text-neutral-600 font-mono opacity-0 group-hover:opacity-100">Spacer ({height})</span>
+                </div>
+            );
+
+        case 'code':
+            return (
+                <div className="my-6" onClick={onEditRequest}>
+                    {block.metadata?.language && (
+                        <div className="bg-neutral-800 px-4 py-2 text-xs text-neutral-400 rounded-t-lg border-b border-neutral-700 uppercase tracking-wider">
+                            {block.metadata.language}
+                        </div>
+                    )}
+                    <pre className={`bg-neutral-900 p-4 rounded-lg ${!block.metadata?.language ? 'rounded-t-lg' : 'rounded-t-none'} overflow-x-auto border border-neutral-800`}>
+                        <code className="text-sm font-mono text-neutral-200 whitespace-pre">
+                            {block.content || '// Enter your code here...'}
+                        </code>
+                    </pre>
                 </div>
             );
 
@@ -865,6 +889,15 @@ function BlockEditModal({ block, onSave, onClose, onDelete }: {
                         <VideoEditor
                             content={content}
                             onContentChange={setContent}
+                        />
+                    )}
+
+                    {block.type === 'code' && (
+                        <CodeEditor
+                            content={content}
+                            metadata={metadata}
+                            onContentChange={setContent}
+                            onMetadataChange={(m) => m && setMetadata(m)}
                         />
                     )}
                 </div>
@@ -1103,6 +1136,39 @@ function GalleryEditor({ metadata, onMetadataChange }: {
     );
 }
 
+// Code Editor
+function CodeEditor({ content, metadata, onContentChange, onMetadataChange }: {
+    content: string;
+    metadata: ContentBlock['metadata'];
+    onContentChange: (code: string) => void;
+    onMetadataChange: (meta: ContentBlock['metadata']) => void;
+}) {
+    return (
+        <div className="space-y-6">
+            <div>
+                <label className="block text-sm text-neutral-400 mb-2">Language (optional)</label>
+                <input
+                    type="text"
+                    value={metadata?.language || ''}
+                    onChange={(e) => onMetadataChange({ ...metadata, language: e.target.value })}
+                    placeholder="e.g., javascript, python, css, html"
+                    className="w-full px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-lg focus:border-accent-brand focus:outline-none"
+                />
+            </div>
+            <div>
+                <label className="block text-sm text-neutral-400 mb-2">Code</label>
+                <textarea
+                    value={content}
+                    onChange={(e) => onContentChange(e.target.value)}
+                    placeholder="Paste your code here..."
+                    rows={15}
+                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg focus:border-accent-brand focus:outline-none resize-none font-mono text-sm text-neutral-200"
+                />
+            </div>
+        </div>
+    );
+}
+
 // Video Editor
 function VideoEditor({ content, onContentChange }: {
     content: string;
@@ -1136,6 +1202,93 @@ function VideoEditor({ content, onContentChange }: {
 }
 
 // Helper function
+// Accordion Block Component
+function AccordionBlock({ block, onChange }: { block: ContentBlock; onChange: (updates: Partial<ContentBlock>) => void }) {
+    const accordionItems = block.metadata?.accordionItems || [{ id: '1', title: 'Question', content: '' }];
+    const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+    
+    return (
+        <div className="my-6 space-y-3">
+            {accordionItems.map((item, idx) => {
+                const itemId = item.id || `item-${idx}`;
+                const isExpanded = expandedItems.has(itemId);
+                return (
+                    <div key={itemId} className="border border-neutral-800 rounded-lg overflow-hidden bg-neutral-900/50">
+                        <div 
+                            className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-neutral-800/50 transition-colors"
+                            onClick={() => {
+                                const newExpanded = new Set(expandedItems);
+                                if (isExpanded) {
+                                    newExpanded.delete(itemId);
+                                } else {
+                                    newExpanded.add(itemId);
+                                }
+                                setExpandedItems(newExpanded);
+                            }}
+                        >
+                            <ChevronRight className={`w-4 h-4 text-neutral-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
+                            <input
+                                type="text"
+                                value={item.title}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => {
+                                    const newItems = [...accordionItems];
+                                    newItems[idx] = { ...item, title: e.target.value };
+                                    onChange({ metadata: { ...block.metadata, accordionItems: newItems } });
+                                }}
+                                placeholder="Question / Title"
+                                className="bg-transparent border-none p-0 text-neutral-200 font-medium focus:ring-0 placeholder-neutral-600 focus:outline-none flex-1"
+                            />
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const newItems = accordionItems.filter((_, i) => i !== idx);
+                                    onChange({ metadata: { ...block.metadata, accordionItems: newItems } });
+                                }}
+                                className="p-1.5 hover:bg-neutral-700 rounded text-neutral-500 hover:text-red-400 transition-colors"
+                                title="Remove item"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                        {isExpanded && (
+                            <div className="px-4 pb-4 pt-2 bg-neutral-950 border-t border-neutral-800">
+                                <div
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => {
+                                        const newItems = [...accordionItems];
+                                        newItems[idx] = { ...item, content: e.currentTarget.innerHTML };
+                                        onChange({ metadata: { ...block.metadata, accordionItems: newItems } });
+                                    }}
+                                    dangerouslySetInnerHTML={{ __html: item.content || '<br>' }}
+                                    className="focus:outline-none min-h-[2em] text-neutral-300 prose prose-invert max-w-none"
+                                    data-placeholder="Answer..."
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const newItems = [...accordionItems, { id: `item-${Date.now()}`, title: '', content: '' }];
+                    onChange({ metadata: { ...block.metadata, accordionItems: newItems } });
+                }}
+                className="flex items-center gap-2 text-sm text-neutral-400 hover:text-accent-brand transition-colors px-3 py-2 border border-dashed border-neutral-700 rounded-lg hover:border-accent-brand"
+            >
+                <Plus className="w-4 h-4" /> Add Question
+            </button>
+        </div>
+    );
+}
+
 function getEmbedUrl(url: string): string {
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
         const videoId = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];

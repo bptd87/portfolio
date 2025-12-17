@@ -290,7 +290,6 @@ export function ArticleManager() {
               <span className="text-sm">Import (Squarespace)</span>
             </button>
             <PrimaryButton onClick={handleCreate}><Plus className="w-4 h-4" /><span>New Article</span></PrimaryButton>
-            ```
           </div>
         )}
       </div>

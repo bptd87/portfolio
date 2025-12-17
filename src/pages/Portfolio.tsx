@@ -423,6 +423,7 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
                                 ? 'center top'
                                 : 'center center'
                           }}
+                          lazy={true}
                         />
                       </motion.div>
 
@@ -512,6 +513,7 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
                         ? `${project.focusPoint.x}% ${project.focusPoint.y}%`
                         : 'center center'
                     }}
+                    lazy={true}
                   />
                   {index !== currentProjectIndex && (
                     <div className="absolute inset-0 bg-black/20" />
@@ -598,6 +600,7 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
                             src={img}
                             alt=""
                             className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
+                            lazy={true}
                           />
                         </motion.div>
                       ));

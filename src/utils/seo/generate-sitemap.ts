@@ -16,7 +16,7 @@ import { blogPosts } from '../../data/blog-posts';
 import { projects } from '../../data/projects';
 import { vaultItems } from '../../data/vault-items';
 
-const SITE_URL = 'https://yoursite.com'; // TODO: Update with your actual domain
+const SITE_URL = 'https://brandonptdavis.com';
 
 interface SitemapURL {
   loc: string;

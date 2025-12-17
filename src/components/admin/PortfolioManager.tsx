@@ -17,8 +17,7 @@ import { GalleryEditor, DesignNotesEditor } from './ProjectTemplateFields';
 import { TagInput } from './ui/TagInput';
 import { YouTubeVideosEditor } from './YouTubeVideosEditor';
 import { ProjectSEOTools } from './ProjectSEOTools';
-import { ExperientialDesignEditor } from './ExperientialDesignEditor';
-import { RenderingEditor } from './RenderingEditor';
+import { UnifiedPortfolioEditor } from './UnifiedPortfolioEditor';
 import { ImageUploaderWithFocalPoint } from './ImageUploaderWithFocalPoint';
 import { SimpleGalleryEditor } from './SimpleGalleryEditor';
 import { SEOImageFixer } from './SEOImageFixer';
@@ -532,30 +531,7 @@ export function PortfolioManager() {
                   </div>
 
 
-                  {category?.includes('Experiential') ? (
-                    <ExperientialDesignEditor
-                      data={methods.watch() as any}
-                      onChange={(newData) => {
-                        // Merge new data into form
-                        Object.entries(newData).forEach(([key, value]) => {
-                          methods.setValue(key as any, value, { shouldValidate: true, shouldDirty: true });
-                        });
-                      }}
-                      currentCover={methods.watch('cardImage')}
-                      onSetCover={(url) => methods.setValue('cardImage', url)}
-                    />
-                  ) : category?.includes('Rendering') ? (
-                    <RenderingEditor
-                      data={methods.watch() as any}
-                      onChange={(newData) => {
-                        Object.entries(newData).forEach(([key, value]) => {
-                          methods.setValue(key as any, value, { shouldValidate: true, shouldDirty: true });
-                        });
-                      }}
-                      currentCover={methods.watch('cardImage')}
-                      onSetCover={(url) => methods.setValue('cardImage', url)}
-                    />
-                  ) : category?.includes('Documentation') ? (
+                  {category?.includes('Documentation') ? (
                     <SimpleGalleryEditor
                       label="Gallery Images"
                       images={methods.watch('galleries.process') || []}
@@ -571,43 +547,19 @@ export function PortfolioManager() {
                       }
                     />
                   ) : (
-                    <>
-                      <GalleryEditor
-                        label="Primary Gallery (Renderings & Design)"
-                        images={methods.watch('galleries.hero') || []}
-                        captions={methods.watch('galleries.heroCaptions') || []}
-                        altTexts={methods.watch('galleries.heroAlt') || []}
-                        projectContext={projectContext}
-                        onChange={(images, captions, altTexts) => {
-                          methods.setValue('galleries.hero', images);
-                          methods.setValue('galleries.heroCaptions', captions);
-                          if (altTexts) methods.setValue('galleries.heroAlt', altTexts);
-                        }}
-                        currentCover={methods.watch('cardImage')}
-                        onSetCover={(url) => methods.setValue('cardImage', url)}
-                      />
-
-                      <div className="h-px bg-border" />
-
-                      <GalleryEditor
-                        label="Secondary Gallery (Production Photos)"
-                        images={methods.watch('galleries.process') || []}
-                        captions={methods.watch('galleries.processCaptions') || []}
-                        altTexts={methods.watch('galleries.processAlt') || []}
-                        projectContext={projectContext}
-                        onChange={(images, captions, altTexts) => {
-                          methods.setValue('galleries.process', images);
-                          methods.setValue('galleries.processCaptions', captions);
-                          if (altTexts) methods.setValue('galleries.processAlt', altTexts);
-                        }}
-                        currentCover={methods.watch('cardImage')}
-                        onSetCover={(url) => methods.setValue('cardImage', url)}
-                      />
-
-                      <div className="h-px bg-border" />
-
-                      <YouTubeVideosEditor videos={methods.watch('youtubeVideos') || []} onChange={(videos) => methods.setValue('youtubeVideos', videos)} />
-                    </>
+                    <UnifiedPortfolioEditor
+                      category={category || ''}
+                      data={methods.watch() as any}
+                      onChange={(updates) => {
+                        // Merge updates into form
+                        Object.entries(updates).forEach(([key, value]) => {
+                          methods.setValue(key as any, value, { shouldValidate: true, shouldDirty: true });
+                        });
+                      }}
+                      currentCover={methods.watch('cardImage')}
+                      onSetCover={(url) => methods.setValue('cardImage', url)}
+                      projectContext={projectContext}
+                    />
                   )}
                 </div>
               )}

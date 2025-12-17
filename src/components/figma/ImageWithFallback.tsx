@@ -24,14 +24,24 @@ interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElemen
   /**
    * Custom skeleton className
    */
-  /**
-   * Custom skeleton className
-   */
   skeletonClassName?: string
   /**
    * Priority loading for LCP images (disables lazy, fade-in, and sets fetchPriority high)
    */
   priority?: boolean
+  /**
+   * Image optimization preset: 'thumbnail', 'card', 'hero', 'gallery', 'full'
+   * Or provide custom width/height for optimization
+   */
+  optimize?: 'thumbnail' | 'card' | 'hero' | 'gallery' | 'full' | { width?: number; height?: number; quality?: number }
+  /**
+   * Focal point for smart cropping { x: 0-100, y: 0-100 }
+   */
+  focusPoint?: { x: number; y: number }
+  /**
+   * Enable responsive srcset for different screen sizes
+   */
+  responsive?: boolean
 }
 
 /**
@@ -68,6 +78,9 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     showSkeleton = true,
     blurUp = true,
     skeletonClassName,
+    optimize,
+    focusPoint,
+    responsive = false,
     onLoad,
     ...rest
   } = props
@@ -148,8 +161,17 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     )
   }
 
-  // Determine which src to use
-  const imageSrc = isInView ? src : BLUR_PLACEHOLDER
+  // Image optimization is temporarily disabled - using original src directly
+
+  // TEMPORARILY DISABLED: Responsive srcset
+  // const { srcset, sizes } = responsive && isSupabaseStorageUrl(src || '')
+  //   ? generateResponsiveSrcset(src, [400, 800, 1200, 1600], { quality: 85, format: 'webp', focus: focusPoint })
+  //   : { srcset: undefined, sizes: undefined };
+  const srcset = undefined;
+  const sizes = undefined;
+
+  // TEMPORARILY: Use original src directly (optimization disabled)
+  const imageSrc = isInView ? (src || null) : BLUR_PLACEHOLDER
 
   // LCP Optimization: If priority is true, show immediately without transition
   const isPriority = props.priority;
@@ -172,7 +194,9 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
       {/* Actual image */}
       <img
         ref={imgRef}
-        src={imageSrc}
+        src={imageSrc || undefined}
+        srcSet={srcset}
+        sizes={sizes}
         alt={finalAlt}
         title={finalTitle}
         className={`${className ?? ''} ${blurUp && isLoading && isInView && showTransition ? 'blur-sm scale-105' : ''

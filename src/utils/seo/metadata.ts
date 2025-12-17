@@ -34,7 +34,7 @@ export const DEFAULT_METADATA = {
   siteUrl: typeof window !== 'undefined' ? window.location.origin : '',
   author: 'Brandon PT Davis',
   twitterHandle: '@brandonptdavis', // Update if you create a Twitter/X account
-  defaultOgImage: '/og-default.jpg', // TODO: Create and add default OG image
+  defaultOgImage: '/og-default.jpg',
   defaultDescription: 'Award-winning scenic designer creating immersive theatrical experiences and educational resources for theatre designers and creative professionals.',
   socialProfiles: SOCIAL_PROFILE_URLS,
 };

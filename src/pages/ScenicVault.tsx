@@ -251,7 +251,7 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
               >
                 <X className="w-6 h-6" />
               </button>
-              <img src={lightboxImage} alt="" className="max-w-full max-h-full object-contain" />
+              <ImageWithFallback src={lightboxImage} alt="" className="max-w-full max-h-full object-contain" />
             </motion.div>
           )}
         </AnimatePresence>
