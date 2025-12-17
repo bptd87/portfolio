@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from '../components/Navbar';
+import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { TabbedGallery } from '../components/shared/TabbedGallery';
+import { SEO } from '../components/SEO';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 
 interface CreativeStatementProps {
@@ -61,153 +64,102 @@ export function CreativeStatement({ onNavigate }: CreativeStatementProps) {
 
     return (
         <div className="min-h-screen bg-white dark:bg-black">
+            <SEO
+                title="Creative Statement | Brandon PT Davis"
+                description="Design is storytelling. Space is the narrative. A scenic designer's approach to creating environments where story and space converge."
+                keywords={['creative statement', 'scenic design philosophy', 'theatre design', 'Brandon PT Davis']}
+            />
             <Navbar onNavigate={onNavigate || (() => { })} currentPage="creative-statement" />
 
             {/* Hero Section */}
-            <section className="min-h-screen flex items-center justify-center px-6">
+            <section className="min-h-screen flex items-center justify-center px-6 py-40">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1.2 }}
-                    className="text-center max-w-4xl"
+                    transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="text-center max-w-5xl"
                 >
-                    <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold leading-tight mb-6">
-                        <span className="text-blue-600 dark:text-blue-400">Design</span> <span className="text-gray-900 dark:text-white">is</span> <span className="text-red-600 dark:text-red-400 font-bold">storytelling</span><span className="text-gray-900 dark:text-white">.</span>
+                    <h1 className="font-display text-6xl md:text-7xl lg:text-8xl tracking-[-0.02em] leading-[1.05] mb-8 text-black dark:text-white">
+                        Design is storytelling.
                         <br />
-                        <span className="text-purple-600 dark:text-purple-500 font-bold">Space</span> <span className="text-gray-900 dark:text-white">is the</span> <span className="text-blue-600 dark:text-blue-400 font-bold">narrative</span><span className="text-gray-900 dark:text-white">.</span>
+                        Space is the narrative.
                     </h1>
                 </motion.div>
             </section>
 
             {/* Foundation Section */}
-            <section className="min-h-screen flex items-center justify-center px-6">
+            <section className="min-h-[80vh] flex items-center justify-center px-6 py-40">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.8 }}
-                    className="text-center max-w-3xl"
+                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                    className="max-w-4xl mx-auto"
                 >
-                    <p className="text-[10px] font-pixel tracking-[0.4em] text-gray-400 dark:text-white/30 mb-6">
-                        FOUNDATION
+                    <p className="font-pixel text-[10px] tracking-[0.4em] text-black/40 dark:text-white/40 mb-8 uppercase">
+                        Foundation
                     </p>
-                    <h2 className="text-4xl md:text-5xl font-display font-bold leading-tight mb-6">
-                        <span className="text-blue-600 dark:text-blue-400 font-bold">Architecture</span>
-                        {' '}
-                        <span className="text-gray-900 dark:text-white">meets</span> <span className="text-red-600 dark:text-red-400 font-bold">narrative</span><span className="text-gray-900 dark:text-white">.</span>
+                    <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-[-0.01em] leading-[1.2] mb-12 text-black dark:text-white">
+                        Architecture meets narrative.
                         <br />
-                        <span className="text-purple-600 dark:text-purple-500 font-bold">History</span>
-                        {' '}
-                        <span className="text-gray-900 dark:text-white">shapes</span> <span className="text-blue-600 dark:text-blue-400 font-bold">meaning</span><span className="text-gray-900 dark:text-white">.</span>
+                        History shapes meaning.
                     </h2>
-                    <p className="text-base md:text-lg text-gray-600 dark:text-white/60 leading-relaxed">
-                        My work lives at the intersection of <span className="text-gray-900 dark:text-white font-semibold">craft</span> and <span className="text-gray-900 dark:text-white font-semibold">concept</span>, where physical space becomes a tool for shaping <span className="text-blue-600 dark:text-blue-400">emotion</span>, <span className="text-red-600 dark:text-red-400">tension</span>, and <span className="text-purple-600 dark:text-purple-500">rhythm</span>.
+                    <p className="text-xl md:text-2xl leading-[1.5] text-black/80 dark:text-white/80">
+                        My work lives at the intersection of craft and concept, where physical space becomes a tool for shaping emotion, tension, and rhythm.
                     </p>
                 </motion.div>
             </section>
 
             {/* Production Photos Gallery */}
-            <section className="min-h-screen flex items-center justify-center px-6 py-20">
-                <div className="w-full max-w-6xl">
-                    <div className="text-center mb-12">
-                        <p className="text-[10px] font-pixel tracking-[0.4em] text-gray-400 dark:text-white/30 mb-4">
-                            PRODUCTION GALLERY
-                        </p>
-                        <h3 className="text-2xl md:text-3xl font-display text-gray-900 dark:text-white mb-8">
-                            From stage to <span className="text-pink-500">reality</span>
-                        </h3>
-                    </div>
-
-                    {productionProjects.length > 0 ? (
-                        <motion.div
-                            key={selectedProductionIndex}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="w-full"
-                        >
-                            {/* Project Image */}
-                            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-900 mb-8 max-w-4xl mx-auto">
-                                <img
-                                    src={productionProjects[selectedProductionIndex].card_image}
-                                    alt={productionProjects[selectedProductionIndex].title}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-
-                            {/* Project Titles with Text Navigation */}
-                            <div className="w-full max-w-5xl mx-auto mb-8">
-                                <div className="flex items-center justify-between gap-8">
-                                    {/* Scrollable Tabs Container */}
-                                    <div
-                                        id="production-tabs"
-                                        className="flex gap-8 items-center overflow-x-auto scroll-smooth flex-1"
-                                        style={{
-                                            scrollbarWidth: 'none',
-                                            msOverflowStyle: 'none',
-                                        }}
-                                    >
-                                        {productionProjects.map((project: any, index: number) => (
-                                            <button
-                                                key={project.id}
-                                                onClick={() => setSelectedProductionIndex(index)}
-                                                className={`relative whitespace-nowrap transition-all duration-300 pb-2 text-lg font-display flex-shrink-0 ${index === selectedProductionIndex
-                                                    ? 'text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-pink-200'
-                                                    : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:text-white/90'
-                                                    }`}
-                                            >
-                                                {project.title}
-                                                {index === selectedProductionIndex && (
-                                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-pink-500 to-pink-300"></span>
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    {/* Navigation Controls - Right Side */}
-                                    <div className="flex gap-3 items-center flex-shrink-0">
-                                        <button
-                                            onClick={() => {
-                                                const container = document.getElementById('production-tabs');
-                                                if (container) container.scrollLeft -= 300;
-                                            }}
-                                            className="w-10 h-10 flex items-center justify-center bg-pink-500/10 backdrop-blur-sm border border-pink-500/20 text-red-600 dark:text-red-400 hover:bg-pink-500/20 transition-all rounded-full"
-                                            aria-label="Scroll left"
-                                        >
-                                            <ChevronLeft className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                const container = document.getElementById('production-tabs');
-                                                if (container) container.scrollLeft += 300;
-                                            }}
-                                            className="w-10 h-10 flex items-center justify-center bg-pink-500/10 backdrop-blur-sm border border-pink-500/20 text-red-600 dark:text-red-400 hover:bg-pink-500/20 transition-all rounded-full"
-                                            aria-label="Scroll right"
-                                        >
-                                            <ChevronRight className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Separator Line */}
-                            <div className="w-full max-w-4xl mx-auto mb-6">
-                                <div className="h-px bg-black/10 dark:bg-white/20"></div>
-                            </div>
-
-                            {/* Project Description */}
-                            <p className="text-base md:text-lg text-gray-700 dark:text-white/70 leading-relaxed text-center max-w-2xl mx-auto">
-                                {productionProjects[selectedProductionIndex].description ||
-                                    `${productionProjects[selectedProductionIndex].venue || ''} • ${productionProjects[selectedProductionIndex].year || ''}`}
+            {productionProjects.length > 0 && (
+                <section className="min-h-screen py-40 px-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="text-center mb-20">
+                            <p className="font-pixel text-[10px] tracking-[0.4em] text-black/40 dark:text-white/40 mb-6 uppercase">
+                                Production Gallery
                             </p>
-                        </motion.div>
-                    ) : (
-                        <div className="text-center text-gray-500 dark:text-white/50 py-20">
-                            <p>Loading production photos...</p>
+                            <h3 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-[-0.01em] mb-8 text-black dark:text-white">
+                                From stage to reality
+                            </h3>
                         </div>
-                    )}
-                </div>
-            </section>
+
+                        <TabbedGallery
+                            tabs={productionProjects.map((p: any) => ({ id: p.id, label: p.title }))}
+                        >
+                            {(activeTab) => {
+                                const activeProject = productionProjects.find((p: any) => p.id === activeTab);
+                                if (!activeProject) return null;
+
+                                return (
+                                    <div>
+                                        {/* Project Image */}
+                                        <div className="relative aspect-video overflow-hidden rounded-3xl mb-12 max-w-6xl mx-auto">
+                                            <ImageWithFallback
+                                                src={activeProject.card_image}
+                                                alt={activeProject.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+
+                                        {/* Project Info */}
+                                        <div className="text-center max-w-3xl mx-auto">
+                                            <p className="text-lg md:text-xl text-black/80 dark:text-white/80 mb-4">
+                                                {activeProject.venue && `${activeProject.venue}${activeProject.location ? `, ${activeProject.location}` : ''}`}
+                                                {activeProject.year && ` • ${activeProject.year}`}
+                                            </p>
+                                            {activeProject.description && (
+                                                <p className="text-base md:text-lg text-black/70 dark:text-white/70 leading-relaxed">
+                                                    {activeProject.description}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            }}
+                        </TabbedGallery>
+                    </div>
+                </section>
+            )}
 
             {/* Collaboration Section */}
             <section className="min-h-screen flex items-center justify-center px-6">
