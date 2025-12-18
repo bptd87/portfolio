@@ -168,6 +168,37 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
     };
 
     const handlePaste = useCallback((e: React.ClipboardEvent<HTMLElement>, index: number, block: ContentBlock) => {
+        const html = e.clipboardData.getData('text/html');
+        const text = e.clipboardData.getData('text/plain');
+
+        // If pasting into a list block, handle it specially
+        if (block.type === 'list') {
+            e.preventDefault();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html || text.split('\n').map(l => `<li>${l}</li>`).join('');
+            
+            // Extract list items from pasted HTML
+            const listItems: string[] = [];
+            const liElements = tempDiv.querySelectorAll('li');
+            if (liElements.length > 0) {
+                liElements.forEach(li => {
+                    const text = li.textContent?.trim() || '';
+                    if (text) listItems.push(text);
+                });
+            } else {
+                // Fallback: split by newlines
+                const lines = text.split('\n').filter(l => l.trim());
+                listItems.push(...lines);
+            }
+
+            if (listItems.length > 0) {
+                const currentItems = block.content ? block.content.split('\n').filter(i => i.trim()) : [];
+                const newItems = [...currentItems, ...listItems];
+                updateBlock(block.id, { content: newItems.join('\n') });
+            }
+            return;
+        }
+
         // If pasting into a text block, allow default paste behavior but clean it
         if (['paragraph', 'heading', 'quote'].includes(block.type)) {
             // Don't prevent default - let browser paste, then clean up
@@ -194,9 +225,6 @@ export function WYSIWYGEditor({ blocks = [], onChange }: WYSIWYGEditorProps) {
         
         // For other blocks or multi-line paste, create new blocks
         e.preventDefault();
-        const html = e.clipboardData.getData('text/html');
-        const text = e.clipboardData.getData('text/plain');
-
         const newBlocks = processPaste(html, text);
         if (newBlocks.length > 0) {
             const updatedBlocks = [...blocks];
@@ -487,7 +515,7 @@ function BlockWrapper({ block, isSelected, onSelect, onEdit, onDelete, onMoveUp,
             <div className="flex-1 min-w-0">
                 {/* Top-right controls (Delete/Settings) - Absolute relative to content */}
                 <div className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 z-30 translate-x-full pl-2">
-                    {needsModal && (
+                    {(needsModal || block.type === 'list') && (
                         <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded" title="Block Settings">
                             <Settings className="w-4 h-4" />
                         </button>
@@ -632,55 +660,66 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
             );
 
         case 'list':
-            const items = block.content ? block.content.split('\n') : [''];
+            const items = block.content ? block.content.split('\n').filter(item => item.trim() !== '') : [''];
             const ListTag = block.metadata?.listType === 'number' ? 'ol' : 'ul';
 
             return (
-                <ListTag className={`my-4 pl-0 space-y-1 ${block.metadata?.listType === 'number' ? 'list-decimal' : 'list-disc'} list-outside ml-5`}>
-                    {items.map((item, idx) => (
-                        <li key={`${block.id}-item-${idx}`} className="pl-1">
-                            <input
-                                className="w-full bg-transparent border-none p-0 text-neutral-200 focus:ring-0 placeholder-neutral-600 focus:outline-none"
-                                defaultValue={item}
-                                placeholder="List item..."
-                                onBlur={(e) => {
-                                    const newItems = [...items];
-                                    newItems[idx] = e.target.value;
-                                    // Only update if changed to avoid unnecessary renders
-                                    if (newItems.join('\n') !== block.content) {
-                                        onChange({ content: newItems.join('\n') });
-                                    }
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        // Save current line content before splitting
-                                        const currentVal = e.currentTarget.value;
+                <div className="my-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <button
+                            type="button"
+                            onClick={() => onChange({ 
+                                metadata: { ...block.metadata, listType: block.metadata?.listType === 'number' ? 'bullet' : 'number' }
+                            })}
+                            className="px-3 py-1 text-xs bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors"
+                            title={block.metadata?.listType === 'number' ? 'Switch to bullet list' : 'Switch to numbered list'}
+                        >
+                            {block.metadata?.listType === 'number' ? '1. 2. 3.' : '• • •'}
+                        </button>
+                    </div>
+                    <ListTag className={`pl-0 space-y-1 ${block.metadata?.listType === 'number' ? 'list-decimal' : 'list-disc'} list-outside ml-5`}>
+                        {items.map((item, idx) => (
+                            <li key={`${block.id}-item-${idx}`} className="py-0.5">
+                                <input
+                                    className="w-full bg-transparent border-none p-0 text-neutral-200 focus:ring-0 placeholder-neutral-600 focus:outline-none"
+                                    defaultValue={item.trim()}
+                                    placeholder="List item..."
+                                    onBlur={(e) => {
                                         const newItems = [...items];
-                                        newItems[idx] = currentVal;
-                                        newItems.splice(idx + 1, 0, '');
-                                        onChange({ content: newItems.join('\n') });
+                                        newItems[idx] = e.target.value.trim();
+                                        // Filter out empty items
+                                        const filtered = newItems.filter(i => i.trim() !== '');
+                                        onChange({ content: filtered.length > 0 ? filtered.join('\n') : '' });
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            const currentVal = e.currentTarget.value.trim();
+                                            const newItems = [...items];
+                                            newItems[idx] = currentVal;
+                                            newItems.splice(idx + 1, 0, '');
+                                            onChange({ content: newItems.join('\n') });
 
-                                        // Focus next input on next render
-                                        setTimeout(() => {
-                                            const inputs = (e.currentTarget.closest('ul, ol') as HTMLElement)?.querySelectorAll('input');
-                                            if (inputs && inputs[idx + 1]) (inputs[idx + 1] as HTMLInputElement).focus();
-                                        }, 10);
-                                    } else if (e.key === 'Backspace' && e.currentTarget.value === '' && items.length > 1) {
-                                        e.preventDefault();
-                                        const newItems = [...items];
-                                        newItems.splice(idx, 1);
-                                        onChange({ content: newItems.join('\n') });
-                                        setTimeout(() => {
-                                            const inputs = (e.currentTarget.closest('ul, ol') as HTMLElement)?.querySelectorAll('input');
-                                            if (inputs && inputs[idx - 1]) (inputs[idx - 1] as HTMLInputElement).focus();
-                                        }, 10);
-                                    }
-                                }}
-                            />
-                        </li>
-                    ))}
-                </ListTag>
+                                            setTimeout(() => {
+                                                const inputs = (e.currentTarget.closest('ul, ol') as HTMLElement)?.querySelectorAll('input');
+                                                if (inputs && inputs[idx + 1]) (inputs[idx + 1] as HTMLInputElement).focus();
+                                            }, 10);
+                                        } else if (e.key === 'Backspace' && e.currentTarget.value === '' && items.length > 1) {
+                                            e.preventDefault();
+                                            const newItems = [...items];
+                                            newItems.splice(idx, 1);
+                                            onChange({ content: newItems.filter(i => i.trim() !== '').join('\n') });
+                                            setTimeout(() => {
+                                                const inputs = (e.currentTarget.closest('ul, ol') as HTMLElement)?.querySelectorAll('input');
+                                                if (inputs && inputs[idx - 1]) (inputs[idx - 1] as HTMLInputElement).focus();
+                                            }, 10);
+                                        }
+                                    }}
+                                />
+                            </li>
+                        ))}
+                    </ListTag>
+                </div>
             );
 
         case 'callout':
@@ -894,6 +933,15 @@ function BlockEditModal({ block, onSave, onClose, onDelete }: {
 
                     {block.type === 'code' && (
                         <CodeEditor
+                            content={content}
+                            metadata={metadata}
+                            onContentChange={setContent}
+                            onMetadataChange={(m) => m && setMetadata(m)}
+                        />
+                    )}
+
+                    {block.type === 'list' && (
+                        <ListEditor
                             content={content}
                             metadata={metadata}
                             onContentChange={setContent}
@@ -1132,6 +1180,86 @@ function GalleryEditor({ metadata, onMetadataChange }: {
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+// List Editor
+function ListEditor({ content, metadata, onContentChange, onMetadataChange }: {
+    content: string;
+    metadata: ContentBlock['metadata'];
+    onContentChange: (content: string) => void;
+    onMetadataChange: (meta: ContentBlock['metadata']) => void;
+}) {
+    const items = content ? content.split('\n').filter(i => i.trim()) : [''];
+    const listType = metadata?.listType || 'bullet';
+
+    const updateItems = (newItems: string[]) => {
+        onContentChange(newItems.filter(i => i.trim() !== '').join('\n') || '');
+    };
+
+    return (
+        <div className="space-y-4">
+            <div>
+                <label className="block text-sm text-neutral-400 mb-2">List Type</label>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => onMetadataChange({ ...metadata, listType: 'bullet' })}
+                        className={`flex-1 py-3 rounded-lg ${listType === 'bullet' ? 'bg-accent-brand text-white' : 'bg-neutral-800 text-neutral-300'}`}
+                    >
+                        • Bullet List
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onMetadataChange({ ...metadata, listType: 'number' })}
+                        className={`flex-1 py-3 rounded-lg ${listType === 'number' ? 'bg-accent-brand text-white' : 'bg-neutral-800 text-neutral-300'}`}
+                    >
+                        1. Numbered List
+                    </button>
+                </div>
+            </div>
+            <div>
+                <label className="block text-sm text-neutral-400 mb-2">List Items</label>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {items.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                            <span className="text-neutral-500 w-6 text-sm">{idx + 1}.</span>
+                            <input
+                                type="text"
+                                value={item}
+                                onChange={(e) => {
+                                    const newItems = [...items];
+                                    newItems[idx] = e.target.value;
+                                    updateItems(newItems);
+                                }}
+                                placeholder="List item..."
+                                className="flex-1 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg focus:border-accent-brand focus:outline-none text-neutral-200"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const newItems = [...items];
+                                    newItems.splice(idx, 1);
+                                    updateItems(newItems);
+                                }}
+                                className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg"
+                                title="Remove item"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+                <button
+                    type="button"
+                    onClick={() => updateItems([...items, ''])}
+                    className="mt-2 w-full px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-neutral-300 hover:text-white transition-colors flex items-center justify-center gap-2"
+                >
+                    <Plus className="w-4 h-4" />
+                    Add Item
+                </button>
+            </div>
         </div>
     );
 }

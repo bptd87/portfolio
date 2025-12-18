@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Save, X, Trash2, Pencil, Layout, Image, Users, Tags, FileJson } from 'lucide-react';
+import { Save, X, Layout, Image, Users, Tags, FileJson, Briefcase } from 'lucide-react';
 
 import { useCategories } from '../../hooks/useCategories';
-import { PrimaryButton, SaveButton, IconButton } from './AdminButtons';
-import { InfoBanner } from './InfoBanner';
+import { SaveButton, IconButton } from './AdminButtons';
+import { AdminPageHeader } from './shared/AdminPageHeader';
+import { AdminListItem } from './shared/AdminListItem';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
 import { Select } from './ui/Select';
@@ -385,23 +386,34 @@ export function PortfolioManager() {
     toast.error(`Please check the form. Missing/Invalid: ${missingFields}`);
   };
 
+  const sortedProjects = [...projects].sort((a, b) => {
+    if (sortBy === 'date') {
+      const dateA = new Date(a.year, (a.month || 1) - 1);
+      const dateB = new Date(b.year, (b.month || 1) - 1);
+      return dateB.getTime() - dateA.getTime();
+    }
+    if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
+    if (sortBy === 'category') return (a.category || '').localeCompare(b.category || '');
+    return 0;
+  });
+
   return (
     <div className="space-y-6">
-      <InfoBanner title="Portfolio Manager" description="Manage your portfolio projects here." icon="💼" />
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl tracking-tight">Portfolio Projects</h2>
-        <div className="flex gap-2">
-          {!showForm && (
+      {!showForm && (
+        <AdminPageHeader
+          title="Portfolio Projects"
+          description={`${projects.length} total project${projects.length !== 1 ? 's' : ''}`}
+          onCreate={handleCreate}
+          createLabel="New Project"
+          actions={
             <>
-
-
-              <div className="flex items-center gap-2 mr-2">
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Sort by:</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-400 uppercase tracking-wider">Sort:</span>
                 <select
                   aria-label="Sort projects"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-background border border-border rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-accent-brand"
+                  className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
                 >
                   <option value="date">Date (Newest)</option>
                   <option value="title">Title (A-Z)</option>
@@ -410,19 +422,15 @@ export function PortfolioManager() {
               </div>
               <button
                 onClick={handleBulkImport}
-                className="flex items-center gap-2 px-4 py-2 border border-border hover:bg-accent/50 rounded-3xl transition-colors text-xs tracking-wider uppercase"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg transition-all"
               >
                 <FileJson className="w-4 h-4" />
                 <span>Import JSON</span>
               </button>
-              <PrimaryButton onClick={handleCreate}>
-                <Plus className="w-4 h-4" />
-                <span>New Project</span>
-              </PrimaryButton>
             </>
-          )}
-        </div>
-      </div>
+          }
+        />
+      )}
 
       {showForm && (
         <FormProvider {...methods}>
@@ -647,50 +655,35 @@ export function PortfolioManager() {
       )}
 
       {!showForm && (
-        <div className="grid grid-cols-1 gap-3">
-          {[...projects]
-            .sort((a, b) => {
-              if (sortBy === 'date') {
-                const dateA = new Date(a.year, (a.month || 1) - 1);
-                const dateB = new Date(b.year, (b.month || 1) - 1);
-                return dateB.getTime() - dateA.getTime();
-              }
-              if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
-              if (sortBy === 'category') return (a.category || '').localeCompare(b.category || '');
-              return 0;
-            })
-            .map((project) => (
-              <div key={project.id} className={`flex items-center justify-between p-4 border transition-colors rounded-2xl bg-card/50 hover:bg-card ${project.published === false ? 'border-dashed border-border opacity-70' : 'border-border hover:border-accent-brand/50'}`}>
-                <div className="flex items-center gap-4">
-                  {project.cardImage ? (
-                    <img src={project.cardImage} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                      <Image className="w-6 h-6 opacity-20" />
-                    </div>
-                  )}
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="tracking-tight font-medium">{project.title}</h4>
-                      {project.published === false && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 uppercase tracking-wider">Draft</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-300 mt-1">
-                      <span className="px-2 py-0.5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-400">{project.category}</span>
-                      <span className="text-gray-500">•</span>
-                      <span className="text-gray-300">{project.venue}</span>
-                      <span className="text-gray-500">•</span>
-                      <span className="text-gray-400">{project.year}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconButton onClick={() => handleEdit(project)}><Pencil className="w-4 h-4" /></IconButton>
-                  <IconButton onClick={() => handleDelete(project.id)} variant="danger"><Trash2 className="w-4 h-4" /></IconButton>
-                </div>
-              </div>
-            ))}
+        <div className="space-y-3">
+          {sortedProjects.length === 0 ? (
+            <div className="text-center py-12 text-zinc-400">
+              <Briefcase className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-sm">No projects yet. Create your first project to get started.</p>
+            </div>
+          ) : (
+            sortedProjects.map((project) => (
+              <AdminListItem
+                key={project.id}
+                title={project.title}
+                subtitle={project.description}
+                thumbnail={project.cardImage}
+                thumbnailFallback={<Image className="w-5 h-5" />}
+                status={
+                  project.published === false
+                    ? { label: 'Draft', variant: 'draft' }
+                    : { label: 'Published', variant: 'published' }
+                }
+                metadata={[
+                  { label: '', value: project.category },
+                  { label: '', value: project.venue || project.location || '' },
+                  { label: '', value: project.year?.toString() || '' }
+                ]}
+                onEdit={() => handleEdit(project)}
+                onDelete={() => handleDelete(project.id)}
+              />
+            ))
+          )}
         </div>
       )}
     </div>

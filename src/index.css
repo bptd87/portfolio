@@ -603,6 +603,7 @@
     text-rendering: optimizelegibility;
     min-height: -webkit-fill-available;
     overflow-y: auto;
+    overflow-x: hidden;
   }
 
   #root {
@@ -620,6 +621,39 @@
   div[class*="min-h-screen"],
   div[class*="max-w-"] {
     overflow-x: hidden !important;
+  }
+  
+  /* Hide scrollbars on sections and all divs */
+  section,
+  section *,
+  div[class*="max-w-"],
+  div[class*="max-w-"] * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  
+  section::-webkit-scrollbar,
+  section *::-webkit-scrollbar,
+  div[class*="max-w-"]::-webkit-scrollbar,
+  div[class*="max-w-"] *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  
+  section::-webkit-scrollbar-track,
+  section *::-webkit-scrollbar-track,
+  div[class*="max-w-"]::-webkit-scrollbar-track,
+  div[class*="max-w-"] *::-webkit-scrollbar-track {
+    display: none !important;
+  }
+  
+  section::-webkit-scrollbar-thumb,
+  section *::-webkit-scrollbar-thumb,
+  div[class*="max-w-"]::-webkit-scrollbar-thumb,
+  div[class*="max-w-"] *::-webkit-scrollbar-thumb {
+    display: none !important;
   }
 
 
@@ -653,13 +687,146 @@
     background-color: rgb(255 255 255 / 40%);
   }
 
-  * {
+  *:not(#tabbed-gallery-scroll):not(#home-scroll-container) {
     scrollbar-width: thin;
     scrollbar-color: rgb(255 255 255 / 20%) transparent;
   }
 
-  .dark * {
+  .dark *:not(#tabbed-gallery-scroll):not(#home-scroll-container) {
     scrollbar-color: rgb(255 255 255 / 20%) transparent;
+  }
+  
+  /* CRITICAL: Force hide scrollbars on specific elements - must come after * rule */
+  #tabbed-gallery-scroll,
+  #home-scroll-container {
+    scrollbar-width: none !important;
+    scrollbar-color: transparent transparent !important;
+    -ms-overflow-style: none !important;
+  }
+  
+  #tabbed-gallery-scroll::-webkit-scrollbar,
+  #home-scroll-container::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+    display: none !important;
+    background: transparent !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+  }
+  
+  #tabbed-gallery-scroll::-webkit-scrollbar-track,
+  #home-scroll-container::-webkit-scrollbar-track {
+    display: none !important;
+    background: transparent !important;
+    width: 0px !important;
+    height: 0px !important;
+  }
+  
+  #tabbed-gallery-scroll::-webkit-scrollbar-thumb,
+  #home-scroll-container::-webkit-scrollbar-thumb {
+    display: none !important;
+    background: transparent !important;
+    width: 0px !important;
+    height: 0px !important;
+  }
+  
+  .dark #tabbed-gallery-scroll,
+  .dark #home-scroll-container {
+    scrollbar-width: none !important;
+    scrollbar-color: transparent transparent !important;
+    -ms-overflow-style: none !important;
+  }
+  
+  .dark #tabbed-gallery-scroll::-webkit-scrollbar,
+  .dark #home-scroll-container::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+    display: none !important;
+    background: transparent !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+  }
+  
+  .dark #tabbed-gallery-scroll::-webkit-scrollbar-track,
+  .dark #home-scroll-container::-webkit-scrollbar-track {
+    display: none !important;
+    background: transparent !important;
+    width: 0px !important;
+    height: 0px !important;
+  }
+  
+  .dark #tabbed-gallery-scroll::-webkit-scrollbar-thumb,
+  .dark #home-scroll-container::-webkit-scrollbar-thumb {
+    display: none !important;
+    background: transparent !important;
+    width: 0px !important;
+    height: 0px !important;
+  }
+  
+  /* Override global scrollbar for specific containers - must come after * rule */
+  #tabbed-gallery-scroll,
+  #home-scroll-container {
+    scrollbar-width: none !important;
+    scrollbar-color: transparent transparent !important;
+  }
+  
+  .dark #tabbed-gallery-scroll,
+  .dark #home-scroll-container {
+    scrollbar-width: none !important;
+    scrollbar-color: transparent transparent !important;
+  }
+  
+  /* Specific overrides to hide scrollbars on specific elements - must be outside layer to override global * styles */
+  #tabbed-gallery-scroll,
+  #home-scroll-container {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+  
+  #tabbed-gallery-scroll::-webkit-scrollbar,
+  #home-scroll-container::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  
+  #tabbed-gallery-scroll::-webkit-scrollbar-track,
+  #home-scroll-container::-webkit-scrollbar-track {
+    display: none !important;
+    background: transparent !important;
+  }
+  
+  #tabbed-gallery-scroll::-webkit-scrollbar-thumb,
+  #home-scroll-container::-webkit-scrollbar-thumb {
+    display: none !important;
+    background: transparent !important;
+  }
+  
+  .dark #tabbed-gallery-scroll,
+  .dark #home-scroll-container {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+  
+  .dark #tabbed-gallery-scroll::-webkit-scrollbar,
+  .dark #home-scroll-container::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  
+  .dark #tabbed-gallery-scroll::-webkit-scrollbar-track,
+  .dark #home-scroll-container::-webkit-scrollbar-track {
+    display: none !important;
+    background: transparent !important;
+  }
+  
+  .dark #tabbed-gallery-scroll::-webkit-scrollbar-thumb,
+  .dark #home-scroll-container::-webkit-scrollbar-thumb {
+    display: none !important;
+    background: transparent !important;
   }
 
   img,
@@ -790,20 +957,67 @@
 
 @layer utilities {
   .scrollbar-hide {
-    -ms-overflow-style: none;
+    -ms-overflow-style: none !important;
 
     /* IE and Edge */
-    scrollbar-width: none;
+    scrollbar-width: none !important;
 
     /* Firefox */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
     /* Chrome, Safari and Opera */
   }
-
+  
+  .scrollbar-hide::-webkit-scrollbar-track {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar-thumb {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  
+  /* Ensure scrollbar is hidden in dark mode */
+  .dark .scrollbar-hide,
+  .dark .scrollbar-hide * {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+  
+  .dark .scrollbar-hide::-webkit-scrollbar,
+  .dark .scrollbar-hide *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  
+  .dark .scrollbar-hide::-webkit-scrollbar-track,
+  .dark .scrollbar-hide *::-webkit-scrollbar-track {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  
+  .dark .scrollbar-hide::-webkit-scrollbar-thumb,
+  .dark .scrollbar-hide *::-webkit-scrollbar-thumb {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  
   .pointer-events-auto {
     pointer-events: auto;
   }

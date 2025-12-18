@@ -37,7 +37,23 @@ export const processPaste = (html: string, text: string): any[] => {
                     content: cleanContent(el.innerHTML)
                 });
             } else if (tag === 'UL' || tag === 'OL') {
-                Array.from(el.children).forEach(processNode);
+                // Create a list block from UL/OL
+                const listItems: string[] = [];
+                Array.from(el.children).forEach((child) => {
+                    if (child.nodeType === Node.ELEMENT_NODE) {
+                        const li = child as HTMLElement;
+                        const text = li.textContent?.trim() || '';
+                        if (text) listItems.push(text);
+                    }
+                });
+                if (listItems.length > 0) {
+                    newBlocks.push({
+                        id: `block-${timestamp}-${Math.random()}`,
+                        type: 'list',
+                        content: listItems.join('\n'),
+                        metadata: { listType: tag === 'OL' ? 'number' : 'bullet' }
+                    });
+                }
             } else {
                 // If it's a wrapper like a span with style, usually we want its text?
                 // Or if it has children block elements?

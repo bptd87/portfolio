@@ -17,9 +17,9 @@ import {
   Globe,
   Box,
   Building,
-  DollarSign
+  DollarSign,
+  X
 } from 'lucide-react';
-import { AdminTokens, buildAdminClass } from '../../styles/admin-tokens';
 
 type ManagerType = 'dashboard' | 'articles' | 'portfolio' | 'news' | 'links' | 'directory' | 'vault' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'contact' | 'analytics' | 'api-status' | 'redirects' | 'media' | 'crm' | 'finance';
 
@@ -40,7 +40,6 @@ const navItems: NavItem[] = [
     category: 'dashboard',
     enabled: true,
   },
-  // BUSINESS
   {
     id: 'crm',
     title: 'Theatre CRM',
@@ -56,7 +55,6 @@ const navItems: NavItem[] = [
     enabled: true,
     comingSoon: true,
   },
-  // CONTENT
   {
     id: 'portfolio',
     title: 'Portfolio',
@@ -85,7 +83,6 @@ const navItems: NavItem[] = [
     category: 'content',
     enabled: true,
   },
-  // ORGANIZATION
   {
     id: 'categories',
     title: 'Categories',
@@ -121,7 +118,6 @@ const navItems: NavItem[] = [
     category: 'organization',
     enabled: true,
   },
-  // SITE MANAGEMENT
   {
     id: 'settings',
     title: 'Site Settings',
@@ -158,7 +154,6 @@ const navItems: NavItem[] = [
     enabled: false,
     comingSoon: true,
   },
-  // ANALYTICS
   {
     id: 'analytics',
     title: 'Analytics',
@@ -201,7 +196,7 @@ const navCategories = [
   {
     id: 'assets',
     label: 'Galleries & Assets',
-    items: ['directory', 'vault', 'models', 'archive', 'media']
+    items: ['directory', 'vault']
   },
   {
     id: 'site',
@@ -216,96 +211,95 @@ const navCategories = [
 ];
 
 export function Sidebar({ activeView, onNavigate, mobileOpen = false, onClose }: SidebarProps) {
-  // Base classes for the sidebar container
-  // Changed lg: to xl: for breakpoint (tablets will now use hamburger drawer)
-  // Added 'hidden' when closed on mobile to prevent ghost interactions
-  const sidebarClasses = buildAdminClass(
-    'fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out xl:translate-x-0 xl:static xl:inset-0 xl:block',
-    AdminTokens.bg.secondary,
-    'border-r',
-    AdminTokens.border.primary,
-    mobileOpen ? 'translate-x-0 shadow-2xl block' : '-translate-x-full hidden xl:block'
-  );
-
   return (
-    <>
-      {/* Mobile Overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 xl:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      <aside className={`flex flex-col ${sidebarClasses}`}>
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
-          <h1 className={`text-xl font-bold tracking-tight ${AdminTokens.text.primary}`}>
-            Brandon Davis <span className="text-[#71717a] font-normal">Admin</span>
-          </h1>
-          {/* Close button for mobile */}
-          <button onClick={onClose} className="xl:hidden p-1 text-[#a1a1aa] hover:text-white">
-            {/* Overlay handles close mostly, but good to have context if needed */}
-          </button>
+    <div 
+      className="h-full flex flex-col"
+      style={{
+        backgroundColor: '#18181b', // zinc-900 - completely solid
+        borderRight: '1px solid #27272a', // zinc-800
+        width: '100%',
+        position: 'relative',
+        zIndex: 10
+      }}
+    >
+      {/* Header */}
+      <div className="flex-shrink-0 p-6 border-b border-zinc-800 flex items-center justify-between" style={{ backgroundColor: '#18181b' }}>
+        <div>
+          <h1 className="text-lg font-bold text-white">Brandon Davis</h1>
+          <p className="text-sm text-zinc-400">Admin Panel</p>
         </div>
+        {mobileOpen && onClose && (
+          <button
+            onClick={onClose}
+            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+      </div>
 
-        <nav className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          {navCategories.map(cat => (
-            <div key={cat.id} className="mb-8 last:mb-0">
-              <h2 className={`text-[10px] font-bold uppercase tracking-wider ${AdminTokens.text.tertiary} mb-3 px-3`}>
-                {cat.label}
-              </h2>
-              <ul className="space-y-0.5">
-                {cat.items.map(itemId => {
-                  const item = navItems.find(i => i.id === itemId);
-                  if (!item) return null;
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto p-4 space-y-6" style={{ backgroundColor: '#18181b' }}>
+        {navCategories.map(cat => (
+          <div key={cat.id}>
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-3 px-2">
+              {cat.label}
+            </h2>
+            <ul className="space-y-1">
+              {cat.items.map(itemId => {
+                const item = navItems.find(i => i.id === itemId);
+                if (!item) return null;
 
-                  const Icon = item.icon;
-                  const isActive = activeView === item.id;
+                const Icon = item.icon;
+                const isActive = activeView === item.id;
 
-                  return (
-                    <li key={item.id}>
-                      <button
-                        onClick={() => {
-                          if (item.enabled) {
-                            onNavigate(item.id);
-                            if (onClose) onClose();
-                          }
-                        }}
-                        disabled={!item.enabled}
-                        className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
-                          ${isActive
-                            ? 'bg-white text-black shadow-md shadow-white/5'
-                            : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
-                          }
-                          ${!item.enabled ? 'opacity-40 cursor-not-allowed' : ''}
-                        `}
-                      >
-                        <Icon className={`w-4 h-4 mr-3 ${isActive ? 'text-black' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                        {item.title}
-                        {item.comingSoon && (
-                          <span className="ml-auto text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-700">Soon</span>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-        </nav>
+                return (
+                  <li key={item.id}>
+                    <button
+                      onClick={() => {
+                        if (item.enabled) {
+                          onNavigate(item.id);
+                        }
+                      }}
+                      disabled={!item.enabled}
+                      className={`
+                        w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200
+                        ${isActive
+                          ? 'bg-white text-black font-semibold shadow-lg'
+                          : 'text-zinc-300 hover:text-white hover:bg-zinc-800 active:bg-zinc-700'
+                        }
+                        ${!item.enabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
+                      `}
+                    >
+                      <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-black' : 'text-zinc-400'}`} />
+                      <span className="flex-1 text-left">{item.title}</span>
+                      {item.comingSoon && (
+                        <span className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded border border-zinc-700">
+                          Soon
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </nav>
 
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900/50 border border-white/5">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center text-xs font-bold text-white">
-              BD
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">Brandon Davis</p>
-              <p className="text-xs text-zinc-500 truncate">Administrator</p>
-            </div>
+      {/* Footer */}
+      <div className="flex-shrink-0 p-4 border-t border-zinc-800" style={{ backgroundColor: '#18181b' }}>
+        <div className="flex items-center gap-3 px-3 py-3 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-600 to-zinc-800 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+            BD
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white truncate">Brandon Davis</p>
+            <p className="text-xs text-zinc-400 truncate">Administrator</p>
           </div>
         </div>
-      </aside>
-    </>
+      </div>
+    </div>
   );
 }

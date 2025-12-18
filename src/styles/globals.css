@@ -552,6 +552,73 @@ html {
   background: rgb(255 255 255 / 30%);
 }
 
+/* CRITICAL: Hide scrollbars on specific elements - must be at end to override all other rules */
+#tabbed-gallery-scroll,
+#home-scroll-container {
+  scrollbar-width: none !important;
+  scrollbar-color: transparent transparent !important;
+  -ms-overflow-style: none !important;
+}
+
+#tabbed-gallery-scroll::-webkit-scrollbar,
+#home-scroll-container::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+#tabbed-gallery-scroll::-webkit-scrollbar-track,
+#home-scroll-container::-webkit-scrollbar-track {
+  display: none !important;
+  background: transparent !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+
+#tabbed-gallery-scroll::-webkit-scrollbar-thumb,
+#home-scroll-container::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: transparent !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+
+.dark #tabbed-gallery-scroll,
+.dark #home-scroll-container {
+  scrollbar-width: none !important;
+  scrollbar-color: transparent transparent !important;
+  -ms-overflow-style: none !important;
+}
+
+.dark #tabbed-gallery-scroll::-webkit-scrollbar,
+.dark #home-scroll-container::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+.dark #tabbed-gallery-scroll::-webkit-scrollbar-track,
+.dark #home-scroll-container::-webkit-scrollbar-track {
+  display: none !important;
+  background: transparent !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+
+.dark #tabbed-gallery-scroll::-webkit-scrollbar-thumb,
+.dark #home-scroll-container::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: transparent !important;
+  width: 0px !important;
+  height: 0px !important;
+}
+
 /* ============================================
    PIXEL FONT UTILITIES
    For creative accents and technical details

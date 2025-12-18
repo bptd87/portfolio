@@ -177,13 +177,18 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   const isPriority = props.priority;
   const showTransition = !isPriority;
 
+  // Extract rounded corner classes from className
+  const roundedClasses = className?.match(/rounded-\[?\d+px?\]?|rounded-\w+/g)?.join(' ') || '';
+  // Remove rounded classes from className to avoid duplication on img
+  const imgClassName = className?.replace(/rounded-\[?\d+px?\]?|rounded-\w+/g, '').trim() || className || '';
+  
   return (
-    <div className="relative inline-block w-full h-full" style={style}>
+    <div className={`relative inline-block w-full h-full overflow-hidden ${roundedClasses}`} style={style}>
       {/* Skeleton loader - shown while image is loading, disabled for priority to avoid flash */}
       {showSkeleton && isLoading && !isPriority && (
         <div
           className={`absolute inset-0 bg-gradient-to-r from-neutral-200 via-neutral-300 to-neutral-200 dark:from-neutral-800 dark:via-neutral-700 dark:to-neutral-800 animate-pulse ${skeletonClassName || ''
-            }`}
+            } ${roundedClasses}`}
           style={{
             backgroundSize: '200% 100%',
             animation: 'shimmer 1.5s infinite',
@@ -199,7 +204,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
         sizes={sizes}
         alt={finalAlt}
         title={finalTitle}
-        className={`${className ?? ''} ${blurUp && isLoading && isInView && showTransition ? 'blur-sm scale-105' : ''
+        className={`${imgClassName} ${roundedClasses} ${blurUp && isLoading && isInView && showTransition ? 'blur-sm scale-105' : ''
           } ${isLoading && showTransition ? 'opacity-0' : 'opacity-100'} ${showTransition ? 'transition-all duration-500 ease-out' : ''}`}
         style={{
           ...style,
