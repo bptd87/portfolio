@@ -1,17 +1,14 @@
-import { AdminTokens } from '../../styles/admin-tokens';
-import React, { useState, useEffect } from 'react';
-import { Plus, Save, X, Pencil, Trash2, Tag, Grid3x3, FileText, Briefcase, Newspaper } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save, X, Pencil, Trash2, FileText, Briefcase, Newspaper, Grid3x3 } from 'lucide-react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
-import { PrimaryButton, SecondaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
-import { InfoBanner } from './InfoBanner';
+import { SaveButton, CancelButton, SecondaryButton, IconButton } from './AdminButtons';
+import { AdminPageHeader } from './shared/AdminPageHeader';
 import { 
   DarkInput, 
   DarkTextarea, 
   DarkSelect, 
   DarkLabel,
-  formContainerClasses,
-  listItemClasses,
-  badgeClasses
+  formContainerClasses
 } from './DarkModeStyles';
 
 interface Category {
@@ -75,7 +72,6 @@ export function CategoryManager() {
     
     setSeeding(true);
     try {
-      const token = sessionStorage.getItem('admin_token');
       const defaultCats = DEFAULT_CATEGORIES[type];
       
       // Add each default category
@@ -106,7 +102,6 @@ export function CategoryManager() {
 
   const loadCategories = async () => {
     try {
-      const token = sessionStorage.getItem('admin_token');
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/categories`,
         {
@@ -172,8 +167,6 @@ export function CategoryManager() {
 
     setSaving(true);
     try {
-      const token = sessionStorage.getItem('admin_token');
-      
       // Auto-generate slug if not provided
       const slug = formData.slug?.trim() || generateSlug(formData.name);
       
@@ -217,8 +210,6 @@ export function CategoryManager() {
     }
 
     try {
-      const token = sessionStorage.getItem('admin_token');
-      
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/categories/${activeTab}/${categoryId}`,
         {
@@ -250,85 +241,71 @@ export function CategoryManager() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <InfoBanner variant="purple">
-        <div className="flex items-center gap-2 mb-2">
-          <Tag className="w-5 h-5" />
-          <h3 className="font-semibold">Category Manager</h3>
-        </div>
-        <p className="text-sm opacity-90">
-          Manage categories for your articles, news, and portfolio projects. Categories help organize your content and improve navigation.
-        </p>
-      </InfoBanner>
-
       {/* Tabs */}
-      <div className={`border-b ${AdminTokens.border.disabled}`}>
+      <div className="border-b border-zinc-800">
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab('portfolio')}
             className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${
               activeTab === 'portfolio'
-                ? `border-blue-500 ${AdminTokens.text.accent}`
-                : `border-transparent ${AdminTokens.text.secondary} hover:text-white`
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-zinc-400 hover:text-white'
             }`}
           >
             <Briefcase className="w-4 h-4" />
             Portfolio Categories
-            <span className={`${AdminTokens.bg.tertiary} ${AdminTokens.text.secondary} px-2 py-0.5 rounded text-xs`}>{categories.portfolio.length}</span>
+            <span className="bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded text-xs">{categories.portfolio.length}</span>
           </button>
           <button
             onClick={() => setActiveTab('articles')}
             className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${
               activeTab === 'articles'
-                ? `border-blue-500 ${AdminTokens.text.accent}`
-                : `border-transparent ${AdminTokens.text.secondary} hover:text-white`
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-zinc-400 hover:text-white'
             }`}
           >
             <FileText className="w-4 h-4" />
             Article Categories
-            <span className={`${AdminTokens.bg.tertiary} ${AdminTokens.text.secondary} px-2 py-0.5 rounded text-xs`}>{categories.articles.length}</span>
+            <span className="bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded text-xs">{categories.articles.length}</span>
           </button>
           <button
             onClick={() => setActiveTab('news')}
             className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${
               activeTab === 'news'
-                ? `border-blue-500 ${AdminTokens.text.accent}`
-                : `border-transparent ${AdminTokens.text.secondary} hover:text-white`
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-zinc-400 hover:text-white'
             }`}
           >
             <Newspaper className="w-4 h-4" />
             News Categories
-            <span className={`${AdminTokens.bg.tertiary} ${AdminTokens.text.secondary} px-2 py-0.5 rounded text-xs`}>{categories.news.length}</span>
+            <span className="bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded text-xs">{categories.news.length}</span>
           </button>
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className={`text-lg tracking-tight capitalize ${AdminTokens.text.primary}`}>{activeTab} Categories</h3>
-          <p className={`text-xs ${AdminTokens.text.secondary} mt-1`}>
-            {currentCategories.length} {currentCategories.length === 1 ? 'category' : 'categories'}
-          </p>
-        </div>
-        {!showForm && (
-          <PrimaryButton onClick={handleCreate}>
-            <Plus className="w-4 h-4" />
-            <span className="text-xs tracking-wider uppercase">New Category</span>
-          </PrimaryButton>
-        )}
-      </div>
+      {!showForm && (
+        <AdminPageHeader
+          title={`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Categories`}
+          description={`${currentCategories.length} ${currentCategories.length === 1 ? 'category' : 'categories'}`}
+          onCreate={handleCreate}
+          createLabel="New Category"
+        />
+      )}
 
       {/* Form */}
       {showForm && (
         <div className={formContainerClasses}>
           <div className="flex items-center justify-between mb-6">
-            <h3 className={`tracking-tight ${AdminTokens.text.primary}`}>
+            <h3 className="tracking-tight text-white">
               {editingId === 'new' ? 'Create New Category' : 'Edit Category'}
             </h3>
-            <IconButton onClick={handleCancel}>
+            <button
+              onClick={handleCancel}
+              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-lg transition-colors"
+              aria-label="Close"
+            >
               <X className="w-5 h-5" />
-            </IconButton>
+            </button>
           </div>
 
           <div className="space-y-4">
@@ -359,7 +336,7 @@ export function CategoryManager() {
                 className="font-mono text-sm"
                 placeholder="lighting-design"
               />
-              <p className={`text-xs ${AdminTokens.text.tertiary} mt-1`}>Auto-generated from name if left empty</p>
+              <p className="text-xs text-zinc-500 mt-1">Auto-generated from name if left empty</p>
             </div>
 
             <div>
@@ -371,7 +348,9 @@ export function CategoryManager() {
                   type="color"
                   value={formData.color || '#3B82F6'}
                   onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className={`w-16 h-10 rounded border ${AdminTokens.border.primary} cursor-pointer`}
+                  className="w-16 h-10 rounded border border-zinc-700 cursor-pointer"
+                  title="Category color"
+                  aria-label="Category color"
                 />
                 <DarkInput
                   type="text"
@@ -410,7 +389,7 @@ export function CategoryManager() {
                   <option value="rendering">Rendering Showcase</option>
                   <option value="gallery">Default Gallery</option>
                 </DarkSelect>
-                <p className={`text-xs ${AdminTokens.text.tertiary} mt-1`}>
+                <p className="text-xs text-zinc-500 mt-1">
                   Determines how project detail pages are displayed
                 </p>
               </div>
@@ -438,7 +417,7 @@ export function CategoryManager() {
 
       {/* Categories List */}
       {!showForm && currentCategories.length === 0 && (
-        <div className={`text-center py-12 ${AdminTokens.text.secondary}`}>
+        <div className="text-center py-12 text-zinc-400">
           <Grid3x3 className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="mb-4">No categories yet. Create your first one or load defaults!</p>
           <SecondaryButton 
@@ -455,7 +434,7 @@ export function CategoryManager() {
           {currentCategories.map((category) => (
             <div 
               key={category.id} 
-              className={`border ${AdminTokens.border.disabled} p-4 ${AdminTokens.radius.sm} ${AdminTokens.border.accentHover} transition-colors ${AdminTokens.bg.secondary}/50 backdrop-blur`}
+              className="border border-zinc-800 p-4 rounded-lg hover:border-zinc-700 transition-colors bg-zinc-900/50 backdrop-blur"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3 flex-1">
@@ -463,7 +442,7 @@ export function CategoryManager() {
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: category.color || '#3B82F6' }}
                   />
-                  <h4 className={`tracking-tight font-medium ${AdminTokens.text.primary}`}>{category.name}</h4>
+                  <h4 className="tracking-tight font-medium text-white">{category.name}</h4>
                 </div>
                 <div className="flex items-center gap-1">
                   <IconButton
@@ -482,13 +461,13 @@ export function CategoryManager() {
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs ${AdminTokens.text.secondary} uppercase tracking-wider`}>Slug:</span>
-                  <code className={`text-xs ${AdminTokens.bg.tertiary} ${AdminTokens.text.secondary} px-2 py-0.5 rounded`}>{category.slug}</code>
+                  <span className="text-xs text-zinc-400 uppercase tracking-wider">Slug:</span>
+                  <code className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">{category.slug}</code>
                 </div>
                 {activeTab === 'portfolio' && category.template && (
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs ${AdminTokens.text.secondary} uppercase tracking-wider`}>Template:</span>
-                    <span className={`text-xs ${AdminTokens.bg.accent} ${AdminTokens.text.accent} px-2 py-0.5 rounded`}>
+                    <span className="text-xs text-zinc-400 uppercase tracking-wider">Template:</span>
+                    <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded">
                       {category.template === 'editorial' && '📄 Editorial Split-Screen'}
                       {category.template === 'blog-style' && '📝 Blog-Style'}
                       {category.template === 'rendering' && '🎨 Rendering Showcase'}
@@ -497,7 +476,7 @@ export function CategoryManager() {
                   </div>
                 )}
                 {category.description && (
-                  <p className={`text-xs ${AdminTokens.text.secondary}`}>{category.description}</p>
+                  <p className="text-xs text-zinc-400">{category.description}</p>
                 )}
               </div>
             </div>

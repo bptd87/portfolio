@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, Mail } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
 import { AdminLayout } from '../components/admin/AdminLayout';
 import { AdminDashboard } from '../components/admin/AdminDashboard';
 import { ArticleManager } from '../components/admin/ArticleManager';
@@ -59,6 +58,7 @@ const navItems = [
 ];
 
 export function Admin({ onNavigate }: AdminProps) {
+  console.log("✅ ADMIN ROUTE FILE LOADED", import.meta.url);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,6 +66,18 @@ export function Admin({ onNavigate }: AdminProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeView, setActiveView] = useState<ManagerView>('dashboard');
+  
+  const adminToken = sessionStorage.getItem('admin_token');
+  const isAuthed = isAuthenticated;
+  const activeSection = activeView;
+  const viewMode = activeView;
+  
+  console.log("📄 Admin render", {
+    hasAdminToken: !!adminToken,
+    isAuthed: !!isAuthed,
+    activeSection,
+    viewMode,
+  });
 
   // Check for existing session on mount
   React.useEffect(() => {
@@ -218,7 +230,14 @@ export function Admin({ onNavigate }: AdminProps) {
       case 'data-sync':
         return <DataSync />;
       case 'articles':
-        return <ArticleManager />;
+        return (
+          <>
+            <div className="p-2 text-xs border border-red-500 bg-red-500/10 text-red-400 mb-4">
+              ADMIN PAGE ALIVE - ArticleManager should render below
+            </div>
+            <ArticleManager />
+          </>
+        );
       case 'portfolio':
         return <PortfolioManager />;
       case 'news':
@@ -263,18 +282,19 @@ export function Admin({ onNavigate }: AdminProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <SimpleErrorBoundary>
-        <AdminLayout
-          activeView={activeView}
-          onNavigate={(view) => setActiveView(view as ManagerView)}
-          onSiteNavigation={onNavigate}
-          onLogout={handleLogout}
-          pageTitle={getPageTitle()}
-        >
-          {renderActiveView()}
-        </AdminLayout>
-      </SimpleErrorBoundary>
-    </div>
+    <SimpleErrorBoundary>
+      <AdminLayout
+        activeView={activeView}
+        onNavigate={(view) => setActiveView(view as ManagerView)}
+        onSiteNavigation={onNavigate}
+        onLogout={handleLogout}
+        pageTitle={getPageTitle()}
+      >
+        <div className="p-2 text-xs border border-blue-500 bg-blue-500/10 text-blue-400 mb-4">
+          ADMIN PAGE ALIVE
+        </div>
+        <ArticleManager />
+      </AdminLayout>
+    </SimpleErrorBoundary>
   );
 }

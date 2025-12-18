@@ -1,290 +1,381 @@
-import React, { useState } from 'react';
-import { RichTextEditor } from './RichTextEditor';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { Bold, Italic, List, ListOrdered, Quote, Code, Image as ImageIcon, Film, LayoutGrid } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
-import { Plus, Image as ImageIcon, Trash2, GripVertical } from 'lucide-react';
-
-interface ContentSection {
-  id: string;
-  type: 'text' | 'image' | 'heading';
-  content: string;
-  metadata?: {
-    alt?: string;
-    caption?: string;
-    level?: number;
-  };
-}
+import { ImageGalleryManager } from './ImageUploader';
 
 interface SimpleArticleEditorProps {
-  sections: ContentSection[];
-  onChange: (sections: ContentSection[]) => void;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
 }
 
-export function SimpleArticleEditor({ sections, onChange }: SimpleArticleEditorProps) {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+export function SimpleArticleEditor({ value, onChange, placeholder }: SimpleArticleEditorProps) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [showImageDialog, setShowImageDialog] = useState(false);
+  const [showGalleryDialog, setShowGalleryDialog] = useState(false);
+  const [showVideoDialog, setShowVideoDialog] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
+  const isInternalChange = useRef(false);
+  const lastValue = useRef(value);
 
-  const addSection = (type: 'text' | 'image' | 'heading') => {
-    const newSection: ContentSection = {
-      id: `section-${Date.now()}`,
-      type,
-      content: '',
-      metadata: type === 'heading' ? { level: 2 } : undefined,
-    };
-    onChange([...sections, newSection]);
+  useEffect(() => {
+    if (editorRef.current && !isInternalChange.current) {
+      if (value !== lastValue.current) {
+        editorRef.current.innerHTML = value || '';
+        lastValue.current = value;
+      }
+    }
+    isInternalChange.current = false;
+  }, [value]);
+
+  useEffect(() => {
+    if (editorRef.current && value) {
+      editorRef.current.innerHTML = value;
+      lastValue.current = value;
+    }
+  }, []);
+
+  const handleInput = useCallback(() => {
+    if (editorRef.current) {
+      const newValue = editorRef.current.innerHTML;
+      isInternalChange.current = true;
+      lastValue.current = newValue;
+      onChange(newValue);
+    }
+  }, [onChange]);
+
+  const execCommand = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
+    handleInput();
   };
 
-  const updateSection = (index: number, updates: Partial<ContentSection>) => {
-    const updated = [...sections];
-    updated[index] = { ...updated[index], ...updates };
-    onChange(updated);
+  const insertHTML = (html: string) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      const fragment = document.createDocumentFragment();
+      while (tempDiv.firstChild) {
+        fragment.appendChild(tempDiv.firstChild);
+      }
+      range.insertNode(fragment);
+      handleInput();
+      editorRef.current?.focus();
+    }
   };
 
-  const deleteSection = (index: number) => {
-    onChange(sections.filter((_, i) => i !== index));
+  const handleImageUpload = (url: string) => {
+    insertHTML(`<img src="${url}" alt="" style="max-width: 100%; height: auto; border-radius: 8px; margin: 1em 0;" />`);
+    setShowImageDialog(false);
   };
 
-  const moveSection = (fromIndex: number, toIndex: number) => {
-    const updated = [...sections];
-    const [moved] = updated.splice(fromIndex, 1);
-    updated.splice(toIndex, 0, moved);
-    onChange(updated);
+  const handleGalleryUpload = (images: Array<{ url: string; caption?: string; alt?: string }>) => {
+    if (images.length === 0) return;
+    const galleryHTML = `
+      <div class="gallery" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5em 0;">
+        ${images.map(img => `<img src="${img.url}" alt="${img.alt || ''}" style="width: 100%; height: auto; border-radius: 8px; object-fit: cover;" />`).join('')}
+      </div>
+    `;
+    insertHTML(galleryHTML);
+    setShowGalleryDialog(false);
   };
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
+  const handleVideoInsert = () => {
+    if (!videoUrl.trim()) return;
+    
+    // Convert YouTube/Vimeo URLs to embed format
+    let embedUrl = videoUrl;
+    const youtubeMatch = videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    const vimeoMatch = videoUrl.match(/vimeo\.com\/(\d+)/);
+    
+    if (youtubeMatch) {
+      embedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    } else if (vimeoMatch) {
+      embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+    
+    const videoHTML = `
+      <div class="video-embed" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 1.5em 0; border-radius: 8px;">
+        <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" frameborder="0" allowfullscreen></iframe>
+      </div>
+    `;
+    insertHTML(videoHTML);
+    setVideoUrl('');
+    setShowVideoDialog(false);
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
-    moveSection(draggedIndex, index);
-    setDraggedIndex(index);
+  const handleBold = () => execCommand('bold');
+  const handleItalic = () => execCommand('italic');
+  const handleUnorderedList = () => execCommand('insertUnorderedList');
+  const handleOrderedList = () => execCommand('insertOrderedList');
+
+  const handleBlockquote = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    const blockquote = document.createElement('blockquote');
+    blockquote.style.borderLeft = '3px solid currentColor';
+    blockquote.style.paddingLeft = '12px';
+    blockquote.style.fontStyle = 'italic';
+    blockquote.style.opacity = '0.8';
+    try {
+      range.surroundContents(blockquote);
+      handleInput();
+    } catch (e) {
+      execCommand('formatBlock', 'blockquote');
+    }
   };
 
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
+  const handleCodeBlock = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    const pre = document.createElement('pre');
+    const code = document.createElement('code');
+    pre.style.background = 'rgba(0, 0, 0, 0.05)';
+    pre.style.padding = '12px';
+    pre.style.borderRadius = '4px';
+    pre.style.overflow = 'auto';
+    pre.style.fontFamily = 'monospace';
+    pre.style.fontSize = '14px';
+    try {
+      code.appendChild(range.extractContents());
+      pre.appendChild(code);
+      range.insertNode(pre);
+      handleInput();
+    } catch (e) {}
   };
 
   return (
-    <div className="space-y-4">
-      {/* Add Section Buttons */}
-      <div className="flex gap-2 p-4 bg-secondary/20 rounded-xl border border-border">
+    <div className="border border-zinc-700 rounded-lg overflow-hidden bg-zinc-900">
+      {/* Toolbar */}
+      <div className="flex items-center gap-1 p-2 border-b border-zinc-700 bg-zinc-800 flex-wrap">
         <button
           type="button"
-          onClick={() => addSection('heading')}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-card border border-border hover:border-accent-brand transition-colors rounded-lg"
+          onClick={handleBold}
+          className="p-2 hover:bg-zinc-700 transition-colors rounded text-zinc-300 hover:text-white"
+          title="Bold (Cmd/Ctrl+B)"
         >
-          <span className="text-xl font-bold">H</span>
-          <span className="text-sm">Add Heading</span>
+          <Bold className="w-4 h-4" />
         </button>
         <button
           type="button"
-          onClick={() => addSection('text')}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-card border border-border hover:border-accent-brand transition-colors rounded-lg"
+          onClick={handleItalic}
+          className="p-2 hover:bg-zinc-700 transition-colors rounded text-zinc-300 hover:text-white"
+          title="Italic (Cmd/Ctrl+I)"
         >
-          <Plus className="w-4 h-4" />
-          <span className="text-sm">Add Text</span>
+          <Italic className="w-4 h-4" />
+        </button>
+        
+        <div className="w-px h-6 bg-zinc-700 mx-1" />
+        
+        <button
+          type="button"
+          onClick={handleUnorderedList}
+          className="p-2 hover:bg-zinc-700 transition-colors rounded text-zinc-300 hover:text-white"
+          title="Bullet List"
+        >
+          <List className="w-4 h-4" />
         </button>
         <button
           type="button"
-          onClick={() => addSection('image')}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-card border border-border hover:border-accent-brand transition-colors rounded-lg"
+          onClick={handleOrderedList}
+          className="p-2 hover:bg-zinc-700 transition-colors rounded text-zinc-300 hover:text-white"
+          title="Numbered List"
+        >
+          <ListOrdered className="w-4 h-4" />
+        </button>
+        
+        <div className="w-px h-6 bg-zinc-700 mx-1" />
+        
+        <button
+          type="button"
+          onClick={handleBlockquote}
+          className="p-2 hover:bg-zinc-700 transition-colors rounded text-zinc-300 hover:text-white"
+          title="Quote"
+        >
+          <Quote className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={handleCodeBlock}
+          className="p-2 hover:bg-zinc-700 transition-colors rounded text-zinc-300 hover:text-white"
+          title="Code Block"
+        >
+          <Code className="w-4 h-4" />
+        </button>
+        
+        <div className="w-px h-6 bg-zinc-700 mx-1" />
+        
+        <button
+          type="button"
+          onClick={() => setShowImageDialog(true)}
+          className="p-2 hover:bg-zinc-700 transition-colors rounded text-zinc-300 hover:text-white"
+          title="Insert Image"
         >
           <ImageIcon className="w-4 h-4" />
-          <span className="text-sm">Add Image</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowGalleryDialog(true)}
+          className="p-2 hover:bg-zinc-700 transition-colors rounded text-zinc-300 hover:text-white"
+          title="Insert Gallery"
+        >
+          <LayoutGrid className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowVideoDialog(true)}
+          className="p-2 hover:bg-zinc-700 transition-colors rounded text-zinc-300 hover:text-white"
+          title="Insert Video"
+        >
+          <Film className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Content Sections */}
-      <div className="space-y-4">
-        {sections.length === 0 && (
-          <div className="text-center py-12 text-gray-400 border border-dashed border-border rounded-xl">
-            <p className="text-sm">No content yet. Click the buttons above to start writing!</p>
+      {/* Editor */}
+      <div
+        ref={editorRef}
+        contentEditable
+        onInput={handleInput}
+        className="min-h-[400px] p-6 focus:outline-none text-zinc-200"
+        style={{
+          fontSize: '15px',
+          lineHeight: '1.7',
+        }}
+        data-placeholder={placeholder || 'Start writing your article...'}
+        suppressContentEditableWarning
+      />
+
+      {/* Image Dialog */}
+      {showImageDialog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-2xl p-6">
+            <h3 className="text-lg font-semibold mb-4 text-white">Insert Image</h3>
+            <ImageUploader
+              label=""
+              value=""
+              onChange={handleImageUpload}
+              bucketName="blog"
+            />
+            <button
+              type="button"
+              onClick={() => setShowImageDialog(false)}
+              className="mt-4 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 hover:text-white"
+            >
+              Cancel
+            </button>
           </div>
-        )}
-
-        {sections.map((section, index) => (
-          <div
-            key={section.id}
-            draggable
-            onDragStart={() => handleDragStart(index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDragEnd={handleDragEnd}
-            className={`group relative border border-border rounded-xl overflow-hidden transition-all ${
-              draggedIndex === index ? 'opacity-50' : ''
-            }`}
-          >
-            {/* Section Header */}
-            <div className="flex items-center gap-2 px-4 py-2 bg-secondary/10 border-b border-border">
-              <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
-              <span className="text-xs text-gray-400 uppercase tracking-wider flex-1">
-                {section.type === 'heading' && 'Heading'}
-                {section.type === 'text' && 'Paragraph'}
-                {section.type === 'image' && 'Image'}
-              </span>
-              <button
-                type="button"
-                onClick={() => deleteSection(index)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/20 rounded"
-              >
-                <Trash2 className="w-4 h-4 text-red-400" />
-              </button>
-            </div>
-
-            {/* Section Content */}
-            <div className="p-4">
-              {section.type === 'heading' && (
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4].map((level) => (
-                      <button
-                        key={level}
-                        type="button"
-                        onClick={() =>
-                          updateSection(index, {
-                            metadata: { ...section.metadata, level },
-                          })
-                        }
-                        className={`px-3 py-1 text-sm rounded transition-colors ${
-                          section.metadata?.level === level
-                            ? 'bg-accent-brand text-white'
-                            : 'bg-secondary/20 hover:bg-secondary/40'
-                        }`}
-                      >
-                        H{level}
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="text"
-                    value={section.content}
-                    onChange={(e) => updateSection(index, { content: e.target.value })}
-                    placeholder="Enter heading text..."
-                    className="w-full px-4 py-3 bg-secondary/20 border border-border rounded-lg focus:border-accent-brand outline-none transition-colors text-lg font-bold"
-                  />
-                </div>
-              )}
-
-              {section.type === 'text' && (
-                <div className="prose prose-invert max-w-none">
-                  <RichTextEditor
-                    value={section.content}
-                    onChange={(content) => updateSection(index, { content })}
-                    placeholder="Start writing your content here..."
-                  />
-                </div>
-              )}
-
-              {section.type === 'image' && (
-                <div className="space-y-3">
-                  <ImageUploader
-                    label="Upload Image"
-                    value={section.content}
-                    onChange={(url) => updateSection(index, { content: url })}
-                    bucketName="blog"
-                  />
-                  {section.content && (
-                    <>
-                      <input
-                        type="text"
-                        value={section.metadata?.caption || ''}
-                        onChange={(e) =>
-                          updateSection(index, {
-                            metadata: { ...section.metadata, caption: e.target.value },
-                          })
-                        }
-                        placeholder="Image caption (optional)"
-                        className="w-full px-4 py-2 bg-secondary/20 border border-border rounded-lg focus:border-accent-brand outline-none transition-colors text-sm"
-                      />
-                      <input
-                        type="text"
-                        value={section.metadata?.alt || ''}
-                        onChange={(e) =>
-                          updateSection(index, {
-                            metadata: { ...section.metadata, alt: e.target.value },
-                          })
-                        }
-                        placeholder="Alt text for accessibility"
-                        className="w-full px-4 py-2 bg-secondary/20 border border-border rounded-lg focus:border-accent-brand outline-none transition-colors text-sm"
-                      />
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Helper Text */}
-      {sections.length > 0 && (
-        <div className="text-xs text-gray-400 text-center py-2">
-          💡 Drag sections by the grip icon to reorder them
         </div>
       )}
+
+      {/* Gallery Dialog */}
+      {showGalleryDialog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-4xl p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4 text-white">Insert Gallery</h3>
+            <ImageGalleryManager
+              label="Select Images for Gallery"
+              images={[]}
+              onChange={(urls) => handleGalleryUpload(urls)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowGalleryDialog(false)}
+              className="mt-4 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 hover:text-white"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Video Dialog */}
+      {showVideoDialog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold mb-4 text-white">Insert Video</h3>
+            <input
+              type="text"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="Paste YouTube or Vimeo URL..."
+              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg focus:border-blue-500 focus:outline-none text-white mb-4"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleVideoInsert}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white"
+              >
+                Insert Video
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowVideoDialog(false);
+                  setVideoUrl('');
+                }}
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 hover:text-white"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        [contenteditable]:empty:before {
+          content: attr(data-placeholder);
+          color: #71717a;
+          pointer-events: none;
+        }
+        
+        [contenteditable] p {
+          margin: 0.75em 0;
+        }
+        
+        [contenteditable] strong {
+          font-weight: 600;
+        }
+        
+        [contenteditable] a {
+          color: #3b82f6;
+          text-decoration: underline;
+        }
+        
+        [contenteditable] ul,
+        [contenteditable] ol {
+          margin: 1em 0;
+          padding-left: 2em;
+        }
+        
+        [contenteditable] blockquote {
+          border-left: 3px solid currentColor;
+          padding-left: 12px;
+          font-style: italic;
+          opacity: 0.8;
+          margin: 1em 0;
+        }
+        
+        [contenteditable] pre {
+          background: rgba(0, 0, 0, 0.2);
+          padding: 12px;
+          border-radius: 4px;
+          overflow: auto;
+          margin: 1em 0;
+        }
+        
+        [contenteditable] code {
+          font-family: 'Monaco', 'Courier New', monospace;
+          font-size: 14px;
+        }
+      `}</style>
     </div>
   );
 }
 
-// Converter function to transform simple sections to BlockEditor format (for backward compatibility)
-export function sectionsToBlocks(sections: ContentSection[]) {
-  return sections.map((section) => {
-    if (section.type === 'heading') {
-      return {
-        id: section.id,
-        type: 'heading' as const,
-        content: section.content,
-        metadata: { level: section.metadata?.level || 2 },
-      };
-    }
-    if (section.type === 'image') {
-      return {
-        id: section.id,
-        type: 'image' as const,
-        content: section.content,
-        metadata: {
-          caption: section.metadata?.caption,
-          alt: section.metadata?.alt,
-        },
-      };
-    }
-    // Text sections - convert HTML to paragraph blocks
-    return {
-      id: section.id,
-      type: 'paragraph' as const,
-      content: section.content,
-    };
-  });
-}
-
-// Converter function to transform BlockEditor format to simple sections
-export function blocksToSections(blocks: any[]): ContentSection[] {
-  if (!Array.isArray(blocks)) return [];
-  
-  return blocks.map((block, index) => {
-    if (block.type === 'heading') {
-      return {
-        id: block.id || `section-${Date.now()}-${index}`,
-        type: 'heading' as const,
-        content: block.content || '',
-        metadata: { level: block.metadata?.level || 2 },
-      };
-    }
-    if (block.type === 'image') {
-      return {
-        id: block.id || `section-${Date.now()}-${index}`,
-        type: 'image' as const,
-        content: block.content || '',
-        metadata: {
-          caption: block.metadata?.caption,
-          alt: block.metadata?.alt,
-        },
-      };
-    }
-    // Everything else becomes text
-    return {
-      id: block.id || `section-${Date.now()}-${index}`,
-      type: 'text' as const,
-      content: block.content || '',
-    };
-  });
-}

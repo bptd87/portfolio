@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { LogOut, ExternalLink, Menu } from 'lucide-react';
-import { AdminTokens } from '../../styles/admin-tokens';
 import { TimeTrackerWidget } from './finance/TimeTrackerWidget';
 
 interface AdminLayoutProps {
@@ -14,55 +13,226 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ children, activeView, onNavigate, onSiteNavigation, onLogout, pageTitle }: AdminLayoutProps) {
+  console.log("✅ AdminLayout FILE", import.meta.url);
+  console.log('🔴 AdminLayout RENDERING - Page Title:', pageTitle);
+  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    console.log('🟢 AdminLayout useEffect RUNNING');
+    const checkDesktop = () => {
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      if (desktop) {
+        setMobileMenuOpen(false);
+      }
+      console.log('🟡 Admin Layout - Desktop:', desktop, 'Width:', window.innerWidth);
+    };
+    
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   return (
-    <div className={`flex min-h-screen ${AdminTokens.bg.primary} ${AdminTokens.text.primary}`}>
-      <Sidebar
-        activeView={activeView}
-        onNavigate={onNavigate}
-        mobileOpen={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-      />
-
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className={`${AdminTokens.bg.secondary}/80 backdrop-blur-md sticky top-0 z-10 border-b ${AdminTokens.border.primary} ${AdminTokens.flexBetween} h-16 lg:h-20 px-4 lg:px-8`}>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 -ml-2 text-zinc-400 hover:text-white"
-              aria-label="Open Menu"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <h1 className="text-lg lg:text-xl font-semibold text-white tracking-tight">{pageTitle}</h1>
+    <>
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && !isDesktop && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 z-40"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div 
+            className="fixed inset-y-0 left-0 z-50"
+            style={{ width: '288px', backgroundColor: '#18181b' }}
+          >
+            <Sidebar
+              activeView={activeView}
+              onNavigate={(view) => {
+                onNavigate(view);
+                setMobileMenuOpen(false);
+              }}
+              mobileOpen={true}
+              onClose={() => setMobileMenuOpen(false)}
+            />
           </div>
+        </>
+      )}
 
-          <div className="flex items-center gap-3 lg:gap-4">
-            <button
-              onClick={() => onSiteNavigation('home')}
-              className={`flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 border ${AdminTokens.border.primary} hover:bg-zinc-800 transition-colors rounded-lg group`}
-            >
-              <ExternalLink className="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors" />
-              <span className="hidden lg:inline text-xs font-medium uppercase tracking-wider text-zinc-400 group-hover:text-zinc-200">View Site</span>
-            </button>
-            <button
-              onClick={onLogout}
-              className={`flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 border ${AdminTokens.border.primary} hover:border-red-500/50 hover:bg-red-500/10 transition-colors rounded-lg group`}
-            >
-              <LogOut className="w-4 h-4 text-zinc-500 group-hover:text-red-400 transition-colors" />
-              <span className="hidden lg:inline text-xs font-medium uppercase tracking-wider text-zinc-400 group-hover:text-red-300">Logout</span>
-            </button>
+      {/* Main Layout - CSS Grid */}
+      <div 
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isDesktop ? '288px 1fr' : '1fr',
+          width: '100%',
+          height: '100vh',
+          backgroundColor: '#09090b',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Desktop Sidebar */}
+        {isDesktop && (
+          <div 
+            style={{ 
+              width: '288px',
+              height: '100vh',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              backgroundColor: '#18181b',
+              borderRight: '1px solid #27272a',
+              zIndex: 10,
+              flexShrink: 0
+            }}
+          >
+            <Sidebar
+              activeView={activeView}
+              onNavigate={onNavigate}
+              mobileOpen={false}
+              onClose={() => {}}
+            />
           </div>
-        </header>
+        )}
 
-        <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
+        {/* Main Content */}
+        <div 
+          style={{ 
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            width: '100%'
+          }}
+        >
+          {/* Header */}
+          <header 
+            style={{ 
+              height: '64px',
+              backgroundColor: '#18181b',
+              borderBottom: '1px solid #27272a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 1rem',
+              position: 'sticky',
+              top: 0,
+              zIndex: 20,
+              flexShrink: 0
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {/* Hamburger - Only on mobile */}
+              {!isDesktop && (
+                <button
+                  onClick={() => setMobileMenuOpen(true)}
+                  style={{
+                    padding: '0.5rem',
+                    color: '#a1a1aa',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.backgroundColor = '#27272a';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#a1a1aa';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                  aria-label="Open menu"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+              )}
+              <h1 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'white', margin: 0 }}>
+                {pageTitle}
+              </h1>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button
+                onClick={() => onSiteNavigation('home')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.875rem',
+                  color: '#d4d4d8',
+                  backgroundColor: '#27272a',
+                  border: '1px solid #3f3f46',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.backgroundColor = '#3f3f46';
+                  e.currentTarget.style.borderColor = '#52525b';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#d4d4d8';
+                  e.currentTarget.style.backgroundColor = '#27272a';
+                  e.currentTarget.style.borderColor = '#3f3f46';
+                }}
+                aria-label="View site"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span className="hidden sm:inline">View Site</span>
+              </button>
+              <button
+                onClick={onLogout}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.875rem',
+                  color: '#f87171',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                }}
+                aria-label="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
+          </header>
+
+          {/* Scrollable Content */}
+          <main 
+            style={{ 
+              flex: 1,
+              overflowY: 'auto',
+              minHeight: 0
+            }}
+          >
+            <div style={{ padding: '1.5rem', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
+
       <TimeTrackerWidget />
-    </div>
+    </>
   );
 }
