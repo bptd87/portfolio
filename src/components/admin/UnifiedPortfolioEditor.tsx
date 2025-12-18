@@ -77,6 +77,7 @@ export function UnifiedPortfolioEditor({
   const isExperiential = category?.includes('Experiential');
   const isRendering = category?.includes('Rendering');
   const isScenic = !isExperiential && !isRendering && !category?.includes('Documentation');
+  const videoField = isRendering ? 'videoUrls' : 'youtubeVideos';
   const isDocumentation = category?.includes('Documentation');
 
   // Experiential-specific state
@@ -180,21 +181,18 @@ export function UnifiedPortfolioEditor({
   };
 
   const addVideoUrl = () => {
-    const videoField = isRendering ? 'videoUrls' : 'youtubeVideos';
-    const newVideos = [...(data[videoField] || []), ''];
+    const newVideos = [...((data[videoField] as string[]) || []), ''];
     onChange({ [videoField]: newVideos });
   };
 
   const updateVideoUrl = (index: number, value: string) => {
-    const videoField = isRendering ? 'videoUrls' : 'youtubeVideos';
-    const newVideos = [...(data[videoField] || [])];
+    const newVideos = [...((data[videoField] as string[]) || [])];
     newVideos[index] = value;
     onChange({ [videoField]: newVideos });
   };
 
   const removeVideoUrl = (index: number) => {
-    const videoField = isRendering ? 'videoUrls' : 'youtubeVideos';
-    const newVideos = (data[videoField] || []).filter((_: any, i: number) => i !== index);
+    const newVideos = ((data[videoField] as string[]) || []).filter((_: any, i: number) => i !== index);
     onChange({ [videoField]: newVideos });
   };
 
@@ -834,7 +832,7 @@ export function UnifiedPortfolioEditor({
             <div className="text-left flex items-center gap-2">
               <Video className="w-4 h-4 text-accent-brand" />
               <div>
-                <div className="text-xs tracking-wider uppercase font-medium">Video Links ({(data.videoUrls || []).length})</div>
+                <div className="text-xs tracking-wider uppercase font-medium">Video Links ({((data[videoField] as string[]) || []).length})</div>
                 <div className="text-[10px] text-muted-foreground mt-0.5">YouTube, Vimeo, etc.</div>
               </div>
             </div>
@@ -844,7 +842,7 @@ export function UnifiedPortfolioEditor({
           {expandedSections.includes('videos') && (
             <div className="border border-t-0 border-accent-brand/20 p-4">
               <div className="space-y-3">
-                {(data.videoUrls || []).map((url: string, index: number) => (
+                {((data[videoField] as string[]) || []).map((url: string, index: number) => (
                   <div key={index} className="flex gap-2">
                     <input
                       type="text"
@@ -1225,13 +1223,13 @@ export function UnifiedPortfolioEditor({
             </button>
           </div>
 
-          {(!data.videoUrls || data.videoUrls.length === 0) ? (
+          {(!data[videoField] || (data[videoField] as string[]).length === 0) ? (
             <div className="text-center py-6 border border-dashed border-border opacity-40">
               <p className="text-xs">No videos yet.</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {data.videoUrls.map((url: string, index: number) => (
+              {(data[videoField] as string[]).map((url: string, index: number) => (
                 <div key={index} className="flex items-center gap-2">
                   <input
                     type="text"
@@ -1303,8 +1301,8 @@ export function UnifiedPortfolioEditor({
       <div className="h-px bg-border" />
 
       <YouTubeVideosEditor 
-        videos={data.youtubeVideos || []} 
-        onChange={(videos) => onChange({ youtubeVideos: videos })} 
+        videos={(data[videoField] as string[]) || []} 
+        onChange={(videos) => onChange({ [videoField]: videos })} 
       />
     </div>
   );
