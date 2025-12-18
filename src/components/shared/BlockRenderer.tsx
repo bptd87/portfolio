@@ -222,7 +222,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 return (
                   <div
                     key={block.id}
-                    className={`leading-[1.8] mb-8 text-foreground/90 text-[19px] md:text-[21px] font-serif rich-content ${dropCapClass}`}
+                    className={`leading-[1.8] mb-6 text-foreground/90 text-[19px] md:text-[21px] font-serif rich-content ${dropCapClass}`}
                     style={{ '--accent-color': accent } as React.CSSProperties}
                     dangerouslySetInnerHTML={{ __html: injectIdsIntoHeaders(block.content) }}
                   />
@@ -231,7 +231,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 return (
                   <p
                     key={block.id}
-                    className={`leading-[1.8] mb-8 text-foreground/90 text-[19px] md:text-[21px] font-serif ${dropCapClass}`}
+                    className={`leading-[1.8] mb-6 text-foreground/90 text-[19px] md:text-[21px] font-serif ${dropCapClass}`}
                     style={isFirstParagraph ? { '--drop-cap-color': accent } as React.CSSProperties : undefined}
                   >
                     {parseFormattedText(block.content)}
@@ -243,10 +243,10 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               const level = block.metadata?.level || 2;
               const HeadingTag = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
               const headingStyles =
-                level === 1 ? 'text-5xl md:text-6xl font-display italic leading-[1.1] mt-20 mb-10' :
-                  level === 2 ? 'text-4xl md:text-5xl font-display italic leading-[1.15] mt-16 mb-8' :
-                    level === 3 ? 'text-2xl md:text-3xl font-sans tracking-tight leading-[1.2] mt-12 mb-6' :
-                      'text-xl md:text-2xl font-sans tracking-tight leading-[1.25] mt-10 mb-5';
+                level === 1 ? 'text-5xl md:text-6xl font-display italic leading-[1.1] mt-16 mb-8' :
+                  level === 2 ? 'text-4xl md:text-5xl font-display italic leading-[1.15] mt-12 mb-6' :
+                    level === 3 ? 'text-2xl md:text-3xl font-sans tracking-tight leading-[1.2] mt-10 mb-5' :
+                      'text-xl md:text-2xl font-sans tracking-tight leading-[1.25] mt-8 mb-4';
 
               return (
                 <HeadingTag
@@ -278,7 +278,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
               return (
                 <ScrollReveal key={block.id}>
-                  <figure className={`my-16 group ${alignmentClass} ${sizeClass}`}>
+                  <figure className={`my-12 group ${alignmentClass} ${sizeClass}`}>
                     <div className="relative overflow-hidden rounded-2xl cursor-pointer" onClick={() => openLightbox(block.content, block.metadata?.caption, block.metadata?.alt)}>
                       <ImageWithFallback
                         src={block.content}
@@ -315,7 +315,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               if (!videoSrc) return null;
 
               return (
-                <div key={block.id} className="my-16 aspect-video bg-black rounded-2xl overflow-hidden">
+                <div key={block.id} className="my-12 aspect-video bg-black rounded-2xl overflow-hidden">
                   <iframe
                     src={videoSrc}
                     title="Video player"
@@ -331,7 +331,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               return (
                 <blockquote
                   key={block.id}
-                  className="my-12 mx-auto max-w-[90%] py-6 text-center"
+                  className="my-10 mx-auto max-w-[90%] py-6 text-center"
                 >
                   <p className="text-xl md:text-[1.35rem] leading-relaxed font-display italic text-foreground/65">{block.content}</p>
                 </blockquote>
@@ -348,7 +348,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 return (
                   <ol
                     key={block.id}
-                    className="mb-10 pl-6 space-y-4 text-[19px] md:text-[21px] font-serif list-decimal marker:text-accent-brand opacity-90"
+                    className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-serif list-decimal marker:text-accent-brand opacity-90"
                   >
                     {listItems.map((item, i) => (
                       <li key={i} className="leading-[1.8] pl-3">
@@ -362,7 +362,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               return (
                 <ul
                   key={block.id}
-                  className="mb-10 pl-6 space-y-4 text-[19px] md:text-[21px] font-serif list-disc marker:text-accent-brand opacity-90"
+                  className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-serif list-disc marker:text-accent-brand opacity-90"
                 >
                   {listItems.map((item, i) => (
                     <li key={i} className="leading-[1.8] pl-3">
@@ -374,7 +374,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
             case 'code':
               return (
-                <div key={block.id} className="my-12 text-sm rounded-xl overflow-hidden shadow-lg">
+                <div key={block.id} className="my-10 text-sm rounded-xl overflow-hidden shadow-lg">
                   <SyntaxHighlighter language={block.metadata?.language || 'text'} style={atomDark}>
                     {block.content}
                   </SyntaxHighlighter>
@@ -438,7 +438,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               const CalloutIcon = calloutStyle.icon;
 
               return (
-                <div key={block.id} className={`my-12 p-6 ${calloutStyle.bg} border-l-4 ${calloutStyle.border} rounded-r-xl`}>
+                <div key={block.id} className={`my-10 p-6 ${calloutStyle.bg} border-l-4 ${calloutStyle.border} rounded-r-xl`}>
                   <div className="flex items-start gap-4">
                     <CalloutIcon className={`w-6 h-6 ${calloutStyle.text} flex-shrink-0 mt-1`} />
                     <div className={`flex-1 text-lg font-serif leading-[1.8] ${calloutStyle.text}`}>
@@ -452,7 +452,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               return (
                 <hr
                   key={block.id}
-                  className="my-16 border-t border-border/50"
+                  className="my-12 border-t border-border/50"
                   style={{ borderColor: `${accent}33` }}
                 />
               );
@@ -463,7 +463,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                   key={block.id}
                   href={block.content}
                   download
-                  className="my-12 flex items-center gap-4 p-6 bg-foreground/5 border border-border rounded-xl hover:border-accent-brand transition-all duration-300 group"
+                  className="my-10 flex items-center gap-4 p-6 bg-foreground/5 border border-border rounded-xl hover:border-accent-brand transition-all duration-300 group"
                 >
                   <div
                     className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
@@ -557,7 +557,7 @@ function AccordionBlock({ block }: { block: ContentBlock }) {
   if (accordionItems.length === 0) return null;
 
   return (
-    <div className="my-16 border border-border rounded-2xl overflow-hidden bg-foreground/5">
+    <div className="my-12 border border-border rounded-2xl overflow-hidden bg-foreground/5">
       {accordionItems.map((item: any, index: number) => (
         <AccordionItem
           key={index}

@@ -523,10 +523,10 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       )}
 
       {/* Article Content */}
-      <article className={`max-w-4xl mx-auto px-6 md:px-12 ${article.coverImage && article.coverImage.trim() !== '' ? 'pt-8 pb-16' : 'py-16 md:py-24'}`}>
+      <article className={`max-w-4xl mx-auto px-6 md:px-12 ${article.coverImage && article.coverImage.trim() !== '' ? 'pt-12 pb-16' : 'py-16 md:py-24'}`}>
         {/* If no cover image, show header here */}
         {(!article.coverImage || article.coverImage.trim() === '') && (
-          <div className="mb-16">
+          <div className="mb-12">
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -590,7 +590,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
         )}
 
         {/* Article Content - Clean magazine layout */}
-        <div className="max-w-none">
+        <div className="prose-custom-wrapper">
           <BlockRenderer blocks={article.content || []} accentColor={article.categoryColor} />
         </div>
 
