@@ -938,6 +938,45 @@
     line-height: 1.5;
   }
 
+  /* Force Quill toolbar to not be sticky - AGGRESSIVE OVERRIDES */
+  .ql-toolbar,
+  .ql-container .ql-toolbar,
+  .ql-snow .ql-toolbar,
+  div[class*="ql-toolbar"],
+  [class*="ql-toolbar"] {
+    position: relative !important;
+    top: auto !important;
+    transform: none !important;
+    z-index: 1 !important;
+    will-change: auto !important;
+    position: relative !important; /* Double up for maximum specificity */
+  }
+  
+  /* Override any inline styles Quill might add */
+  .ql-toolbar[style*="sticky"],
+  .ql-toolbar[style*="fixed"],
+  .ql-container .ql-toolbar[style*="sticky"],
+  .ql-container .ql-toolbar[style*="fixed"] {
+    position: relative !important;
+    top: auto !important;
+  }
+  
+  /* Fix admin sidebar text sizes */
+  #admin-sidebar h1,
+  [class*="sidebar"] h1 {
+    font-size: 1rem !important;
+  }
+  
+  #admin-sidebar p,
+  [class*="sidebar"] p {
+    font-size: 0.75rem !important;
+  }
+  
+  #admin-sidebar span,
+  [class*="sidebar"] span {
+    font-size: 0.875rem !important;
+  }
+
   button {
     letter-spacing: .025em;
     font-size: .875rem;

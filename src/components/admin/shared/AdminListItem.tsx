@@ -54,7 +54,7 @@ export function AdminListItem({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-base text-zinc-100 group-hover:text-white transition-colors mb-1 truncate">
+          <h4 className="font-medium text-sm text-zinc-100 group-hover:text-white transition-colors mb-1 truncate">
             {title}
           </h4>
           {subtitle && (

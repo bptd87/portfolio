@@ -388,8 +388,9 @@ export function PortfolioManager() {
 
   const sortedProjects = [...projects].sort((a, b) => {
     if (sortBy === 'date') {
-      const dateA = new Date(a.year, (a.month || 1) - 1);
-      const dateB = new Date(b.year, (b.month || 1) - 1);
+      // Fix: Always include day parameter to prevent year from being interpreted as milliseconds
+      const dateA = new Date(a.year, (a.month || 1) - 1, 1);
+      const dateB = new Date(b.year, (b.month || 1) - 1, 1);
       return dateB.getTime() - dateA.getTime();
     }
     if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');

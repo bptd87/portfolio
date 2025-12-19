@@ -88,8 +88,10 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   const [didError, setDidError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isInView, setIsInView] = useState(!lazy) // If not lazy, consider it in view immediately
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false) // Track if image has loaded at least once
   const imgRef = useRef<HTMLImageElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
+  const lastSrcRef = useRef<string | undefined>(src)
 
   // Set up Intersection Observer for lazy loading
   useEffect(() => {
@@ -126,7 +128,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
         observerRef.current.disconnect()
       }
     }
-  }, [lazy])
+  }, [lazy, src]) // Add src to dependencies to re-observe if src changes
 
   // Fetch metadata from Supabase if available
   const { metadata } = useImageMetadata(src || '');
@@ -142,10 +144,26 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
 
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setIsLoading(false)
+    setHasLoadedOnce(true) // Mark that image has loaded - this persists across re-renders
+    setIsInView(true) // Ensure isInView is true once loaded
+    // Disconnect observer once loaded to prevent any state changes
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+    }
     if (onLoad) {
       onLoad(e)
     }
   }
+  
+  // Reset hasLoadedOnce only if src actually changes to a different image
+  useEffect(() => {
+    if (src && src !== lastSrcRef.current) {
+      // New image source - reset loading state
+      setHasLoadedOnce(false);
+      setIsLoading(true);
+      lastSrcRef.current = src;
+    }
+  }, [src])
 
   // Error state
   if (didError) {
@@ -171,7 +189,10 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   const sizes = undefined;
 
   // TEMPORARILY: Use original src directly (optimization disabled)
-  const imageSrc = isInView ? (src || null) : BLUR_PLACEHOLDER
+  // Once image has loaded, always show it (don't revert to placeholder on re-render)
+  // If src exists and we're not lazy loading, show it immediately
+  // If lazy loading, only show when in view OR if it has loaded once
+  const imageSrc = (!lazy || isInView || hasLoadedOnce) ? (src || null) : BLUR_PLACEHOLDER
 
   // LCP Optimization: If priority is true, show immediately without transition
   const isPriority = props.priority;

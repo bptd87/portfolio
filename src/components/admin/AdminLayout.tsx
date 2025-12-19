@@ -13,21 +13,16 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ children, activeView, onNavigate, onSiteNavigation, onLogout, pageTitle }: AdminLayoutProps) {
-  console.log("✅ AdminLayout FILE", import.meta.url);
-  console.log('🔴 AdminLayout RENDERING - Page Title:', pageTitle);
-  
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    console.log('🟢 AdminLayout useEffect RUNNING');
     const checkDesktop = () => {
       const desktop = window.innerWidth >= 1024;
       setIsDesktop(desktop);
       if (desktop) {
         setMobileMenuOpen(false);
       }
-      console.log('🟡 Admin Layout - Desktop:', desktop, 'Width:', window.innerWidth);
     };
     
     checkDesktop();
@@ -152,7 +147,7 @@ export function AdminLayout({ children, activeView, onNavigate, onSiteNavigation
                   <Menu className="w-5 h-5" />
                 </button>
               )}
-              <h1 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'white', margin: 0 }}>
+              <h1 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'white', margin: 0 }}>
                 {pageTitle}
               </h1>
             </div>

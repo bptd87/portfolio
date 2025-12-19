@@ -29,12 +29,6 @@ interface Metric {
   label: string;
 }
 
-interface Testimonial {
-  quote: string;
-  author: string;
-  role: string;
-}
-
 interface AdditionalGallery {
   id: string;
   heading: string;
@@ -76,9 +70,7 @@ export function UnifiedPortfolioEditor({
 }: UnifiedPortfolioEditorProps) {
   const isExperiential = category?.includes('Experiential');
   const isRendering = category?.includes('Rendering');
-  const isScenic = !isExperiential && !isRendering && !category?.includes('Documentation');
   const videoField = isRendering ? 'videoUrls' : 'youtubeVideos';
-  const isDocumentation = category?.includes('Documentation');
 
   // Experiential-specific state
   const [expandedSections, setExpandedSections] = useState<string[]>(['stats', 'challenge']);
@@ -237,7 +229,7 @@ export function UnifiedPortfolioEditor({
     });
   };
 
-  const updateGalleryImages = (galleryIndex: number, newImages: Array<{ url: string; caption: string; alt?: string; }>) => {
+  const updateGalleryImages = (galleryIndex: number, newImages: Array<{ url: string; caption?: string; alt?: string; }>) => {
     const galleries = data.galleries || {};
     const newAdditional = [...(galleries.additional || [])];
     newAdditional[galleryIndex].images = newImages;
@@ -797,6 +789,8 @@ export function UnifiedPortfolioEditor({
                           value={gallery.layout}
                           onChange={(e) => updateAdditionalGallery(gIndex, 'layout', e.target.value as any)}
                           className="w-full bg-black/20 border border-white/10 rounded px-3 py-1.5 text-sm"
+                          title="Gallery layout style"
+                          aria-label="Gallery layout style"
                         >
                           <option value="1-col">1 Column (Full Width)</option>
                           <option value="2-col">2 Columns</option>
@@ -805,7 +799,12 @@ export function UnifiedPortfolioEditor({
                         </select>
                       </div>
                     </div>
-                    <button onClick={() => removeAdditionalGallery(gIndex)} className="text-red-400 hover:text-red-300 p-1">
+                    <button 
+                      onClick={() => removeAdditionalGallery(gIndex)} 
+                      className="text-red-400 hover:text-red-300 p-1"
+                      title="Remove gallery"
+                      aria-label="Remove gallery"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -813,8 +812,16 @@ export function UnifiedPortfolioEditor({
                   <div className="mt-4">
                     <ImageGalleryManager
                       label="Gallery Images"
-                      images={(gallery.images || []).map(img => ({ ...img, caption: img.caption || '' }))}
-                      onChange={(newImages) => updateGalleryImages(gIndex, newImages)}
+                      images={(gallery.images || []).map(img => ({ 
+                        url: img.url || '', 
+                        caption: img.caption, 
+                        alt: img.alt 
+                      }))}
+                      onChange={(newImages) => updateGalleryImages(gIndex, newImages.map(img => ({ 
+                        url: img.url, 
+                        caption: img.caption || '', 
+                        alt: img.alt 
+                      })))}
                     />
                   </div>
                 </div>
@@ -851,7 +858,12 @@ export function UnifiedPortfolioEditor({
                       placeholder="https://youtube.com/watch?v=..."
                       className="flex-1 bg-background border border-border px-3 py-2 text-sm rounded focus:border-accent-brand outline-none"
                     />
-                    <button onClick={() => removeVideoUrl(index)} className="p-2 text-muted-foreground hover:text-destructive">
+                    <button 
+                      onClick={() => removeVideoUrl(index)} 
+                      className="p-2 text-muted-foreground hover:text-destructive"
+                      title="Remove video URL"
+                      aria-label="Remove video URL"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -934,6 +946,8 @@ export function UnifiedPortfolioEditor({
                   type="button"
                   onClick={addSoftware}
                   className="px-4 bg-accent-brand text-white rounded-lg hover:opacity-90 transition-opacity"
+                  title="Add software"
+                  aria-label="Add software"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -942,7 +956,13 @@ export function UnifiedPortfolioEditor({
                 {(data.softwareUsed || []).map((soft: string, i: number) => (
                   <span key={i} className="inline-flex items-center gap-2 px-3 py-1 bg-secondary border border-border rounded-full text-xs">
                     {soft}
-                    <button type="button" onClick={() => removeSoftware(soft)} className="hover:text-destructive transition-colors">
+                    <button 
+                      type="button" 
+                      onClick={() => removeSoftware(soft)} 
+                      className="hover:text-destructive transition-colors"
+                      title="Remove software"
+                      aria-label={`Remove ${soft}`}
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -1001,7 +1021,13 @@ export function UnifiedPortfolioEditor({
                         placeholder="Step Title (e.g. Wireframe)"
                         className="w-full font-medium bg-transparent border-b border-border focus:border-accent-brand focus:outline-none pb-1 mr-4"
                       />
-                      <button type="button" onClick={() => removeProcessStep(index)} className="opacity-40 hover:opacity-100 hover:text-destructive">
+                      <button 
+                        type="button" 
+                        onClick={() => removeProcessStep(index)} 
+                        className="opacity-40 hover:opacity-100 hover:text-destructive"
+                        title="Remove process step"
+                        aria-label="Remove process step"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -1111,6 +1137,8 @@ export function UnifiedPortfolioEditor({
                           value={gallery.layout || '1-col'}
                           onChange={(e) => updateRenderingGallery(galleryIndex, 'layout', e.target.value)}
                           className="w-full px-4 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                          title="Gallery layout style"
+                          aria-label="Gallery layout style"
                         >
                           <option value="1-col">Full Width (1 Column)</option>
                           <option value="2-col">Grid (2 Columns)</option>
@@ -1163,9 +1191,12 @@ export function UnifiedPortfolioEditor({
                                       <Star className="w-4 h-4" />
                                     </button>
                                   )}
-                                  <button type="button"
+                                  <button 
+                                    type="button"
                                     onClick={() => removeRenderingImage(galleryIndex, imageIndex)}
                                     className="p-1.5 opacity-40 hover:opacity-100 hover:text-destructive"
+                                    title="Remove image"
+                                    aria-label="Remove image"
                                   >
                                     <X className="w-4 h-4" />
                                   </button>
@@ -1238,9 +1269,12 @@ export function UnifiedPortfolioEditor({
                     placeholder="https://youtube.com/watch?v=..."
                     className="flex-1 px-4 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none"
                   />
-                  <button type="button"
+                  <button 
+                    type="button"
                     onClick={() => removeVideoUrl(index)}
                     className="p-2 opacity-40 hover:opacity-100 hover:text-destructive"
+                    title="Remove video URL"
+                    aria-label="Remove video URL"
                   >
                     <X className="w-4 h-4" />
                   </button>

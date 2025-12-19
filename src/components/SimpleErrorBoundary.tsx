@@ -20,6 +20,9 @@ export class SimpleErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/b7b0d02e-0d08-4275-9b3f-4f1c52ba0a51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SimpleErrorBoundary.tsx:23',message:'ErrorBoundary caught error',data:{errorMessage:error.message,errorStack:error.stack,componentStack:errorInfo.componentStack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     console.error('SimpleErrorBoundary caught error:', error, errorInfo);
   }
 

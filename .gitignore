@@ -24,6 +24,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+debug.log
+*.log
 
 # Editor directories and files
 .vscode/*
@@ -31,6 +33,7 @@ lerna-debug.log*
 !.vscode/settings.json
 !.vscode/launch.json
 .idea
+.cursor
 .DS_Store
 *.suo
 *.ntvs*

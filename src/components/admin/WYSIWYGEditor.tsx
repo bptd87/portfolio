@@ -661,7 +661,7 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
 
         case 'list':
             const items = block.content ? block.content.split('\n').filter(item => item.trim() !== '') : [''];
-            const ListTag = block.metadata?.listType === 'number' ? 'ol' : 'ul';
+            const isNumbered = block.metadata?.listType === 'number';
 
             return (
                 <div className="my-4">
@@ -677,9 +677,10 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
                             {block.metadata?.listType === 'number' ? '1. 2. 3.' : '• • •'}
                         </button>
                     </div>
-                    <ListTag className={`pl-0 space-y-1 ${block.metadata?.listType === 'number' ? 'list-decimal' : 'list-disc'} list-outside ml-5`}>
-                        {items.map((item, idx) => (
-                            <li key={`${block.id}-item-${idx}`} className="py-0.5">
+                    {isNumbered ? (
+                        <ol className="pl-0 space-y-1 list-decimal list-outside ml-5" role="list">
+                            {items.map((item, idx) => (
+                                <li key={`${block.id}-item-${idx}`} className="py-0.5" role="listitem">
                                 <input
                                     className="w-full bg-transparent border-none p-0 text-neutral-200 focus:ring-0 placeholder-neutral-600 focus:outline-none"
                                     defaultValue={item.trim()}
@@ -700,10 +701,23 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
                                             newItems.splice(idx + 1, 0, '');
                                             onChange({ content: newItems.join('\n') });
 
+                                            // Fix: Wait for re-render with new items, then find the correct input
+                                            // The items array will be filtered on next render, so we need to account for that
                                             setTimeout(() => {
-                                                const inputs = (e.currentTarget.closest('ul, ol') as HTMLElement)?.querySelectorAll('input');
-                                                if (inputs && inputs[idx + 1]) (inputs[idx + 1] as HTMLInputElement).focus();
-                                            }, 10);
+                                                const listElement = e.currentTarget.closest('ol, ul') as HTMLElement;
+                                                if (listElement) {
+                                                    const allInputs = Array.from(listElement.querySelectorAll('input')) as HTMLInputElement[];
+                                                    // Find the input that corresponds to the newly inserted empty item
+                                                    // After filtering, it will be at position idx+1 if current item is non-empty, or idx if current was empty
+                                                    const targetIndex = currentVal ? idx + 1 : idx;
+                                                    if (allInputs[targetIndex]) {
+                                                        allInputs[targetIndex].focus();
+                                                    } else if (allInputs.length > 0) {
+                                                        // Fallback: focus the last input
+                                                        allInputs[allInputs.length - 1].focus();
+                                                    }
+                                                }
+                                            }, 50);
                                         } else if (e.key === 'Backspace' && e.currentTarget.value === '' && items.length > 1) {
                                             e.preventDefault();
                                             const newItems = [...items];
@@ -718,7 +732,62 @@ function BlockContent({ block, onChange, onEditRequest, onOpenMenu, onPaste }: {
                                 />
                             </li>
                         ))}
-                    </ListTag>
+                    </ol>
+                    ) : (
+                        <ul className="pl-0 space-y-1 list-disc list-outside ml-5" role="list">
+                            {items.map((item, idx) => (
+                                <li key={`${block.id}-item-${idx}`} className="py-0.5" role="listitem">
+                                    <input
+                                        className="w-full bg-transparent border-none p-0 text-neutral-200 focus:ring-0 placeholder-neutral-600 focus:outline-none"
+                                        defaultValue={item.trim()}
+                                        placeholder="List item..."
+                                        onBlur={(e) => {
+                                            const newItems = [...items];
+                                            newItems[idx] = e.target.value.trim();
+                                            const filtered = newItems.filter(i => i.trim() !== '');
+                                            onChange({ content: filtered.length > 0 ? filtered.join('\n') : '' });
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const currentVal = e.currentTarget.value.trim();
+                                                const newItems = [...items];
+                                                newItems[idx] = currentVal;
+                                                newItems.splice(idx + 1, 0, '');
+                                                onChange({ content: newItems.join('\n') });
+                                                // Fix: Wait for re-render with new items, then find the correct input
+                                                // The items array will be filtered on next render, so we need to account for that
+                                                setTimeout(() => {
+                                                    const listElement = e.currentTarget.closest('ul, ol') as HTMLElement;
+                                                    if (listElement) {
+                                                        const allInputs = Array.from(listElement.querySelectorAll('input')) as HTMLInputElement[];
+                                                        // Find the input that corresponds to the newly inserted empty item
+                                                        // After filtering, it will be at position idx+1 if current item is non-empty, or idx if current was empty
+                                                        const targetIndex = currentVal ? idx + 1 : idx;
+                                                        if (allInputs[targetIndex]) {
+                                                            allInputs[targetIndex].focus();
+                                                        } else if (allInputs.length > 0) {
+                                                            // Fallback: focus the last input
+                                                            allInputs[allInputs.length - 1].focus();
+                                                        }
+                                                    }
+                                                }, 50);
+                                            } else if (e.key === 'Backspace' && e.currentTarget.value === '' && items.length > 1) {
+                                                e.preventDefault();
+                                                const newItems = [...items];
+                                                newItems.splice(idx, 1);
+                                                onChange({ content: newItems.filter(i => i.trim() !== '').join('\n') });
+                                                setTimeout(() => {
+                                                    const inputs = (e.currentTarget.closest('ul, ol') as HTMLElement)?.querySelectorAll('input');
+                                                    if (inputs && inputs[idx - 1]) (inputs[idx - 1] as HTMLInputElement).focus();
+                                                }, 10);
+                                            }
+                                        }}
+                                    />
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             );
 

@@ -48,7 +48,22 @@ const TermsOfUse = lazy(() => import('./pages/TermsOfUse').then(m => ({ default:
 const NotFound = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
 const Sitemap = lazy(() => import('./pages/Sitemap').then(m => ({ default: m.Sitemap })));
 const Search = lazy(() => import('./pages/Search').then(m => ({ default: m.Search })));
-const Admin = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })));
+const Admin = lazy(() => {
+  console.log('🔵 App.tsx: Lazy loading Admin component...');
+  return import('./pages/Admin')
+    .then(m => {
+      console.log('🔵 App.tsx: Admin module loaded', { hasAdmin: !!m.Admin, hasDefault: !!m.default, keys: Object.keys(m) });
+      if (!m.Admin && !m.default) {
+        console.error('🔴 App.tsx: Admin export not found!', m);
+        throw new Error('Admin export not found in module');
+      }
+      return { default: m.Admin || m.default };
+    })
+    .catch(err => {
+      console.error('🔴 App.tsx: Failed to load Admin module', err);
+      throw err;
+    });
+});
 const Links = lazy(() => import('./pages/Links').then(m => ({ default: m.Links })));
 
 // Resource pages
@@ -89,6 +104,16 @@ export default function App() {
   useEffect(() => {
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
+    }
+    
+    // Log initial route parsing
+    const path = window.location.pathname;
+    console.log('🔵 App.tsx: Initial route check', { path, currentPage });
+    
+    // Parse initial route
+    if (path === '/admin' || path.startsWith('/admin')) {
+      console.log('🔵 App.tsx: Admin route detected on mount, setting currentPage to admin');
+      setCurrentPage('admin');
     }
   }, []);
 
@@ -321,7 +346,9 @@ export default function App() {
         if (currentTutorialSlug) return <DynamicTutorial slug={currentTutorialSlug} onNavigate={handleNavigation} />;
         return <Studio onNavigate={handleNavigation} />;
       case 'search': return <Search onNavigate={handleNavigation} />;
-      case 'admin': return <Admin onNavigate={handleNavigation} />;
+      case 'admin': 
+        console.log('🔵 App.tsx: renderPage() - admin case matched, rendering Admin component');
+        return <Admin onNavigate={handleNavigation} />;
       case 'faq': return <FAQ onNavigate={handleNavigation} />;
       case 'privacy-policy': return <PrivacyPolicy />;
       case 'accessibility': return <Accessibility />;

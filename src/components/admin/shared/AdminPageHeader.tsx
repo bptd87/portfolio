@@ -20,7 +20,7 @@ export function AdminPageHeader({
     <div className="mb-8">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <h2 className="text-2xl font-semibold text-white mb-2">{title}</h2>
+          <h2 className="text-xl font-semibold text-white mb-2">{title}</h2>
           {description && (
             <p className="text-sm text-zinc-400">{description}</p>
           )}

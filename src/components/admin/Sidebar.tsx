@@ -213,6 +213,7 @@ const navCategories = [
 export function Sidebar({ activeView, onNavigate, mobileOpen = false, onClose }: SidebarProps) {
   return (
     <div 
+      id="admin-sidebar"
       className="h-full flex flex-col"
       style={{
         backgroundColor: '#18181b', // zinc-900 - completely solid
@@ -225,8 +226,8 @@ export function Sidebar({ activeView, onNavigate, mobileOpen = false, onClose }:
       {/* Header */}
       <div className="flex-shrink-0 p-6 border-b border-zinc-800 flex items-center justify-between" style={{ backgroundColor: '#18181b' }}>
         <div>
-          <h1 className="text-lg font-bold text-white">Brandon Davis</h1>
-          <p className="text-sm text-zinc-400">Admin Panel</p>
+          <h1 className="text-base font-bold text-white" style={{ fontSize: '1rem' }}>Brandon Davis</h1>
+          <p className="text-xs text-zinc-400" style={{ fontSize: '0.75rem' }}>Admin Panel</p>
         </div>
         {mobileOpen && onClose && (
           <button
@@ -243,7 +244,7 @@ export function Sidebar({ activeView, onNavigate, mobileOpen = false, onClose }:
       <nav className="flex-1 overflow-y-auto p-4 space-y-6" style={{ backgroundColor: '#18181b' }}>
         {navCategories.map(cat => (
           <div key={cat.id}>
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-3 px-2">
+            <h2 className="text-[10px] font-medium uppercase tracking-wide text-zinc-500 mb-3 px-2">
               {cat.label}
             </h2>
             <ul className="space-y-1">
@@ -273,7 +274,7 @@ export function Sidebar({ activeView, onNavigate, mobileOpen = false, onClose }:
                       `}
                     >
                       <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-black' : 'text-zinc-400'}`} />
-                      <span className="flex-1 text-left">{item.title}</span>
+                      <span className="flex-1 text-left text-sm">{item.title}</span>
                       {item.comingSoon && (
                         <span className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded border border-zinc-700">
                           Soon
