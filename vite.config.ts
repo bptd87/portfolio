@@ -113,6 +113,7 @@
       target: 'esnext',
       outDir: 'build',
       minify: 'esbuild',
+      cssCodeSplit: true,
       rollupOptions: {
         output: {
           manualChunks: {
@@ -123,6 +124,10 @@
         },
       },
       chunkSizeWarningLimit: 2000,
+    },
+    esbuild: {
+      drop: ['console', 'debugger'],
+      legalComments: 'none',
     },
     server: {
       port: 3000,
