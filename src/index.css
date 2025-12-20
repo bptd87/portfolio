@@ -378,37 +378,43 @@
     /* Firefox */
   }
 
-  /* Custom transparent overlay scrollbar */
-  * {
+  /* Custom transparent overlay scrollbar only on page/root */
+  html, body {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
   }
 
-  *::-webkit-scrollbar {
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
-  *::-webkit-scrollbar-track {
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  *::-webkit-scrollbar-thumb {
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
     border-radius: 4px;
     transition: background 0.2s ease;
   }
 
-  *::-webkit-scrollbar-thumb:hover {
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
   }
 
   /* Dark mode adjustments */
-  .dark *::-webkit-scrollbar-thumb {
+  .dark html::-webkit-scrollbar-thumb,
+  .dark body::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
   }
 
-  .dark *::-webkit-scrollbar-thumb:hover {
+  .dark html::-webkit-scrollbar-thumb:hover,
+  .dark body::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.4);
   }
 
@@ -640,6 +646,13 @@
     overflow-x: hidden;
   }
 
+  /* Overlay scrollbar when supported to avoid gutter */
+  @supports (overflow: overlay) {
+    body {
+      overflow-y: overlay;
+    }
+  }
+
   #root {
     width: 100%;
     max-width: 100%;
@@ -656,8 +669,50 @@
   div[class*="max-w-"] {
     overflow-x: hidden !important;
   }
-  
-  /* Hide scrollbars on sections and all divs */
+
+
+  /* Page-level glass scrollbar (only on html/body) */
+  html,
+  body {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 20%) transparent;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    background-color: rgb(255 255 255 / 20%);
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    transition: background-color 0.2s ease;
+  }
+
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(255 255 255 / 40%);
+  }
+
+  .dark html::-webkit-scrollbar-thumb,
+  .dark body::-webkit-scrollbar-thumb {
+    background-color: rgb(255 255 255 / 20%);
+  }
+
+  .dark html::-webkit-scrollbar-thumb:hover,
+  .dark body::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(255 255 255 / 40%);
+  }
+
+  /* Hide nested scrollbars so only the page scrollbar shows */
   section,
   section *,
   div[class*="max-w-"],
@@ -665,7 +720,7 @@
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
   }
-  
+
   section::-webkit-scrollbar,
   section *::-webkit-scrollbar,
   div[class*="max-w-"]::-webkit-scrollbar,
@@ -674,127 +729,6 @@
     width: 0 !important;
     height: 0 !important;
     background: transparent !important;
-  }
-  
-  section::-webkit-scrollbar-track,
-  section *::-webkit-scrollbar-track,
-  div[class*="max-w-"]::-webkit-scrollbar-track,
-  div[class*="max-w-"] *::-webkit-scrollbar-track {
-    display: none !important;
-  }
-  
-  section::-webkit-scrollbar-thumb,
-  section *::-webkit-scrollbar-thumb,
-  div[class*="max-w-"]::-webkit-scrollbar-thumb,
-  div[class*="max-w-"] *::-webkit-scrollbar-thumb {
-    display: none !important;
-  }
-
-
-
-  /* Glass Scrollbar Implementation */
-  ::-webkit-scrollbar {
-    width: 12px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background-color: rgb(255 255 255 / 20%);
-    border-radius: 9999px;
-    border: 3px solid transparent;
-    background-clip: content-box;
-    transition: background-color 0.2s ease;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(255 255 255 / 40%);
-  }
-
-  .dark ::-webkit-scrollbar-thumb {
-    background-color: rgb(255 255 255 / 20%);
-  }
-
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(255 255 255 / 40%);
-  }
-
-  *:not(#tabbed-gallery-scroll):not(#home-scroll-container) {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(255 255 255 / 20%) transparent;
-  }
-
-  .dark *:not(#tabbed-gallery-scroll):not(#home-scroll-container) {
-    scrollbar-color: rgb(255 255 255 / 20%) transparent;
-  }
-  
-  /* CRITICAL: Force hide scrollbars on specific elements - must come after * rule */
-  #tabbed-gallery-scroll,
-  #home-scroll-container {
-    scrollbar-width: none !important;
-    scrollbar-color: transparent transparent !important;
-    -ms-overflow-style: none !important;
-  }
-  
-  #tabbed-gallery-scroll::-webkit-scrollbar,
-  #home-scroll-container::-webkit-scrollbar {
-    width: 0px !important;
-    height: 0px !important;
-    display: none !important;
-    background: transparent !important;
-    -webkit-appearance: none !important;
-    appearance: none !important;
-  }
-  
-  #tabbed-gallery-scroll::-webkit-scrollbar-track,
-  #home-scroll-container::-webkit-scrollbar-track {
-    display: none !important;
-    background: transparent !important;
-    width: 0px !important;
-    height: 0px !important;
-  }
-  
-  #tabbed-gallery-scroll::-webkit-scrollbar-thumb,
-  #home-scroll-container::-webkit-scrollbar-thumb {
-    display: none !important;
-    background: transparent !important;
-    width: 0px !important;
-    height: 0px !important;
-  }
-  
-  .dark #tabbed-gallery-scroll,
-  .dark #home-scroll-container {
-    scrollbar-width: none !important;
-    scrollbar-color: transparent transparent !important;
-    -ms-overflow-style: none !important;
-  }
-  
-  .dark #tabbed-gallery-scroll::-webkit-scrollbar,
-  .dark #home-scroll-container::-webkit-scrollbar {
-    width: 0px !important;
-    height: 0px !important;
-    display: none !important;
-    background: transparent !important;
-    -webkit-appearance: none !important;
-    appearance: none !important;
-  }
-  
-  .dark #tabbed-gallery-scroll::-webkit-scrollbar-track,
-  .dark #home-scroll-container::-webkit-scrollbar-track {
-    display: none !important;
-    background: transparent !important;
-    width: 0px !important;
-    height: 0px !important;
-  }
-  
-  .dark #tabbed-gallery-scroll::-webkit-scrollbar-thumb,
-  .dark #home-scroll-container::-webkit-scrollbar-thumb {
-    display: none !important;
-    background: transparent !important;
-    width: 0px !important;
-    height: 0px !important;
   }
   
   /* Override global scrollbar for specific containers - must come after * rule */
