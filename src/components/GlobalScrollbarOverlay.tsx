@@ -70,22 +70,19 @@ export function GlobalScrollbarOverlay() {
   const maxScroll = Math.max(1, metrics.scrollHeight - metrics.clientHeight);
   const thumbTop = Math.floor((metrics.scrollTop / maxScroll) * (window.innerHeight - thumbHeight));
 
-  // Frosted glass - BRIGHT white in dark mode for visibility
-  const trackBg = isDark 
-    ? 'rgba(255,255,255,0.15)' 
-    : 'rgba(255,255,255,0.15)';
-  const trackBorder = isDark
-    ? 'rgba(255,255,255,0.35)'
-    : 'rgba(0,0,0,0.2)';
-  const thumbBg = isDark
-    ? 'rgba(255,255,255,0.95)'  // Almost solid white
-    : 'rgba(0,0,0,0.7)';
-  const thumbBorder = isDark
-    ? 'rgba(255,255,255,1)'
-    : 'rgba(0,0,0,0.85)';
-  const thumbShadow = isDark
-    ? '0 4px 20px rgba(255,255,255,0.4), 0 0 0 1px rgba(255,255,255,0.5), inset 0 1px 2px rgba(255,255,255,0.6)'
-    : '0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.8), inset 0 1px 2px rgba(255,255,255,0.9)';
+  // Glass effect similar to navbar
+  const scrollbarClasses = isDark 
+    ? 'backdrop-blur-xl bg-white/20 border-white/30' 
+    : 'backdrop-blur-xl bg-neutral-800/20 border-neutral-800/30';
+  
+  const thumbClasses = isDark
+    ? 'backdrop-blur-xl bg-white/80 border-white shadow-lg shadow-white/50'
+    : 'backdrop-blur-xl bg-neutral-800/80 border-neutral-800 shadow-lg';
+
+  // Only show if there's scrollable content
+  if (metrics.scrollHeight <= metrics.clientHeight) {
+    return null;
+  }
 
   return (
     <div
@@ -96,40 +93,38 @@ export function GlobalScrollbarOverlay() {
         top: 0,
         bottom: 0,
         right: 0,
-        width: 10,
+        width: 14,
         pointerEvents: 'none',
         zIndex: 99999,
       }}
     >
+      {/* Track */}
       <div
+        className={scrollbarClasses}
         style={{
           position: 'absolute',
-          top: 12,
-          bottom: 12,
+          top: 8,
+          bottom: 8,
           right: 2,
-          width: 10,
-          borderRadius: 10,
-          background: trackBg,
-          backdropFilter: 'blur(16px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-          border: `1px solid ${trackBorder}`,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          width: 12,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderStyle: 'solid',
         }}
       />
+      {/* Thumb */}
       <div
+        className={thumbClasses}
         style={{
           position: 'absolute',
-          top: 12 + thumbTop,
+          top: 8 + thumbTop,
           right: 2,
-          width: 10,
+          width: 12,
           height: thumbHeight,
-          borderRadius: 10,
-          background: thumbBg,
-          backdropFilter: 'blur(10px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(10px) saturate(180%)',
-          boxShadow: thumbShadow,
-          transition: 'top 50ms linear, background 0.2s ease',
-          border: `1px solid ${thumbBorder}`,
+          borderRadius: 12,
+          borderWidth: 1.5,
+          borderStyle: 'solid',
+          transition: 'top 50ms linear',
         }}
       />
     </div>
