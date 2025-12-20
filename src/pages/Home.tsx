@@ -8,7 +8,6 @@ import { createClient } from '../utils/supabase/client';
 import heroPattern from '../assets/hero-pattern.webp';
 
 import { useSiteSettings } from '../hooks/useSiteSettings';
-import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { RevealText, FadeInUp, ParallaxImage } from '../components/shared/Motion';
 import { SEO } from '../components/SEO';
@@ -227,7 +226,7 @@ export function Home({ onNavigate }: HomeProps) {
           'Brandon Davis Scenic'
         ]}
       />
-      <Navbar onNavigate={(page) => onNavigate?.(page)} currentPage="home" />{/* Frame 0: Hero with Seamless Pattern */}
+      {/* Frame 0: Hero with Seamless Pattern */}
       <section className="relative h-screen w-full snap-start snap-always overflow-hidden bg-black flex-shrink-0">
         {/* Animated Seamless Background */}
         <div

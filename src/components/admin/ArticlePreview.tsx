@@ -140,6 +140,7 @@ export function ArticlePreview({ blocks }: ArticlePreviewProps) {
                 src={embedUrl}
                 className="w-full h-full rounded-lg"
                 allowFullScreen
+                title={block.metadata?.title || 'Embedded video'}
               />
             ) : (
               <video src={videoUrl} controls className="w-full h-full rounded-lg" />

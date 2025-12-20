@@ -103,6 +103,15 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     canonicalPath: '/about',
   },
 
+  'creative-statement': {
+    title: 'Creative Statement | Scenic Storytelling Philosophy',
+    description: 'A concise creative manifesto outlining how narrative, architecture, and technology shape my scenic storytelling.',
+    keywords: ['creative statement', 'scenic storytelling', 'design philosophy'],
+    ogType: 'article',
+    twitterCard: 'summary_large_image',
+    canonicalPath: '/creative-statement',
+  },
+
   news: {
     title: 'News | Latest Updates & Announcements',
     description: 'Latest news, project announcements, and updates from scenic design work.',
@@ -174,7 +183,7 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     description: 'Video tutorials on Vectorworks, 3D modeling, workflow optimization, and real-world project walkthroughs for scenic designers.',
     keywords: ['vectorworks tutorials', 'scenic design tutorials', '3D modeling', 'design workflow'],
     ogType: 'website',
-    canonicalPath: '/studio',
+    canonicalPath: '/scenic-studio',
   },
 
   'vectorworks-vault': {
@@ -214,7 +223,15 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     description: 'Free web-based tools for scenic designers and technical directors. 3D printing calculators, material estimators, and technical utilities.',
     keywords: ['scenic design tools', 'theatre design apps', 'technical theatre calculator', '3D printing theatre', 'scenic design software'],
     ogType: 'website',
-    canonicalPath: '/studio',
+    canonicalPath: '/app-studio',
+  },
+
+  'scenic-vault': {
+    title: 'Scenic Vault | Model Library & Downloads',
+    description: 'Download Vectorworks models, props, venue files, and reference assets curated for scenic designers.',
+    keywords: ['vectorworks models', 'scenic vault', 'design assets', 'free 3D props'],
+    ogType: 'website',
+    canonicalPath: '/scenic-vault',
   },
 
   // CONTACT
@@ -243,6 +260,33 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     ogType: 'website',
     canonicalPath: '/admin',
     noindex: true, // Don't index admin page
+  },
+
+  links: {
+    title: 'Links | Quick Access',
+    description: 'Quick links to portfolios, resources, and social profiles.',
+    keywords: ['links', 'portfolio links', 'social links'],
+    ogType: 'website',
+    canonicalPath: '/links',
+    noindex: true,
+  },
+
+  'blog-formatter': {
+    title: 'Blog Formatter | Editor Workspace',
+    description: 'Internal blog formatting workspace.',
+    keywords: ['blog formatter', 'editor'],
+    ogType: 'website',
+    canonicalPath: '/blog-formatter',
+    noindex: true,
+  },
+
+  'news-article': {
+    title: 'News Article | Update',
+    description: 'Latest news update from Brandon PT Davis.',
+    keywords: ['news', 'update', 'announcement'],
+    ogType: 'article',
+    twitterCard: 'summary_large_image',
+    canonicalPath: '/news',
   },
 
   // LEGAL PAGES

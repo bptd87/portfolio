@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Plus, Trash2, MoveUp, MoveDown } from 'lucide-react';
 
 interface Credit {
@@ -91,6 +90,8 @@ export function CreditsManager({ credits, onChange }: CreditsManagerProps) {
                 onClick={() => handleMove(index, 'up')}
                 disabled={index === 0}
                 className="p-1 opacity-40 hover:opacity-100 disabled:opacity-20"
+                aria-label={`Move ${credit.role || 'credit'} up`}
+                title={`Move ${credit.role || 'credit'} up`}
               >
                 <MoveUp className="w-4 h-4" />
               </button>
@@ -99,6 +100,8 @@ export function CreditsManager({ credits, onChange }: CreditsManagerProps) {
                 onClick={() => handleMove(index, 'down')}
                 disabled={index === creditsArray.length - 1}
                 className="p-1 opacity-40 hover:opacity-100 disabled:opacity-20"
+                aria-label={`Move ${credit.role || 'credit'} down`}
+                title={`Move ${credit.role || 'credit'} down`}
               >
                 <MoveDown className="w-4 h-4" />
               </button>
@@ -107,6 +110,8 @@ export function CreditsManager({ credits, onChange }: CreditsManagerProps) {
               type="button"
               onClick={() => handleRemove(index)}
               className="p-1 opacity-40 hover:opacity-100 hover:text-destructive"
+              aria-label={`Remove ${credit.role || 'credit'}`}
+              title={`Remove ${credit.role || 'credit'}`}
             >
               <Trash2 className="w-4 h-4" />
             </button>

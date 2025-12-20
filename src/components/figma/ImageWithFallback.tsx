@@ -44,6 +44,40 @@ interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElemen
   responsive?: boolean
 }
 
+const isSupabaseStorageUrl = (url: string) => url.includes('storage/v1/object/public')
+
+const buildOptimizedSupabaseUrl = (
+  url: string,
+  optimize: ImageWithFallbackProps['optimize']
+) => {
+  if (!isSupabaseStorageUrl(url)) return url
+
+  const preset = typeof optimize === 'string' ? optimize : undefined
+  const custom = typeof optimize === 'object' ? optimize : undefined
+
+  const width = custom?.width || (
+    preset === 'thumbnail' ? 400 :
+    preset === 'card' ? 900 :
+    preset === 'hero' ? 1920 :
+    preset === 'gallery' ? 1600 :
+    preset === 'full' ? 2400 :
+    1600
+  )
+
+  const quality = custom?.quality || 70
+
+  const [base, hash] = url.split('#')
+  const [path, existingQuery] = base.split('?')
+  const params = new URLSearchParams(existingQuery || '')
+
+  if (!params.has('format')) params.set('format', 'webp')
+  if (!params.has('quality')) params.set('quality', quality.toString())
+  if (!params.has('width') && width) params.set('width', width.toString())
+
+  const optimizedUrl = `${path}?${params.toString()}`
+  return hash ? `${optimizedUrl}#${hash}` : optimizedUrl
+}
+
 /**
  * ImageWithFallback Component
  * 
@@ -188,15 +222,17 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   const srcset = undefined;
   const sizes = undefined;
 
-  // TEMPORARILY: Use original src directly (optimization disabled)
+  const optimizedSrc = src ? buildOptimizedSupabaseUrl(src, optimize) : null
+
   // Once image has loaded, always show it (don't revert to placeholder on re-render)
   // If src exists and we're not lazy loading, show it immediately
   // If lazy loading, only show when in view OR if it has loaded once
-  const imageSrc = (!lazy || isInView || hasLoadedOnce) ? (src || null) : BLUR_PLACEHOLDER
+  const imageSrc = (!lazy || isInView || hasLoadedOnce) ? (optimizedSrc || src || null) : BLUR_PLACEHOLDER
 
   // LCP Optimization: If priority is true, show immediately without transition
   const isPriority = props.priority;
   const showTransition = !isPriority;
+  const fetchPriority = isPriority ? 'high' : 'auto';
 
   // Extract rounded corner classes from className
   const roundedClasses = className?.match(/rounded-\[?\d+px?\]?|rounded-\w+/g)?.join(' ') || '';
@@ -235,7 +271,8 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
         onError={handleError}
         onLoad={handleLoad}
         loading={lazy && !isPriority ? 'lazy' : 'eager'}
-      // @ts-ignore - fetchPriority is standard but missing in some React types
+        decoding="async"
+        fetchpriority={fetchPriority}
       />
     </div>
   )

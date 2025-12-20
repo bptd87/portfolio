@@ -1,10 +1,13 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
 import { Invoice } from '../types/business';
 import { createClient } from './supabase/client';
 
 export const generateInvoicePDF = async (invoice: Invoice, companyName: string, paymentInfo?: string, qrUrl?: string) => {
+  const [{ default: JsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
+
   // Fetch branding settings
   const supabase = createClient();
   const { data: settings } = await supabase.from('app_settings').select('*').eq('id', 1).single();
@@ -14,7 +17,7 @@ export const generateInvoicePDF = async (invoice: Invoice, companyName: string, 
   const footerNote = settings?.invoice_footer_note || 'Thank you for your business.';
   const bAddr = settings?.business_address || { street: '', city: 'Los Angeles', state: 'CA', country: 'USA' };
 
-  const doc = new jsPDF();
+  const doc = new JsPDF();
   
   // Colors
   const accentColor = [16, 185, 129]; // Emerald 500

@@ -282,7 +282,8 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
         const response = await apiCall('/api/posts');
         if (response.ok) {
           const result = await response.json();
-          setAllPosts(result.posts || []);
+          const published = (result.posts || []).filter((p: any) => !p.status || p.status === 'published');
+          setAllPosts(published);
         }
       } catch (err) {
       }
@@ -306,6 +307,11 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
 
         const result = await response.json();
         if (result.post) {
+          if (result.post.status && result.post.status !== 'published') {
+            setNotFound(true);
+            setLoading(false);
+            return;
+          }
           // If server didn't provide categoryColor, look it up client-side
           let postWithColor = result.post;
           if (!postWithColor.categoryColor && postWithColor.category && categories.length > 0) {
@@ -354,7 +360,8 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       }
 
       const result = await response.json();
-      setRelatedPosts(result.posts);
+      const published = (result.posts || []).filter((p: any) => !p.status || p.status === 'published');
+      setRelatedPosts(published);
     } catch (err) {
     }
   };

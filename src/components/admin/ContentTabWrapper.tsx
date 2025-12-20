@@ -1,14 +1,25 @@
 import { useWatch } from 'react-hook-form';
 import { ContentBlock } from './WYSIWYGEditor';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import ReactQuill from 'react-quill';
+import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { ImageUploader } from './ImageUploader';
-import { Image as ImageIcon, Video, LayoutGrid, X } from 'lucide-react';
+import { Image as ImageIcon, Video, LayoutGrid, X, Type } from 'lucide-react';
 
 // Suppress ReactQuill deprecation warnings
 const originalWarn = console.warn;
 const originalError = console.error;
+
+// Register a simple dropcap format (class-based) once
+let dropcapRegistered = false;
+if (!dropcapRegistered) {
+  const Parchment = Quill.import('parchment');
+  const DropcapClass = new Parchment.Attributor.Class('dropcap', 'dropcap', {
+    scope: Parchment.Scope.INLINE,
+  });
+  Quill.register(DropcapClass, true);
+  dropcapRegistered = true;
+}
 console.warn = (...args: any[]) => {
   if (args[0]?.includes?.('findDOMNode') || args[0]?.includes?.('DOMNodeInserted')) {
     return; // Suppress ReactQuill warnings
@@ -23,7 +34,7 @@ console.error = (...args: any[]) => {
 };
 
 // Convert blocks to HTML for Quill
-function blocksToHTML(blocks: ContentBlock[]): string {
+export function blocksToHTML(blocks: ContentBlock[]): string {
   if (!blocks || blocks.length === 0) return '';
   
   return blocks.map(block => {
@@ -103,7 +114,7 @@ function blocksToHTML(blocks: ContentBlock[]): string {
 }
 
 // Convert HTML from Quill to blocks
-function htmlToBlocks(html: string): ContentBlock[] {
+export function htmlToBlocks(html: string): ContentBlock[] {
   if (!html || html === '<p><br></p>' || html === '<p></p>') return [];
   
   const tempDiv = document.createElement('div');
@@ -295,7 +306,8 @@ export function ContentTabWrapper({ methods }: { methods: any }) {
     'align', // Includes justify
     'blockquote', 'code-block',
     'link',
-    'image', 'video'
+    'image', 'video',
+    'dropcap'
   ];
   
   // Debounced change handler to prevent interference with typing
@@ -896,6 +908,21 @@ export function ContentTabWrapper({ methods }: { methods: any }) {
     setGalleryImages([]);
     setGalleryType('grid');
   }, [galleryImages, galleryType, handleChange]);
+
+  const toggleDropcap = useCallback(() => {
+    if (!quillRef.current) return;
+    const quill = quillRef.current.getEditor();
+    const range = quill.getSelection(true);
+    if (!range) return;
+    // Find start of current line
+    const [line] = quill.getLine(range.index);
+    if (!line) return;
+    const lineIndex = quill.getIndex(line);
+    // Toggle dropcap on first character of the line
+    const currentFormats = quill.getFormat(lineIndex, 1);
+    const isActive = !!currentFormats.dropcap;
+    quill.formatText(lineIndex, 1, 'dropcap', !isActive, Quill.sources.USER);
+  }, []);
   
   if (!methods || !methods.control) {
     return (
@@ -938,6 +965,14 @@ export function ContentTabWrapper({ methods }: { methods: any }) {
           title="Insert Video"
         >
           <Video className="w-4 h-4 text-white" />
+        </button>
+        <button
+          type="button"
+          onClick={toggleDropcap}
+          className="p-2 rounded hover:bg-zinc-700 transition-colors"
+          title="Toggle Dropcap on current paragraph"
+        >
+          <Type className="w-4 h-4 text-white" />
         </button>
       </div>
       
@@ -1130,6 +1165,14 @@ export function ContentTabWrapper({ methods }: { methods: any }) {
             width: 100%;
             height: auto;
             border-radius: 8px;
+          }
+          .ql-editor .dropcap {
+            float: left;
+            font-size: 3.2rem;
+            line-height: 0.9;
+            padding-right: 0.2em;
+            padding-top: 0.05em;
+            font-weight: 700;
           }
           .ql-editor .ql-video {
             margin: 1rem 0;

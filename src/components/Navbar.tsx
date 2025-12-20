@@ -54,15 +54,13 @@ export function Navbar({ onNavigate }: NavbarProps) {
 
   // Handle scroll for auto-hide
   useEffect(() => {
-    // Try multiple scroll targets
-    const scrollTargets = [
-      window,
-      document.documentElement,
-      document.body
-    ];
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
+    const handleScroll = (e: Event) => {
+      // Check if we're on home page with custom scroll container
+      const target = e.target as HTMLElement;
+      const currentScrollY = target.id === 'home-scroll-container'
+        ? target.scrollTop
+        : (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop);
+      
       // Show background after scrolling 50px
       setScrolled(currentScrollY > 50);
 
@@ -76,15 +74,43 @@ export function Navbar({ onNavigate }: NavbarProps) {
       lastScrollYRef.current = currentScrollY;
     };
 
-    // Add listeners to all possible scroll targets
-    scrollTargets.forEach(target => {
-      target.addEventListener('scroll', handleScroll, { passive: true });
+    // Attach listeners
+    const attachListeners = () => {
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      document.documentElement.addEventListener('scroll', handleScroll, { passive: true });
+      document.body.addEventListener('scroll', handleScroll, { passive: true });
+      
+      const homeContainer = document.getElementById('home-scroll-container');
+      if (homeContainer) {
+        homeContainer.addEventListener('scroll', handleScroll, { passive: true });
+      }
+    };
+
+    // Initial attach
+    attachListeners();
+
+    // Watch for home container to be added to DOM
+    const observer = new MutationObserver(() => {
+      const homeContainer = document.getElementById('home-scroll-container');
+      if (homeContainer && !homeContainer.hasAttribute('data-scroll-listener')) {
+        homeContainer.setAttribute('data-scroll-listener', 'true');
+        homeContainer.addEventListener('scroll', handleScroll, { passive: true });
+      }
     });
 
+    observer.observe(document.body, { childList: true, subtree: true });
+
     return () => {
-      scrollTargets.forEach(target => {
-        target.removeEventListener('scroll', handleScroll);
-      });
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+      document.documentElement.removeEventListener('scroll', handleScroll);
+      document.body.removeEventListener('scroll', handleScroll);
+      
+      const homeContainer = document.getElementById('home-scroll-container');
+      if (homeContainer) {
+        homeContainer.removeEventListener('scroll', handleScroll);
+        homeContainer.removeAttribute('data-scroll-listener');
+      }
     };
   }, []); // Empty dependency array - only set up once!
 
@@ -100,47 +126,69 @@ export function Navbar({ onNavigate }: NavbarProps) {
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-50 w-full flex justify-center py-6 px-4 transition-transform duration-300 ${hidden ? '-translate-y-full' : 'translate-y-0'
-        }`}
+      className={`fixed top-0 left-0 right-0 z-50 w-full flex justify-center px-4 transition-all duration-300 ${
+        scrolled ? 'py-3' : 'py-6'
+      } ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
     >
 
       {/* Navbar Container - Rounded on both mobile and desktop */}
       <div
         ref={navRef}
-        className={`shadow-2xl rounded-3xl w-full md:w-[90%] md:max-w-md transition-colors duration-300 ${scrolled || menuOpen
-          ? 'bg-neutral-700/80 backdrop-blur-xl'
-          : 'bg-neutral-600/60 backdrop-blur-md'
-          }`}
+        className={`rounded-3xl w-full md:w-[90%] transition-all duration-300 border border-white/10 ${
+          scrolled || menuOpen
+            ? 'backdrop-blur-xl bg-neutral-800/60 dark:bg-neutral-900/60 shadow-2xl'
+            : 'backdrop-blur-xl bg-neutral-800/50 dark:bg-neutral-900/50 shadow-md'
+        }`}
+        style={{ maxWidth: '900px' }}
       >
 
         {/* Top Bar - Always Visible */}
-        <div className="px-6 py-3.5">
-          <div className="flex items-center justify-between">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between gap-3">
 
             {/* Left - Hamburger/Close */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="hover:opacity-70 transition-all duration-300 w-8 h-8 relative"
+              className="relative hover:opacity-60 flex-shrink-0"
               aria-label="Toggle menu"
+              style={{
+                appearance: 'none',
+                border: 'none',
+                background: 'none',
+                padding: 0,
+                width: '24px',
+                height: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               {/* Line 1 */}
               <span
-                className="absolute left-1 bg-white transition-all duration-300"
                 style={{
+                  position: 'absolute',
                   width: '20px',
-                  height: '3px',
-                  top: menuOpen ? '14px' : '10px',
+                  height: '2px',
+                  backgroundColor: 'white',
+                  left: '2px',
+                  top: '6px',
+                  transformOrigin: '10px 1px',
                   transform: menuOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+                  transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               />
               {/* Line 2 */}
               <span
-                className="absolute left-1 bg-white transition-all duration-300"
                 style={{
+                  position: 'absolute',
                   width: '20px',
-                  height: '3px',
-                  top: menuOpen ? '14px' : '18px',
+                  height: '2px',
+                  backgroundColor: 'white',
+                  left: '2px',
+                  top: '16px',
+                  transformOrigin: '10px 1px',
                   transform: menuOpen ? 'rotate(-45deg)' : 'rotate(0deg)',
+                  transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               />
             </button>
@@ -148,9 +196,9 @@ export function Navbar({ onNavigate }: NavbarProps) {
             {/* Center - Logo (Clickable) */}
             <button
               onClick={() => handleNavClick('home')}
-              className="hover:opacity-70 transition-opacity cursor-pointer"
+              className="hover:opacity-70 transition-opacity duration-200 cursor-pointer flex-1 text-center group"
             >
-              <div className="font-pixel text-2xl md:text-3xl tracking-[0.2em] text-white whitespace-nowrap">
+              <div className="font-pixel text-lg md:text-2xl tracking-[0.2em] text-white whitespace-nowrap group-hover:drop-shadow-lg transition-all duration-200">
                 BRANDON PT DAVIS
               </div>
             </button>
@@ -158,7 +206,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
             {/* Right - Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 hover:opacity-70 transition-opacity"
+              className="p-2 hover:opacity-60 focus:outline-none transition-all duration-300 flex-shrink-0"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
@@ -173,81 +221,95 @@ export function Navbar({ onNavigate }: NavbarProps) {
         {/* Dropdown Menu */}
         {menuOpen && (
           <>
-            <div className="border-t border-white/10" />
-
-            <div className="px-6 py-8">
-              <nav className="space-y-5">
+            <div className="px-8 py-10 space-y-8 animate-in fade-in duration-200">
+              <nav className="space-y-6">
 
                 {/* PORTFOLIO */}
                 <button
                   onClick={() => handleNavClick('portfolio')}
-                  className="block w-full font-pixel text-3xl tracking-[0.15em] text-white hover:opacity-70 transition-opacity text-center"
+                  className="block w-full font-pixel text-2xl tracking-[0.15em] text-white hover:text-white/80 focus:outline-none transition-all duration-200 relative group"
+                  style={{ imageRendering: 'pixelated', textRendering: 'geometricPrecision' }}
                 >
-                  PORTFOLIO
+                  <span className="relative">
+                    PORTFOLIO
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white/60 group-hover:w-full transition-all duration-300" />
+                  </span>
                 </button>
 
                 {/* NEWS */}
                 <button
                   onClick={() => handleNavClick('news')}
-                  className="block w-full font-pixel text-3xl tracking-[0.15em] text-white hover:opacity-70 transition-opacity text-center"
+                  className="block w-full font-pixel text-2xl tracking-[0.15em] text-white hover:text-white/80 focus:outline-none transition-all duration-200 relative group"
+                  style={{ imageRendering: 'pixelated', textRendering: 'geometricPrecision' }}
                 >
-                  NEWS
+                  <span className="relative">
+                    NEWS
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white/60 group-hover:w-full transition-all duration-300" />
+                  </span>
                 </button>
 
                 {/* ARTICLES */}
                 <button
                   onClick={() => handleNavClick('scenic-insights')}
-                  className="block w-full font-pixel text-3xl tracking-[0.15em] text-white hover:opacity-70 transition-opacity text-center"
+                  className="block w-full font-pixel text-2xl tracking-[0.15em] text-white hover:text-white/80 focus:outline-none transition-all duration-200 relative group"
+                  style={{ imageRendering: 'pixelated', textRendering: 'geometricPrecision' }}
                 >
-                  ARTICLES
+                  <span className="relative">
+                    ARTICLES
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white/60 group-hover:w-full transition-all duration-300" />
+                  </span>
                 </button>
 
                 {/* STUDIO */}
                 <button
                   onClick={() => handleNavClick('studio')}
-                  className="block w-full font-pixel text-3xl tracking-[0.15em] text-white hover:opacity-70 transition-opacity text-center"
+                  className="block w-full font-pixel text-2xl tracking-[0.15em] text-white hover:text-white/80 focus:outline-none transition-all duration-200 relative group"
+                  style={{ imageRendering: 'pixelated', textRendering: 'geometricPrecision' }}
                 >
-                  STUDIO
+                  <span className="relative">
+                    STUDIO
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white/60 group-hover:w-full transition-all duration-300" />
+                  </span>
                 </button>
 
                 {/* ABOUT */}
                 <div>
                   <button
                     onClick={() => toggleSection('about')}
-                    className="flex items-center justify-center gap-2 w-full font-pixel text-3xl tracking-[0.15em] text-white hover:opacity-70 transition-opacity"
+                    className="flex items-center justify-center gap-2 w-full font-pixel text-2xl tracking-[0.15em] text-white hover:text-white/80 focus:outline-none transition-all duration-200 group"
                   >
                     ABOUT
-                    <ChevronDown className={`w-5 h-5 transition-transform ${expandedSection === 'about' ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 group-hover:opacity-80 ${expandedSection === 'about' ? 'rotate-180' : ''}`} />
                   </button>
                   {expandedSection === 'about' && (
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-3 ml-4 space-y-2 border-l border-white/20 pl-4">
                       <button
                         onClick={() => handleNavClick('about')}
-                        className="block w-full font-pixel text-xl tracking-[0.12em] text-white/60 hover:text-white transition-colors text-center"
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
                       >
                         BIO
                       </button>
                       <button
                         onClick={() => handleNavClick('cv')}
-                        className="block w-full font-pixel text-xl tracking-[0.12em] text-white/60 hover:text-white transition-colors text-center"
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
                       >
                         CV
                       </button>
                       <button
                         onClick={() => handleNavClick('collaborators')}
-                        className="block w-full font-pixel text-xl tracking-[0.12em] text-white/60 hover:text-white transition-colors text-center"
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
                       >
                         COLLABORATORS
                       </button>
                       <button
                         onClick={() => handleNavClick('teaching-philosophy')}
-                        className="block w-full font-pixel text-xl tracking-[0.12em] text-white/60 hover:text-white transition-colors text-center"
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
                       >
                         TEACHING PHILOSOPHY
                       </button>
                       <button
                         onClick={() => handleNavClick('creative-statement')}
-                        className="block w-full font-pixel text-xl tracking-[0.12em] text-white/60 hover:text-white transition-colors text-center"
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
                       >
                         CREATIVE STATEMENT
                       </button>
@@ -255,10 +317,10 @@ export function Navbar({ onNavigate }: NavbarProps) {
                   )}
                 </div>
 
-                {/* CONTACT */}
+                {/* CONTACT - CTA Style */}
                 <button
                   onClick={() => handleNavClick('contact')}
-                  className="block w-full font-pixel text-3xl tracking-[0.15em] text-white hover:opacity-70 transition-opacity text-center"
+                  className="block w-full font-pixel text-2xl tracking-[0.15em] text-white bg-gradient-to-r from-white/20 to-white/10 hover:from-white/30 hover:to-white/20 border border-white/40 hover:border-white/60 rounded-lg px-3 py-2.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 mt-2"
                 >
                   CONTACT
                 </button>
@@ -266,45 +328,45 @@ export function Navbar({ onNavigate }: NavbarProps) {
             </div>
 
             {/* Footer Links */}
-            <div className="border-t border-white/10 px-4 py-5">
-              <div className="flex flex-wrap items-center justify-center gap-3 font-pixel text-[10px] tracking-[0.15em] text-white/40 uppercase">
+            <div className="border-t border-white/15 px-4 py-5">
+              <div className="flex flex-wrap items-center justify-center gap-3 font-pixel text-[9px] tracking-[0.15em] text-white/40 uppercase">
                 <button
                   onClick={() => handleNavClick('sitemap')}
-                  className="hover:text-white/70 transition-colors"
+                  className="hover:text-white/70 transition-colors duration-200 focus:outline-none focus:ring-1 focus:ring-white/20 rounded px-1"
                 >
                   SITEMAP
                 </button>
                 <span>•</span>
                 <button
                   onClick={() => handleNavClick('faq')}
-                  className="hover:text-white/70 transition-colors"
+                  className="hover:text-white/70 transition-colors duration-200 focus:outline-none focus:ring-1 focus:ring-white/20 rounded px-1"
                 >
                   FAQ
                 </button>
                 <span>•</span>
                 <button
                   onClick={() => handleNavClick('accessibility')}
-                  className="hover:text-white/70 transition-colors"
+                  className="hover:text-white/70 transition-colors duration-200 focus:outline-none focus:ring-1 focus:ring-white/20 rounded px-1"
                 >
                   ACCESSIBILITY
                 </button>
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-3 mt-2 font-pixel text-[10px] tracking-[0.15em] text-white/40 uppercase">
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-2 font-pixel text-[9px] tracking-[0.15em] text-white/40 uppercase">
                 <button
                   onClick={() => handleNavClick('privacy-policy')}
-                  className="hover:text-white/70 transition-colors"
+                  className="hover:text-white/70 transition-colors duration-200 focus:outline-none focus:ring-1 focus:ring-white/20 rounded px-1"
                 >
                   PRIVACY
                 </button>
                 <span>•</span>
                 <button
                   onClick={() => handleNavClick('terms-of-use')}
-                  className="hover:text-white/70 transition-colors"
+                  className="hover:text-white/70 transition-colors duration-200 focus:outline-none focus:ring-1 focus:ring-white/20 rounded px-1"
                 >
                   TERMS
                 </button>
               </div>
-              <div className="text-center mt-4 font-pixel text-[9px] text-white/30 tracking-[0.15em]">
+              <div className="text-center mt-4 font-pixel text-[8px] text-white/25 tracking-[0.15em]">
                 © {new Date().getFullYear()} BRANDON PT DAVIS
               </div>
             </div>

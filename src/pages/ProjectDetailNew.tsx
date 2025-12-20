@@ -31,6 +31,15 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
   const [transitionFocusPoint, setTransitionFocusPoint] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   // Removed parallax transforms for simpler design
 
+  const cacheKey = (value: string) => `project-cache-${value}`;
+
+  const cacheProjectData = (data: any) => {
+    if (!data) return;
+    const slugValue = data.slug || data.id;
+    if (!slugValue) return;
+    sessionStorage.setItem(cacheKey(slugValue), JSON.stringify({ ...data, slug: slugValue }));
+  };
+
   // Read transition image from sessionStorage on mount
   useEffect(() => {
     const storedImage = sessionStorage.getItem('transitionImage');
@@ -49,13 +58,22 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
   }, []);
 
   useEffect(() => {
-    fetchProject();
+    const cached = sessionStorage.getItem(cacheKey(slug));
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        setProject(parsed);
+        setLoading(false);
+      } catch (e) {}
+    }
+
+    fetchProject(!cached);
     incrementViews();
   }, [slug]);
 
-  const fetchProject = async () => {
+  const fetchProject = async (showLoader: boolean = true) => {
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${slug}`,
         {
@@ -74,12 +92,15 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
       // Check if category includes "Experiential"
       if (data.project.category && data.project.category.includes('Experiential')) {
         setProject({ ...data.project, useExperientialTemplate: true });
+        cacheProjectData({ ...data.project, useExperientialTemplate: true });
       }
       // Check if category includes "Rendering" or "Visualization"
       else if (data.project.category && (data.project.category.includes('Rendering') || data.project.category.includes('Visualization'))) {
         setProject({ ...data.project, useRenderingTemplate: true });
+        cacheProjectData({ ...data.project, useRenderingTemplate: true });
       } else {
         setProject(data.project);
+        cacheProjectData(data.project);
       }
 
       // Fetch all projects for navigation
@@ -129,16 +150,20 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.project && data.project.id) {
-          await fetch(
-            `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${data.project.id}/view`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${publicAnonKey}`,
-                'Content-Type': 'application/json',
-              },
-            }
-          );
+          try {
+            await fetch(
+              `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${data.project.id}/view`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${publicAnonKey}`,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+          } catch {
+            // Silently fail if view tracking endpoint doesn't exist
+          }
         }
       }
     } catch (error) {
@@ -161,31 +186,37 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
     setLightboxOpen(true);
   };
 
+  const renderSkeleton = () => (
+    <div className="min-h-screen bg-black text-white relative">
+      {transitionImage && (
+        <motion.div
+          className="fixed inset-0 z-0"
+          initial={{ scale: 1.02, opacity: 0.9 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          <img
+            src={transitionImage}
+            alt="Loading background"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: `${transitionFocusPoint.x}% ${transitionFocusPoint.y}%` }}
+          />
+          <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" />
+        </motion.div>
+      )}
+
+      <div className="relative z-10 flex flex-col items-center justify-center px-6 py-24 text-center">
+        <div className="text-sm uppercase tracking-[0.3em] text-white/60 mb-4">Loading project</div>
+        <div className="w-12 h-12 rounded-full border-2 border-white/30 border-t-white animate-spin" aria-label="Loading" />
+        <p className="mt-4 text-white/60 max-w-lg">Bringing up the stage while we load the details.</p>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen relative">
-        {/* Show transition image while loading for seamless experience */}
-        {transitionImage && (
-          <motion.div
-            className="fixed inset-0 z-0"
-            initial={{ scale: 1.05, opacity: 0.8 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-          >
-            <img
-              src={transitionImage}
-              alt="Loading..."
-              className="w-full h-full object-cover"
-              style={{
-                objectPosition: `${transitionFocusPoint.x}% ${transitionFocusPoint.y}%`
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
-          </motion.div>
-        )}
-        <div className="fixed inset-0 z-10 bg-white dark:bg-black overflow-y-auto">
-          <PageLoader />
-        </div>
+        {renderSkeleton()}
       </div>
     );
   }

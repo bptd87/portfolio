@@ -1,30 +1,31 @@
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { Lock, Eye, EyeOff, Mail } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { AdminLayout } from '../components/admin/AdminLayout';
 import { AdminDashboard } from '../components/admin/AdminDashboard';
-import { ArticleManager } from '../components/admin/ArticleManager';
-import { PortfolioManager } from '../components/admin/PortfolioManager';
-import { NewsManager } from '../components/admin/NewsManager';
-import { LinksManager } from '../components/admin/LinksManager';
-import { DirectoryManager } from '../components/admin/DirectoryManager';
-import { VaultManager } from '../components/admin/VaultManager';
-import { TutorialsManager } from '../components/admin/TutorialsManager';
-import { CollaboratorsManager } from '../components/admin/CollaboratorsManager';
-import { CategoryManager } from '../components/admin/CategoryManager';
-import { SiteSettingsManager } from '../components/admin/SiteSettingsManager';
-import { AboutManager } from '../components/admin/AboutManager';
-import { ResumeManager } from '../components/admin/ResumeManager';
-import { AnalyticsManager } from '../components/admin/AnalyticsManager';
-import { RedirectsManager } from '../components/admin/RedirectsManager';
-import { MediaManager } from '../components/admin/MediaManager';
-import { DataSync } from '../components/admin/DataSync';
-import { ApiStatus } from './admin/ApiStatus';
 import { SimpleErrorBoundary } from '../components/SimpleErrorBoundary';
-import { ArchiveManager } from '../components/admin/ArchiveManager';
-import { ModelsManager } from '../components/admin/ModelsManager';
-import { CRMManager } from '../components/admin/crm/CRMManager';
-import { FinanceManager } from '../components/admin/finance/FinanceManager';
+
+const DataSync = lazy(() => import('../components/admin/DataSync').then((m) => ({ default: m.DataSync })));
+const ArticleManager = lazy(() => import('../components/admin/ArticleManager').then((m) => ({ default: m.ArticleManager })));
+const PortfolioManager = lazy(() => import('../components/admin/PortfolioManager').then((m) => ({ default: m.PortfolioManager })));
+const NewsManager = lazy(() => import('../components/admin/NewsManager').then((m) => ({ default: m.NewsManager })));
+const LinksManager = lazy(() => import('../components/admin/LinksManager').then((m) => ({ default: m.LinksManager })));
+const DirectoryManager = lazy(() => import('../components/admin/DirectoryManager').then((m) => ({ default: m.DirectoryManager })));
+const VaultManager = lazy(() => import('../components/admin/VaultManager').then((m) => ({ default: m.VaultManager })));
+const TutorialsManager = lazy(() => import('../components/admin/TutorialsManager').then((m) => ({ default: m.TutorialsManager })));
+const CollaboratorsManager = lazy(() => import('../components/admin/CollaboratorsManager').then((m) => ({ default: m.CollaboratorsManager })));
+const CategoryManager = lazy(() => import('../components/admin/CategoryManager').then((m) => ({ default: m.CategoryManager })));
+const SiteSettingsManager = lazy(() => import('../components/admin/SiteSettingsManager').then((m) => ({ default: m.SiteSettingsManager })));
+const RedirectsManager = lazy(() => import('../components/admin/RedirectsManager').then((m) => ({ default: m.RedirectsManager })));
+const AboutManager = lazy(() => import('../components/admin/AboutManager').then((m) => ({ default: m.AboutManager })));
+const ResumeManager = lazy(() => import('../components/admin/ResumeManager').then((m) => ({ default: m.ResumeManager })));
+const AnalyticsManager = lazy(() => import('../components/admin/AnalyticsManager').then((m) => ({ default: m.AnalyticsManager })));
+const MediaManager = lazy(() => import('../components/admin/MediaManager').then((m) => ({ default: m.MediaManager })));
+const ApiStatus = lazy(() => import('./admin/ApiStatus').then((m) => ({ default: m.ApiStatus })));
+const ArchiveManager = lazy(() => import('../components/admin/ArchiveManager').then((m) => ({ default: m.ArchiveManager })));
+const ModelsManager = lazy(() => import('../components/admin/ModelsManager').then((m) => ({ default: m.ModelsManager })));
+const CRMManager = lazy(() => import('../components/admin/crm/CRMManager').then((m) => ({ default: m.CRMManager })));
+const FinanceManager = lazy(() => import('../components/admin/finance/FinanceManager').then((m) => ({ default: m.FinanceManager })));
 
 interface AdminProps {
   onNavigate: (page: string) => void;
@@ -275,7 +276,9 @@ export function Admin({ onNavigate }: AdminProps) {
         onLogout={handleLogout}
         pageTitle={getPageTitle()}
       >
-        {renderActiveView()}
+        <Suspense fallback={<div className="p-6 text-sm text-gray-400">Loading admin panel...</div>}>
+          {renderActiveView()}
+        </Suspense>
       </AdminLayout>
     </SimpleErrorBoundary>
   );

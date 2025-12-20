@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,6 +10,7 @@ import { ArticleSEOTools } from './ArticleSEOTools';
 import { FocusPointPicker } from './FocusPointPicker';
 import { SquarespaceImporter } from './SquarespaceImporter';
 import { useCategories } from '../../hooks/useCategories';
+import { blogPosts } from '../../data/blog-posts';
 import { SaveButton, CancelButton } from './AdminButtons';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
@@ -19,7 +20,30 @@ import { toast } from 'sonner';
 import { TagInput } from './ui/TagInput';
 import { AdminPageHeader } from './shared/AdminPageHeader';
 import { AdminListItem } from './shared/AdminListItem';
-import { ContentTabWrapper } from './ContentTabWrapper';
+import { htmlToBlocks } from './ContentTabWrapper';
+import { ProArticleEditor } from './ProArticleEditor';
+
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || '';
+
+const estimateReadTime = (blocks: any[], excerpt: string) => {
+  const textFromBlocks = blocks
+    .map((blk) => {
+      if (typeof blk?.content === 'string') return blk.content;
+      if (Array.isArray(blk?.content)) return blk.content.join(' ');
+      return '';
+    })
+    .join(' ');
+
+  const combined = `${excerpt || ''} ${textFromBlocks}`.trim();
+  const words = combined ? combined.split(/\s+/).filter(Boolean).length : 0;
+  const minutes = Math.max(1, Math.round(words / 200));
+  return `${minutes} min read`;
+};
 
 // Simple schema
 const articleSchema = z.object({
@@ -52,6 +76,119 @@ const TABS = [
 
 type TabKey = typeof TABS[number]["key"];
 
+// Collect potential image URLs from a variety of legacy fields
+const collectImageCandidates = (a: any): string[] => {
+  const urls: string[] = [];
+
+  const push = (val?: any) => {
+    if (typeof val === 'string' && val.trim()) urls.push(val.trim());
+  };
+
+  // Common single-value fields
+  [
+    a.coverImage,
+    a.cover_image,
+    a.ogImage,
+    a.image,
+    a.imageUrl,
+    a.image_url,
+    a.thumbnail,
+    a.heroImage,
+    a.hero_image,
+    a.featuredImage,
+    a.featured_image,
+    a.photo,
+  ].forEach(push);
+
+  // Arrays of images
+  const arrayFields = [a.images, a.gallery, a.galleryImages, a.gallery_images];
+  arrayFields.forEach((arr: any) => {
+    if (Array.isArray(arr)) {
+      arr.forEach((item) => {
+        if (typeof item === 'string') push(item);
+        else if (item?.url) push(item.url);
+        else if (item?.src) push(item.src);
+        else if (item?.path) push(item.path);
+      });
+    }
+  });
+
+  // Objects of galleries (e.g., galleries: { main: [...], detail: [...] })
+  if (a.galleries && typeof a.galleries === 'object') {
+    Object.values(a.galleries).forEach((val: any) => {
+      if (Array.isArray(val)) {
+        val.forEach((item) => {
+          if (typeof item === 'string') push(item);
+          else if (item?.url) push(item.url);
+        });
+      }
+    });
+  }
+
+  // Media objects
+  if (a.media) {
+    if (typeof a.media === 'string') push(a.media);
+    if (Array.isArray(a.media)) {
+      a.media.forEach((m: any) => push(m?.url || m));
+    }
+    if (a.media.url) push(a.media.url);
+  }
+
+  // Deduplicate while preserving order
+  const seen = new Set<string>();
+  return urls.filter((u) => {
+    if (seen.has(u)) return false;
+    seen.add(u);
+    return true;
+  });
+};
+
+// Normalize content blocks so the editor shows images/galleries like the published view
+const normalizeContentBlocks = (article: any): any[] => {
+  let blocks: any[] = Array.isArray(article.content) ? article.content : [];
+
+  // Convert legacy HTML strings to blocks
+  if ((!blocks || blocks.length === 0)) {
+    const possibleHtml = typeof article.content === 'string' ? article.content
+      : typeof article.body === 'string' ? article.body
+      : typeof article.html === 'string' ? article.html
+      : typeof article.contentHtml === 'string' ? article.contentHtml
+      : '';
+    if (possibleHtml && possibleHtml.trim().length > 0) {
+      try {
+        blocks = htmlToBlocks(possibleHtml);
+      } catch (e) {
+        console.warn('Failed to convert HTML to blocks', article.id || article.slug || article.title);
+      }
+    }
+  }
+
+  // If still empty, seed with images/galleries from available fields
+  if (!blocks || blocks.length === 0) {
+    const images = collectImageCandidates(article);
+    if (images.length > 1) {
+      blocks = [{
+        id: `block-${Date.now()}`,
+        type: 'gallery',
+        content: '',
+        metadata: {
+          galleryStyle: 'grid',
+          images: images.map((url) => ({ url, alt: article.title || '' })),
+        },
+      }];
+    } else if (images.length === 1) {
+      blocks = [{
+        id: `block-${Date.now()}`,
+        type: 'image',
+        content: images[0],
+        metadata: { alt: article.title || '', caption: '' },
+      }];
+    }
+  }
+
+  return blocks || [];
+};
+
 export function ArticleManager() {
   
   const [articles, setArticles] = useState<any[]>([]);
@@ -61,6 +198,8 @@ export function ArticleManager() {
   const [showImporter, setShowImporter] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('content');
   const { categories } = useCategories();
+  const autosaveTimer = useRef<number | undefined>(undefined);
+  const [lastSavedAt, setLastSavedAt] = useState<string>('');
 
   const methods = useForm<ArticleFormData>({
     resolver: zodResolver(articleSchema),
@@ -82,21 +221,148 @@ export function ArticleManager() {
     },
   });
 
+  // Auto-generate slug from title when slug is empty
+  useEffect(() => {
+    const subscription = methods.watch((value, { name }) => {
+      if (name === 'title') {
+        const currentSlug = methods.getValues('slug');
+        if (!currentSlug) {
+          methods.setValue('slug', slugify(value.title || ''), { shouldDirty: true, shouldTouch: true });
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [methods]);
+
+  // Autosave with debounce to localStorage
+  useEffect(() => {
+    if (!showForm) return;
+    const draftKey = `article-draft-${editingId || 'new'}`;
+    const subscription = methods.watch((value) => {
+      if (autosaveTimer.current) window.clearTimeout(autosaveTimer.current);
+      autosaveTimer.current = window.setTimeout(() => {
+        try {
+          const payload = { data: value, savedAt: Date.now() };
+          localStorage.setItem(draftKey, JSON.stringify(payload));
+          setLastSavedAt(new Date(payload.savedAt).toLocaleTimeString());
+        } catch (err) {
+          console.warn('Autosave failed', err);
+        }
+      }, 800);
+    });
+    return () => {
+      subscription.unsubscribe();
+      if (autosaveTimer.current) window.clearTimeout(autosaveTimer.current);
+    };
+  }, [showForm, editingId, methods]);
+
+  // Restore autosaved draft if available
+  useEffect(() => {
+    if (!showForm) return;
+    const draftKey = `article-draft-${editingId || 'new'}`;
+    const saved = localStorage.getItem(draftKey);
+    if (!saved) return;
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed?.data) {
+        methods.reset(parsed.data);
+        if (parsed.savedAt) setLastSavedAt(new Date(parsed.savedAt).toLocaleTimeString());
+      }
+    } catch (err) {
+      console.warn('Failed to restore autosave', err);
+    }
+  }, [showForm, editingId, methods]);
+
   // Load articles
   useEffect(() => {
     const loadArticles = async () => {
       try {
         // Load articles from KV store
-        const articles = await getByPrefixFromKV('blog_post:');
-        // Sort by date (newest first)
-        const sorted = articles.sort((a: any, b: any) => {
-          const dateA = a.createdAt || a.date || a.created_at || '';
-          const dateB = b.createdAt || b.date || b.created_at || '';
-          return dateB.localeCompare(dateA);
-        });
-        setArticles(sorted || []);
+        const kvArticles = await getByPrefixFromKV('blog_post:');
+        console.log('🔵 ArticleManager: KV articles loaded:', { count: kvArticles?.length, kvArticles });
+        
+        // If KV store has articles, use them; otherwise fall back to static blog-posts data
+        if (kvArticles && kvArticles.length > 0) {
+          // Sort by date (newest first)
+          const sorted = kvArticles.sort((a: any, b: any) => {
+            const dateA = a.createdAt || a.date || a.created_at || '';
+            const dateB = b.createdAt || b.date || b.created_at || '';
+            return dateB.localeCompare(dateA);
+          });
+
+          // Normalize common field names and infer cover image/content from available data
+          const normalized = sorted.map((a: any) => {
+            // Try multiple sources for cover image
+            const inferFromImagesArray = Array.isArray(a.images) && a.images.length > 0
+              ? (typeof a.images[0] === 'string' ? a.images[0] : a.images[0]?.url)
+              : '';
+            const inferFromContentBlocks = Array.isArray(a.content)
+              ? (() => {
+                  const imgBlock = a.content.find((blk: any) => blk?.type === 'image' && (blk?.content || blk?.url));
+                  return imgBlock ? (imgBlock.content || imgBlock.url) : '';
+                })()
+              : '';
+            const coverImage = a.coverImage || a.cover_image || a.ogImage || inferFromImagesArray || inferFromContentBlocks || '';
+
+            const contentBlocks = normalizeContentBlocks({ ...a, coverImage });
+
+            return {
+              id: a.id || a.slug || a.key || `${a.title || 'untitled'}-${a.date || ''}`,
+              title: a.title || '',
+              category: a.category || 'Design Philosophy & Scenic Insights',
+              date: a.date || a.createdAt || a.created_at || '',
+              readTime: a.readTime || '',
+              excerpt: a.excerpt || a.summary || '',
+              featured: !!a.featured,
+              status: a.status || 'draft',
+              coverImage,
+              tags: a.tags || [],
+              content: contentBlocks || [],
+            } as any;
+          });
+
+          console.log('✅ Using KV store articles (normalized)', { count: normalized.length });
+          setArticles(normalized);
+        } else {
+          // Fall back to static blog-posts data (includes cover images)
+          console.log('⚠️ KV store empty, loading from static blog-posts data...', { blogPostsCount: blogPosts.length });
+          const blogPostsWithMetadata = blogPosts.map(post => {
+            console.log(`📄 Processing post: ${post.id}`, { hasImage: !!post.coverImage, image: post.coverImage });
+            return {
+              id: post.id,
+              title: post.title,
+              category: post.category,
+              date: post.date,
+              readTime: post.readTime,
+              excerpt: post.excerpt,
+              featured: post.featured,
+              status: 'published',
+              coverImage: post.coverImage, // ← This has the images!
+              tags: post.tags,
+              content: [],
+            };
+          });
+          console.log('📚 Final articles to display:', { count: blogPostsWithMetadata.length, articles: blogPostsWithMetadata });
+          setArticles(blogPostsWithMetadata);
+        }
       } catch (err) {
-        console.error('Failed to load articles:', err);
+        console.error('❌ Failed to load articles:', err);
+        // Fall back to static data on error
+        console.log('🔄 Error recovery: using static blog-posts data...');
+        const blogPostsWithMetadata = blogPosts.map(post => ({
+          id: post.id,
+          title: post.title,
+          category: post.category,
+          date: post.date,
+          readTime: post.readTime,
+          excerpt: post.excerpt,
+          featured: post.featured,
+          status: 'published',
+          coverImage: post.coverImage,
+          tags: post.tags,
+          content: [],
+        }));
+        setArticles(blogPostsWithMetadata);
       } finally {
         setLoading(false);
       }
@@ -127,6 +393,8 @@ export function ArticleManager() {
   };
 
   const handleEdit = (article: any) => {
+    const contentBlocks = normalizeContentBlocks(article);
+
     methods.reset({
       title: article.title || '',
       category: article.category || categories.articles[0]?.name || '',
@@ -134,9 +402,9 @@ export function ArticleManager() {
       featured: article.featured || false,
       status: article.status || 'draft',
       tags: article.tags || [],
-      content: article.content || [],
+      content: contentBlocks || [],
       excerpt: article.excerpt || '',
-      slug: article.slug || '',
+      slug: article.slug || slugify(article.title || ''),
       coverImage: article.coverImage || '',
       images: article.images || [],
       seoTitle: article.seoTitle || '',
@@ -146,12 +414,49 @@ export function ArticleManager() {
     setEditingId(article.id);
     setShowForm(true);
     setActiveTab('content');
+    // Scroll to top of form
+    setTimeout(() => {
+      const formElement = document.querySelector('[data-article-form]');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Also scroll the content area to top
+        const contentArea = formElement.querySelector('.overflow-y-auto');
+        if (contentArea) {
+          contentArea.scrollTop = 0;
+        }
+      }
+    }, 0);
   };
 
   const handleCancel = () => {
     setShowForm(false);
     setEditingId(null);
   };
+
+  const contentHtml = methods.watch('contentHtml' as any) || '';
+  const contentIssues = useMemo(() => {
+    const issues = { links: [] as string[], images: [] as string[] };
+    if (typeof window === 'undefined' || !contentHtml) return issues;
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(contentHtml, 'text/html');
+      doc.querySelectorAll('a').forEach((a) => {
+        const href = a.getAttribute('href') || '';
+        const valid = href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:') || href.startsWith('#');
+        if (!valid) issues.links.push(href || '(empty link)');
+      });
+      doc.querySelectorAll('img').forEach((img) => {
+        const alt = img.getAttribute('alt') || '';
+        const caption = img.getAttribute('title') || '';
+        if (!alt && !caption) {
+          issues.images.push(img.getAttribute('src') || '(missing src)');
+        }
+      });
+    } catch (err) {
+      console.warn('Content issue scan failed', err);
+    }
+    return issues;
+  }, [contentHtml]);
 
   const onSubmit = async (data: ArticleFormData) => {
     try {
@@ -265,6 +570,7 @@ export function ArticleManager() {
       {showForm ? (
         <FormProvider {...methods}>
             <form 
+              data-article-form
               onSubmit={methods.handleSubmit(onSubmit)} 
               className="border border-zinc-700 bg-zinc-900 rounded-3xl flex flex-col"
               style={{ minHeight: '600px', position: 'relative', zIndex: 1 }}
@@ -293,6 +599,9 @@ export function ArticleManager() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {lastSavedAt && (
+                  <span className="text-xs text-zinc-400">Last saved {lastSavedAt}</span>
+                )}
                 <CancelButton onClick={handleCancel}>Cancel</CancelButton>
                 <SaveButton type="submit">Save Changes</SaveButton>
               </div>
@@ -310,7 +619,38 @@ export function ArticleManager() {
                       <label className="block text-xs font-medium text-white mb-2">
                         Body Content <span className="text-red-500">*</span>
                       </label>
-                      <ContentTabWrapper methods={methods} />
+                      {(contentIssues.links.length > 0 || contentIssues.images.length > 0) && (
+                        <div className="mb-3 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-1">
+                          {contentIssues.links.length > 0 && (
+                            <div>
+                              <strong className="text-amber-200">Links to fix:</strong> {contentIssues.links.slice(0, 3).join(', ')}{contentIssues.links.length > 3 ? '…' : ''}
+                            </div>
+                          )}
+                          {contentIssues.images.length > 0 && (
+                            <div>
+                              <strong className="text-amber-200">Images missing alt/caption:</strong> {contentIssues.images.slice(0, 3).join(', ')}{contentIssues.images.length > 3 ? '…' : ''}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <ProArticleEditor
+                        initialBlocks={(() => {
+                          const content = methods.watch('content');
+                          return Array.isArray(content) ? content : [];
+                        })()}
+                        onChange={(blocks, html) => {
+                          methods.setValue('content', blocks || [], { shouldDirty: true, shouldTouch: true });
+                          // Optionally keep raw HTML for future use
+                          methods.setValue('contentHtml' as any, html, { shouldDirty: true, shouldTouch: true });
+
+                          // Auto-estimate read time when content changes
+                          const excerpt = methods.getValues('excerpt') || '';
+                          const estimated = estimateReadTime(blocks || [], excerpt);
+                          if (estimated && methods.getValues('readTime') !== estimated) {
+                            methods.setValue('readTime', estimated, { shouldDirty: true, shouldTouch: true });
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 ) : activeTab === 'basic' ? (

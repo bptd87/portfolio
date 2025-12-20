@@ -21,75 +21,116 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
   const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
   const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
 
+  const cacheKey = (slug: string) => `project-cache-${slug}`;
+
+  const cacheProjectData = (projectData: any) => {
+    if (!projectData) return;
+    const slug = projectData.slug || projectData.id;
+    if (!slug) return;
+    sessionStorage.setItem(cacheKey(slug), JSON.stringify({ ...projectData, slug }));
+  };
+
+  const prefetchProject = (project: any) => {
+    const slug = project?.slug || project?.id;
+    if (!slug) return;
+    if (sessionStorage.getItem(cacheKey(slug))) return;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+
+    fetch(
+      `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${slug}`,
+      {
+        headers: {
+          Authorization: `Bearer ${publicAnonKey}`,
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+      }
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error('prefetch failed');
+        return res.json();
+      })
+      .then((data) => {
+        if (data?.success && data.project) {
+          cacheProjectData(data.project);
+        }
+      })
+      .catch(() => {})
+      .finally(() => clearTimeout(timeout));
+  };
+
+  const setTransitionData = (project: any) => {
+    if (project?.cardImage) {
+      sessionStorage.setItem('transitionImage', project.cardImage);
+      sessionStorage.setItem('transitionFocusPoint', JSON.stringify(project.focusPoint || { x: 50, y: 50 }));
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Fetch categories
-        const categoriesResponse = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/categories/portfolio`,
-          {
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-          }
-        );
+      setLoading(true);
 
-        if (categoriesResponse.ok) {
-          const categoriesData = await categoriesResponse.json();
-          if (categoriesData.success && categoriesData.categories) {
-            setCategories(categoriesData.categories);
-          } else {
-          }
-        } else {
+      // Abort slow requests so we can fall back quickly
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
+      const categoryPromise = fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/categories/portfolio`,
+        {
+          headers: {
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+          signal: controller.signal,
         }
-
-        // Fetch projects
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects`,
-          {
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
+      )
+        .then(async (res) => {
+          if (!res.ok) return;
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.categories)) {
+            setCategories(json.categories);
           }
-        );
+        })
+        .catch(() => {
+          // ignore category errors for speed
+        });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+      const projectPromise = fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects`,
+        {
+          headers: {
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+          signal: controller.signal,
         }
-
-        const data = await response.json();
-        if (data.success && data.projects && data.projects.length > 0) {
-          // Filter out unpublished projects (drafts) and map fields
-          const publishedProjects = data.projects
-            .filter((p: any) => p.published !== false)
-            .map((p: any) => ({
-              ...p,
-              focusPoint: p.focus_point,
-              cardImage: p.card_image || p.cardImage,
-              coverImage: p.cover_image || p.coverImage
-            }));
-          if (publishedProjects.length > 0) {
+      )
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          const data = await res.json();
+          if (data.success && data.projects && data.projects.length > 0) {
+            const publishedProjects = data.projects
+              .filter((p: any) => p.published !== false)
+              .map((p: any) => ({
+                ...p,
+                focusPoint: p.focus_point,
+                cardImage: p.card_image || p.cardImage,
+                coverImage: p.cover_image || p.coverImage,
+              }));
+            setProjects(publishedProjects);
+            return;
           }
-          setProjects(publishedProjects);
-        } else {
-          // Fallback to hardcoded projects
-          const convertedProjects = hardcodedProjects.map(p => ({
-            ...p,
-            slug: p.id,
-          }));
+          const convertedProjects = hardcodedProjects.map((p) => ({ ...p, slug: p.id }));
           setProjects(convertedProjects);
-        }
-      } catch (err) {
-        // Fallback to hardcoded projects
-        const convertedProjects = hardcodedProjects.map(p => ({
-          ...p,
-          slug: p.id,
-        }));
-        setProjects(convertedProjects);
-      } finally {
-        setLoading(false);
-      }
+        })
+        .catch(() => {
+          const convertedProjects = hardcodedProjects.map((p) => ({ ...p, slug: p.id }));
+          setProjects(convertedProjects);
+        });
+
+      await Promise.allSettled([categoryPromise, projectPromise]);
+      clearTimeout(timeout);
+      setLoading(false);
     };
 
     fetchData();
@@ -207,6 +248,12 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
   const handleProjectClick = (index: number) => {
     setCurrentProjectIndex(index);
     scrollToProject(index);
+  };
+
+  const handleNavigateToProject = (project: any) => {
+    if (!project) return;
+    setTransitionData(project);
+    onNavigate(`project/${project.slug || project.id}`);
   };
 
 
@@ -404,7 +451,8 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.4, delay: index * 0.03 }}
-                      onClick={() => onNavigate(`project/${project.slug || project.id}`)}
+                      onMouseEnter={() => prefetchProject(project)}
+                      onClick={() => handleNavigateToProject(project)}
                       className={`lg:${bentoSize} cursor-pointer group relative overflow-hidden rounded-2xl bg-neutral-900`}
                     >
                       {/* Image - fills entire card */}
@@ -498,6 +546,7 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
                 <motion.button
                   key={project.id}
                   onClick={() => handleProjectClick(index)}
+                  onMouseEnter={() => prefetchProject(project)}
                   className={`flex-shrink-0 relative overflow-hidden rounded-md transition-all duration-500 ease-out snap-start ${index === currentProjectIndex
                     ? 'w-48 h-32 shadow-2xl shadow-black/50 z-10'
                     : 'w-32 h-20 opacity-40 hover:opacity-100 hover:w-36 hover:h-24 grayscale hover:grayscale-0'

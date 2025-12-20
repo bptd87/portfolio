@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { BookOpen, Search, X } from 'lucide-react';
 import { BlogCard } from '../components/shared/BlogCard';
+import { blogPosts as staticBlogPosts } from '../data/blog-posts';
 import { apiCall } from '../utils/api';
 import { SkeletonBlogCard } from '../components/ui/skeleton';
 
@@ -50,14 +51,81 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
 
         const result = await response.json();
         console.log('📰 Articles API response:', result);
-        if (result.success && result.posts) {
+        if (result.success && Array.isArray(result.posts) && result.posts.length > 0) {
           console.log(`✅ Loaded ${result.posts.length} articles`);
-          setBlogPosts(result.posts);
+          // Normalize fields so cover images and slugs are consistently available
+          const normalized = result.posts.map((p: any) => {
+            const inferFromImagesArray = Array.isArray(p.images) && p.images.length > 0
+              ? (typeof p.images[0] === 'string' ? p.images[0] : p.images[0]?.url)
+              : '';
+            const inferFromContentBlocks = Array.isArray(p.content)
+              ? (() => {
+                  const imgBlock = p.content.find((blk: any) => blk?.type === 'image' && (blk?.content || blk?.url));
+                  return imgBlock ? (imgBlock.content || imgBlock.url) : '';
+                })()
+              : '';
+            const candidates = [
+              p.coverImage,
+              p.cover_image,
+              p.ogImage,
+              p.thumbnail,
+              p.image,
+              p.imageUrl,
+              p.image_url,
+              p.cover_image_url,
+              p.featuredImage,
+              p.featured_image,
+              p.featured_image_url,
+              p.heroImage,
+              p.hero_image,
+              p.photo,
+              p.cover,
+              p.media?.url,
+              inferFromImagesArray,
+              inferFromContentBlocks,
+            ];
+            const coverImage = candidates.find((v: any) => typeof v === 'string' && v.length > 0) || '';
+            return {
+              ...p,
+              coverImage,
+              slug: p.slug || p.id,
+              date: p.date || p.createdAt || p.created_at || new Date().toISOString().split('T')[0],
+            };
+          });
+          const publishedOnly = normalized.filter((p: any) => !p.status || p.status === 'published');
+          setBlogPosts(publishedOnly);
         } else {
-          console.warn('❌ No posts in API response');
+          console.warn('❌ No posts in API response, falling back to static blog-posts');
+          const fallback = staticBlogPosts.map(p => ({
+            id: p.id,
+            slug: p.id,
+            title: p.title,
+            category: p.category,
+            date: p.date,
+            readTime: p.readTime,
+            excerpt: p.excerpt,
+            featured: p.featured,
+            coverImage: p.coverImage,
+            tags: p.tags,
+          }));
+          setBlogPosts(fallback);
         }
       } catch (err) {
         console.error('❌ Error fetching articles:', err);
+        // Error fallback to static posts
+        const fallback = staticBlogPosts.map(p => ({
+          id: p.id,
+          slug: p.id,
+          title: p.title,
+          category: p.category,
+          date: p.date,
+          readTime: p.readTime,
+          excerpt: p.excerpt,
+          featured: p.featured,
+          coverImage: p.coverImage,
+          tags: p.tags,
+        }));
+        setBlogPosts(fallback);
       } finally {
         setLoading(false);
       }

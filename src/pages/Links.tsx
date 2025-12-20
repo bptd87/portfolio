@@ -137,7 +137,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
       // --- Articles ---
       if (postsRes.ok) {
         const postsData = await postsRes.json();
-        const posts = postsData.posts || [];
+        const posts = (postsData.posts || []).filter((p: any) => !p.status || p.status === 'published');
         posts.forEach((post: any) => {
           dashboardItems.push({
             id: `article-${post.id}`,
