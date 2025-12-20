@@ -112,6 +112,16 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-motion': ['framer-motion'],  
+            'vendor-icons': ['lucide-react'],
+          },
+        },
+      },
       chunkSizeWarningLimit: 2000,
     },
     server: {
