@@ -4,8 +4,7 @@
   import path from 'path';
 
   const vendorGroups: Record<string, string[]> = {
-    'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-    'ui-vendor': ['framer-motion', 'lucide-react', 'vaul', 'sonner', 'clsx', 'tailwind-merge'],
+    'react-vendor': ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'lucide-react', 'motion'],
     'radix-vendor': [
       '@radix-ui/react-accordion',
       '@radix-ui/react-alert-dialog',
