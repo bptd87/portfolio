@@ -644,6 +644,12 @@
     min-height: -webkit-fill-available;
     overflow-y: auto;
     overflow-x: hidden;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  body::-webkit-scrollbar {
+    display: none !important;
   }
 
   /* Overlay scrollbar when supported to avoid gutter */

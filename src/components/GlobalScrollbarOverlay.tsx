@@ -70,22 +70,22 @@ export function GlobalScrollbarOverlay() {
   const maxScroll = Math.max(1, metrics.scrollHeight - metrics.clientHeight);
   const thumbTop = Math.floor((metrics.scrollTop / maxScroll) * (window.innerHeight - thumbHeight));
 
-  // Theme-aware colors
+  // Frosted glass - BRIGHT white in dark mode for visibility
   const trackBg = isDark 
-    ? 'rgba(255,255,255,0.12)' 
-    : 'rgba(0,0,0,0.08)';
+    ? 'rgba(255,255,255,0.15)' 
+    : 'rgba(255,255,255,0.15)';
   const trackBorder = isDark
-    ? 'rgba(255,255,255,0.15)'
-    : 'rgba(0,0,0,0.1)';
+    ? 'rgba(255,255,255,0.35)'
+    : 'rgba(0,0,0,0.2)';
   const thumbBg = isDark
-    ? 'rgba(255,255,255,0.45)'
-    : 'rgba(0,0,0,0.3)';
+    ? 'rgba(255,255,255,0.95)'  // Almost solid white
+    : 'rgba(0,0,0,0.7)';
   const thumbBorder = isDark
-    ? 'rgba(255,255,255,0.25)'
-    : 'rgba(0,0,0,0.15)';
+    ? 'rgba(255,255,255,1)'
+    : 'rgba(0,0,0,0.85)';
   const thumbShadow = isDark
-    ? '0 2px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2)'
-    : '0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)';
+    ? '0 4px 20px rgba(255,255,255,0.4), 0 0 0 1px rgba(255,255,255,0.5), inset 0 1px 2px rgba(255,255,255,0.6)'
+    : '0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.8), inset 0 1px 2px rgba(255,255,255,0.9)';
 
   return (
     <div
@@ -93,10 +93,10 @@ export function GlobalScrollbarOverlay() {
       className="hidden md:block"
       style={{
         position: 'fixed',
-        top: 12,
-        bottom: 12,
-        right: 10,
-        width: 8,
+        top: 0,
+        bottom: 0,
+        right: 0,
+        width: 10,
         pointerEvents: 'none',
         zIndex: 99999,
       }}
@@ -104,24 +104,31 @@ export function GlobalScrollbarOverlay() {
       <div
         style={{
           position: 'absolute',
-          inset: 0,
-          borderRadius: 8,
+          top: 12,
+          bottom: 12,
+          right: 2,
+          width: 10,
+          borderRadius: 10,
           background: trackBg,
-          backdropFilter: 'blur(10px)',
+          backdropFilter: 'blur(16px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(16px) saturate(180%)',
           border: `1px solid ${trackBorder}`,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
         }}
       />
       <div
         style={{
           position: 'absolute',
-          top: thumbTop,
-          right: 0,
-          width: 8,
+          top: 12 + thumbTop,
+          right: 2,
+          width: 10,
           height: thumbHeight,
-          borderRadius: 8,
+          borderRadius: 10,
           background: thumbBg,
+          backdropFilter: 'blur(10px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(10px) saturate(180%)',
           boxShadow: thumbShadow,
-          transition: 'top 50ms linear',
+          transition: 'top 50ms linear, background 0.2s ease',
           border: `1px solid ${thumbBorder}`,
         }}
       />
