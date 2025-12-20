@@ -70,14 +70,7 @@ export function Home({ onNavigate }: HomeProps) {
     }, 300);
   };
 
-  // Hide scrollbar on home container
-  useEffect(() => {
-    const homeContainer = document.getElementById('home-scroll-container');
-    if (homeContainer) {
-      homeContainer.style.setProperty('scrollbar-width', 'none', 'important');
-      homeContainer.style.setProperty('-ms-overflow-style', 'none', 'important');
-    }
-  }, []);
+  // Scrollbar is now styled globally with transparent overlay
 
   useEffect(() => {
     const fetchData = async () => {
@@ -210,7 +203,7 @@ export function Home({ onNavigate }: HomeProps) {
   return (
     <div
       id="home-scroll-container"
-      className={`relative h-screen overflow-x-hidden bg-black text-white selection:bg-white selection:text-black snap-y snap-mandatory no-scrollbar ${!showScrollbar ? "overflow-hidden hero-animating" : "overflow-y-auto"
+      className={`relative h-screen overflow-x-hidden bg-black text-white selection:bg-white selection:text-black snap-y snap-mandatory ${!showScrollbar ? "overflow-hidden hero-animating" : "overflow-y-auto"
         }`}
     >
       <SEO
