@@ -112,38 +112,7 @@
     build: {
       target: 'esnext',
       outDir: 'build',
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            for (const [chunkName, deps] of Object.entries(vendorGroups)) {
-              if (deps.some((pkg) => matchesPkg(id, pkg))) {
-                return chunkName;
-              }
-            }
-
-            if (matchesPkg(id, 'jspdf') || matchesPkg(id, 'html2canvas')) {
-              return 'pdf-export';
-            }
-
-            if (matchesPkg(id, '@tiptap') || matchesPkg(id, 'prosemirror-model') || matchesPkg(id, 'prosemirror-state') || matchesPkg(id, 'prosemirror-view')) {
-              return 'editor-vendor';
-            }
-
-            if (matchesSrc(id, 'components/admin') || matchesSrc(id, 'pages/admin')) {
-              return 'admin-app';
-            }
-
-            if (
-              matchesSrc(id, 'components/editor') ||
-              matchesSrc(id, 'pages/scenic-studio') ||
-              matchesSrc(id, 'pages/ScenicStudio')
-            ) {
-              return 'editor-app';
-            }
-          },
-        },
-      },
-      chunkSizeWarningLimit: 1600,
+      chunkSizeWarningLimit: 2000,
     },
     server: {
       port: 3000,
