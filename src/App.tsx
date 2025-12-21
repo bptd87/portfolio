@@ -7,7 +7,6 @@ import { Footer } from './components/Footer';
 import { PageLoader } from './components/PageLoader';
 import { SEO } from './components/SEO';
 import { PAGE_METADATA } from './utils/seo/metadata';
-import { GlobalScrollbarOverlay } from './components/GlobalScrollbarOverlay';
 
 import { Toaster } from 'sonner';
 
@@ -260,7 +259,6 @@ export default function App() {
       window.history.pushState({}, '', targetPath);
     }
   };
-            <GlobalScrollbarOverlay />
 
   // Handle Browser Back/Forward Buttons
   useEffect(() => {
