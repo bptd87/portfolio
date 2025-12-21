@@ -30,18 +30,18 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
 
   return (
     <>
-      {/* Minimal Navbar */}
+      {/* Minimal Navbar - No glass, clean design */}
       <nav
         ref={navRef}
         className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${
           isDark
-            ? 'bg-neutral-950/95 border-neutral-800/30'
-            : 'bg-white/95 border-neutral-200/30'
-        } backdrop-blur-sm`}
+            ? 'bg-neutral-950 border-neutral-800/30'
+            : 'bg-white border-neutral-200/30'
+        }`}
       >
         <div className="mx-auto px-4 md:px-8 max-w-7xl">
           <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Mobile: Hamburger Menu */}
+            {/* Mobile: Hamburger Menu (md:hidden) */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 hover:opacity-60 transition-opacity"
@@ -54,7 +54,7 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
               )}
             </button>
 
-            {/* Desktop: Logo Left */}
+            {/* Logo Left (Desktop only) */}
             <div className="hidden md:block flex-shrink-0">
               <button
                 onClick={() => handleNavClick('home')}
@@ -69,7 +69,7 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
               </button>
             </div>
 
-            {/* Mobile: Center Logo */}
+            {/* Logo Center (Mobile only) */}
             <button
               onClick={() => handleNavClick('home')}
               className="md:hidden flex-1 flex justify-center items-center group transition-all duration-300"
@@ -82,7 +82,7 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
               />
             </button>
 
-            {/* Desktop: Center Tabs - MINIMAL - Tab turns blue on hover */}
+            {/* Desktop: Tabs Centered (NO glass, turns blue on hover) */}
             <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
               {NAVIGATION.tabs.map((tab) => (
                 <div
@@ -91,10 +91,10 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
                   onMouseEnter={() => hasSubmenu(tab) && setHoveredTab(tab.label)}
                   onMouseLeave={() => setHoveredTab(null)}
                 >
-                  {/* Tab Button */}
+                  {/* Tab Button - turns blue on hover if has submenu */}
                   <button
                     onClick={() => !hasSubmenu(tab) && handleNavClick(tab.page)}
-                    className={`font-pixel text-xs tracking-[0.15em] transition-all duration-200 pb-2 ${
+                    className={`font-pixel text-xs tracking-[0.15em] transition-all duration-200 ${
                       hoveredTab === tab.label && hasSubmenu(tab)
                         ? 'text-blue-500'
                         : currentPage === tab.page || currentPage?.startsWith(tab.page)
@@ -109,7 +109,7 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
                     {tab.label}
                   </button>
 
-                  {/* Submenu - Glass Effect on Hover */}
+                  {/* Submenu - Glass effect ONLY on hover */}
                   {hasSubmenu(tab) && hoveredTab === tab.label && (
                     <div
                       className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 min-w-[200px] rounded-lg backdrop-blur-xl border shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${
@@ -137,7 +137,7 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
               ))}
             </div>
 
-            {/* Right: Controls */}
+            {/* Right: Controls (Search + Theme) */}
             <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
               <button
                 onClick={() => setSearchOpen(true)}
@@ -161,7 +161,7 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
             </div>
           </div>
 
-          {/* Mobile Menu - Minimal */}
+          {/* Mobile Menu - Only on mobile */}
           {mobileMenuOpen && (
             <div className={`md:hidden pb-4 border-t ${
               isDark ? 'border-neutral-800/30' : 'border-neutral-200/30'

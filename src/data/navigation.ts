@@ -27,10 +27,6 @@ export interface NavigationStructure {
 export const NAVIGATION: NavigationStructure = {
   tabs: [
     {
-      label: 'HOME',
-      page: 'home',
-    },
-    {
       label: 'PORTFOLIO',
       page: 'portfolio',
       submenu: [
