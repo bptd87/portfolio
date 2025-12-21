@@ -2,7 +2,7 @@ import { useState, lazy, Suspense, useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from './components/ThemeProvider';
-import { Navbar } from './components/Navbar';
+import { NavbarV2 } from './components/NavbarV2';
 import { Footer } from './components/Footer';
 import { PageLoader } from './components/PageLoader';
 import { SEO } from './components/SEO';
@@ -376,11 +376,9 @@ export default function App() {
         <div className={`transition-colors duration-300 w-full overflow-x-hidden ${currentPage === 'home' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
           <SEO metadata={seoData.metadata} structuredData={seoData.structuredData} />
           {currentPage !== 'admin' && currentPage !== 'links' && (
-            <Navbar
+            <NavbarV2
               currentPage={currentPage === 'project' ? 'portfolio' : currentPage === 'blog' ? 'articles' : currentPage === 'scenic-insights' ? 'articles' : currentPage === 'tutorial' ? 'scenic-studio' : currentPage}
               onNavigate={handleNavigation}
-              breadcrumb={getBreadcrumb()}
-              transparent={currentPage === 'home'}
             />
           )}
           <main key={pageKey} className={currentPage === 'home' ? 'h-full' : ''}>
