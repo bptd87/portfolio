@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Menu, X, Moon, Sun, Search } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { NAVIGATION, hasSubmenu } from '../data/navigation';
@@ -15,16 +15,15 @@ const LIGHT_LOGO = 'https://zuycsuajiuqsvopiioer.supabase.co/storage/v1/object/p
 export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [expandedTab, setExpandedTab] = useState<string | null>(null);
+  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   const isDark = theme === 'dark';
 
-  // Close mobile menu when navigating
   const handleNavClick = (page: string, filter?: string) => {
     onNavigate(page, filter);
     setMobileMenuOpen(false);
-    setExpandedTab(null);
+    setHoveredTab(null);
   };
 
   const logo = isDark ? DARK_LOGO : LIGHT_LOGO;
@@ -70,7 +69,7 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
               </button>
             </div>
 
-            {/* Mobile/Tablet: Center Logo */}
+            {/* Mobile: Center Logo */}
             <button
               onClick={() => handleNavClick('home')}
               className="md:hidden flex-1 flex justify-center items-center group transition-all duration-300"
@@ -83,18 +82,22 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
               />
             </button>
 
-            {/* Desktop: Center Tabs */}
+            {/* Desktop: Center Tabs - MINIMAL - Tab turns blue on hover */}
             <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
               {NAVIGATION.tabs.map((tab) => (
-                <div key={tab.label} className="relative">
+                <div
+                  key={tab.label}
+                  className="relative"
+                  onMouseEnter={() => hasSubmenu(tab) && setHoveredTab(tab.label)}
+                  onMouseLeave={() => setHoveredTab(null)}
+                >
+                  {/* Tab Button */}
                   <button
                     onClick={() => !hasSubmenu(tab) && handleNavClick(tab.page)}
-                    onMouseEnter={() =>
-                      hasSubmenu(tab) && setExpandedTab(tab.label)
-                    }
-                    onMouseLeave={() => setExpandedTab(null)}
-                    className={`font-pixel text-xs tracking-[0.15em] transition-all duration-200 ${
-                      currentPage === tab.page || currentPage?.startsWith(tab.page)
+                    className={`font-pixel text-xs tracking-[0.15em] transition-all duration-200 pb-2 ${
+                      hoveredTab === tab.label && hasSubmenu(tab)
+                        ? 'text-blue-500'
+                        : currentPage === tab.page || currentPage?.startsWith(tab.page)
                         ? isDark
                           ? 'text-white'
                           : 'text-neutral-900'
@@ -106,12 +109,10 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
                     {tab.label}
                   </button>
 
-                  {/* Submenu on Hover - Glass Effect */}
-                  {hasSubmenu(tab) && expandedTab === tab.label && (
+                  {/* Submenu - Glass Effect on Hover */}
+                  {hasSubmenu(tab) && hoveredTab === tab.label && (
                     <div
-                      onMouseEnter={() => setExpandedTab(tab.label)}
-                      onMouseLeave={() => setExpandedTab(null)}
-                      className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 min-w-[220px] rounded-lg backdrop-blur-xl border shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${
+                      className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 min-w-[200px] rounded-lg backdrop-blur-xl border shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${
                         isDark
                           ? 'bg-neutral-900/80 border-neutral-800/50'
                           : 'bg-white/80 border-neutral-200/50'
@@ -120,9 +121,7 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
                       {tab.submenu.map((item) => (
                         <button
                           key={item.label}
-                          onClick={() =>
-                            handleNavClick(item.page, item.slug)
-                          }
+                          onClick={() => handleNavClick(item.page, item.slug)}
                           className={`w-full px-4 py-2.5 text-left text-xs font-pixel tracking-[0.12em] transition-all duration-150 ${
                             isDark
                               ? 'text-white/70 hover:text-white hover:bg-white/10'
@@ -138,9 +137,8 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
               ))}
             </div>
 
-            {/* Right: Controls (Search + Theme) */}
+            {/* Right: Controls */}
             <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
-              {/* Search Icon */}
               <button
                 onClick={() => setSearchOpen(true)}
                 className="p-2 hover:opacity-60 transition-opacity"
@@ -149,7 +147,6 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
                 <Search className="w-5 h-5" />
               </button>
 
-              {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
                 className="p-2 hover:opacity-60 transition-opacity"
@@ -164,7 +161,7 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
             </div>
           </div>
 
-          {/* Mobile Menu - Only shows on mobile */}
+          {/* Mobile Menu - Minimal */}
           {mobileMenuOpen && (
             <div className={`md:hidden pb-4 border-t ${
               isDark ? 'border-neutral-800/30' : 'border-neutral-200/30'
@@ -176,8 +173,8 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
                       <>
                         <button
                           onClick={() =>
-                            setExpandedTab(
-                              expandedTab === tab.label ? null : tab.label
+                            setHoveredTab(
+                              hoveredTab === tab.label ? null : tab.label
                             )
                           }
                           className={`w-full px-4 py-2 text-left font-pixel text-xs tracking-[0.12em] rounded transition-all duration-200 flex items-center justify-between ${
@@ -189,14 +186,14 @@ export function NavbarV2({ onNavigate, currentPage }: NavbarV2Props) {
                           {tab.label}
                           <span
                             className={`transition-transform duration-300 ${
-                              expandedTab === tab.label ? 'rotate-180' : ''
+                              hoveredTab === tab.label ? 'rotate-180' : ''
                             }`}
                           >
                             ▼
                           </span>
                         </button>
 
-                        {expandedTab === tab.label && (
+                        {hoveredTab === tab.label && (
                           <div className="ml-4 space-y-1 mt-1">
                             {tab.submenu.map((item) => (
                               <button
