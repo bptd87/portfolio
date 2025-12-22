@@ -32,8 +32,7 @@ export function AITagGenerator({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({
             imageUrl,

@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FileText, Upload, Trash2, Download, ExternalLink, AlertCircle, CheckCircle, Loader, Plus, Edit2, X, Save, ChevronUp, ChevronDown } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { supabase } from '../../utils/supabase/client';
 import { PrimaryButton, SecondaryButton } from './AdminButtons';
 import { AdminTokens } from '../../styles/admin-tokens';
 
@@ -19,16 +19,16 @@ interface CVData {
   website?: string;
 
   // Productions (JSON arrays)
-  upcomingProductions?: Array<{production: string; director: string; company: string; year: string}>;
-  recentProductions?: Array<{production: string; director: string; company: string; year: string}>;
-  assistantDesignProductions?: Array<{production: string; designer: string; company: string; year: string}>;
-  
+  upcomingProductions?: Array<{ production: string; director: string; company: string; year: string }>;
+  recentProductions?: Array<{ production: string; director: string; company: string; year: string }>;
+  assistantDesignProductions?: Array<{ production: string; designer: string; company: string; year: string }>;
+
   // Education
-  education?: Array<{degree: string; institution: string; year: string; details?: string}>;
-  
+  education?: Array<{ degree: string; institution: string; year: string; details?: string }>;
+
   // Skills & Specialties
   skills?: string[];
-  
+
   // Resume PDF
   resumeUrl?: string;
   resumeFilename?: string;
@@ -42,7 +42,7 @@ export function ResumeManager() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'contact' | 'productions' | 'education' | 'pdf'>('contact');
-  const adminToken = sessionStorage.getItem('admin_token');
+
 
   useEffect(() => {
     loadResumeData();
@@ -51,36 +51,32 @@ export function ResumeManager() {
   const loadResumeData = async () => {
     try {
       setLoading(true);
-      
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/settings`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
-        }
-      );
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.settings) {
-          setCVData({
-            phone: data.settings.phone || '',
-            email: data.settings.email || '',
-            location: data.settings.location || '',
-            website: data.settings.website || '',
-            upcomingProductions: data.settings.upcomingProductions || [],
-            recentProductions: data.settings.recentProductions || [],
-            assistantDesignProductions: data.settings.assistantDesignProductions || [],
-            education: data.settings.education || [],
-            skills: data.settings.skills || [],
-            resumeUrl: data.settings.resumeUrl,
-            resumeFilename: data.settings.resumeFilename,
-            lastUpdated: data.settings.resumeLastUpdated,
-          });
-        }
+      const { data, error } = await supabase
+        .from('site_configuration')
+        .select('value')
+        .eq('key', 'site_settings')
+        .single();
+
+      if (data?.value) {
+        const settings = data.value as any;
+        setCVData({
+          phone: settings.phone || '',
+          email: settings.email || '',
+          location: settings.location || '',
+          website: settings.website || '',
+          upcomingProductions: settings.upcomingProductions || [],
+          recentProductions: settings.recentProductions || [],
+          assistantDesignProductions: settings.assistantDesignProductions || [],
+          education: settings.education || [],
+          skills: settings.skills || [],
+          resumeUrl: settings.resumeUrl,
+          resumeFilename: settings.resumeFilename,
+          lastUpdated: settings.resumeLastUpdated,
+        });
       }
     } catch (error) {
+      console.error('Error loading CV data:', error);
       showMessage('error', 'Failed to load CV information');
     } finally {
       setLoading(false);
@@ -106,64 +102,60 @@ export function ResumeManager() {
     try {
       setUploading(true);
 
-      if (!adminToken) {
-        alert('You are not logged in. Please log in to the admin panel first.');
-        return;
-      }
+      // Upload to Supabase Storage
+      const timestamp = Date.now();
+      const filename = `resume_${timestamp}.pdf`;
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('bucket', 'resume');
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('resume')
+        .upload(filename, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
-      const uploadResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/upload`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-          body: formData,
-        }
-      );
+      if (uploadError) throw uploadError;
 
-      if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
-      }
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('resume')
+        .getPublicUrl(filename);
 
-      const { url } = await uploadResponse.json();
+      const url = urlData.publicUrl;
+
+      // Load current settings first, then merge with resume data
+      const { data: currentData } = await supabase
+        .from('site_configuration')
+        .select('value')
+        .eq('key', 'site_settings')
+        .single();
+
+      const currentSettings = currentData?.value || {};
 
       // Save resume URL to settings
-      const saveResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/settings`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-          body: JSON.stringify({
+      const { error: saveError } = await supabase
+        .from('site_configuration')
+        .upsert({
+          key: 'site_settings',
+          value: {
+            ...currentSettings,
             resumeUrl: url,
             resumeFilename: file.name,
             resumeLastUpdated: new Date().toISOString(),
-          }),
-        }
-      );
+          }
+        });
 
-      if (saveResponse.ok) {
-        setCVData(prev => ({
-          ...prev,
-          resumeUrl: url,
-          resumeFilename: file.name,
-          lastUpdated: new Date().toISOString(),
-        }));
-        showMessage('success', 'Resume uploaded successfully!');
-      } else {
-        showMessage('error', 'Failed to save resume information');
-      }
-    } catch (error) {
-      showMessage('error', 'Failed to upload resume');
+      if (saveError) throw saveError;
+
+      setCVData(prev => ({
+        ...prev,
+        resumeUrl: url,
+        resumeFilename: file.name,
+        lastUpdated: new Date().toISOString(),
+      }));
+      showMessage('success', 'Resume uploaded successfully!');
+    } catch (error: any) {
+      console.error('Error uploading resume:', error);
+      showMessage('error', 'Failed to upload resume: ' + error.message);
     } finally {
       setUploading(false);
     }
@@ -173,41 +165,40 @@ export function ResumeManager() {
     if (!confirm('Delete current resume? This cannot be undone.')) return;
 
     try {
-      if (!adminToken) {
-        alert('You are not logged in.');
-        return;
-      }
+      // Load current settings first
+      const { data: currentData } = await supabase
+        .from('site_configuration')
+        .select('value')
+        .eq('key', 'site_settings')
+        .single();
 
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/settings`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-          body: JSON.stringify({
+      const currentSettings = currentData?.value || {};
+
+      // Update settings to remove resume references
+      const { error } = await supabase
+        .from('site_configuration')
+        .upsert({
+          key: 'site_settings',
+          value: {
+            ...currentSettings,
             resumeUrl: null,
             resumeFilename: null,
             resumeLastUpdated: null,
-          }),
-        }
-      );
+          }
+        });
 
-      if (response.ok) {
-        setCVData(prev => ({
-          ...prev,
-          resumeUrl: undefined,
-          resumeFilename: undefined,
-          lastUpdated: undefined,
-        }));
-        showMessage('success', 'Resume deleted');
-      } else {
-        showMessage('error', 'Failed to delete resume');
-      }
-    } catch (error) {
-      showMessage('error', 'Failed to delete resume');
+      if (error) throw error;
+
+      setCVData(prev => ({
+        ...prev,
+        resumeUrl: undefined,
+        resumeFilename: undefined,
+        lastUpdated: undefined,
+      }));
+      showMessage('success', 'Resume deleted');
+    } catch (error: any) {
+      console.error('Error deleting resume:', error);
+      showMessage('error', 'Failed to delete resume: ' + error.message);
     }
   };
 
@@ -218,38 +209,36 @@ export function ResumeManager() {
 
   const handleSaveContactInfo = async () => {
     try {
-      if (!adminToken) {
-        alert('You are not logged in.');
-        return;
-      }
-
       setSaving(true);
 
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/settings`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-          body: JSON.stringify({
+      // Load current settings first
+      const { data: currentData } = await supabase
+        .from('site_configuration')
+        .select('value')
+        .eq('key', 'site_settings')
+        .single();
+
+      const currentSettings = currentData?.value || {};
+
+      const { error } = await supabase
+        .from('site_configuration')
+        .upsert({
+          key: 'site_settings',
+          value: {
+            ...currentSettings,
             phone: cvData.phone,
             email: cvData.email,
             location: cvData.location,
             website: cvData.website,
-          }),
-        }
-      );
+          }
+        });
 
-      if (response.ok) {
-        showMessage('success', 'Contact information saved successfully!');
-      } else {
-        showMessage('error', 'Failed to save contact information');
-      }
-    } catch (error) {
-      showMessage('error', 'Failed to save contact information');
+      if (error) throw error;
+
+      showMessage('success', 'Contact information saved successfully!');
+    } catch (error: any) {
+      console.error('Error saving contact info:', error);
+      showMessage('error', 'Failed to save contact information: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -316,7 +305,7 @@ export function ResumeManager() {
   const handleMoveProduction = (type: 'recent' | 'assistant' | 'upcoming', idx: number, direction: 'up' | 'down') => {
     setCVData(prev => {
       const newIdx = direction === 'up' ? idx - 1 : idx + 1;
-      
+
       if (type === 'recent') {
         const arr = [...(prev.recentProductions || [])];
         if (newIdx < 0 || newIdx >= arr.length) return prev;
@@ -338,34 +327,35 @@ export function ResumeManager() {
 
   const handleSaveProductions = async () => {
     try {
-      if (!adminToken) {
-        alert('You are not logged in.');
-        return;
-      }
       setSaving(true);
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/settings`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-          body: JSON.stringify({
+
+      // Load current settings first
+      const { data: currentData } = await supabase
+        .from('site_configuration')
+        .select('value')
+        .eq('key', 'site_settings')
+        .single();
+
+      const currentSettings = currentData?.value || {};
+
+      const { error } = await supabase
+        .from('site_configuration')
+        .upsert({
+          key: 'site_settings',
+          value: {
+            ...currentSettings,
             upcomingProductions: cvData.upcomingProductions,
             recentProductions: cvData.recentProductions,
             assistantDesignProductions: cvData.assistantDesignProductions,
-          }),
-        }
-      );
-      if (response.ok) {
-        showMessage('success', 'Productions saved successfully!');
-      } else {
-        showMessage('error', 'Failed to save productions');
-      }
-    } catch (error) {
-      showMessage('error', 'Failed to save productions');
+          }
+        });
+
+      if (error) throw error;
+
+      showMessage('success', 'Productions saved successfully!');
+    } catch (error: any) {
+      console.error('Error saving productions:', error);
+      showMessage('error', 'Failed to save productions: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -374,10 +364,6 @@ export function ResumeManager() {
   // One-click legacy import
   const handleImportLegacyProductions = async () => {
     try {
-      if (!adminToken) {
-        alert('You are not logged in.');
-        return;
-      }
       if (!window.confirm('Import all 41 legacy productions? This replaces current lists.')) return;
       setSaving(true);
 
@@ -439,29 +425,30 @@ export function ResumeManager() {
         assistantDesignProductions
       }));
 
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/settings`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-          body: JSON.stringify({
+      // Load current settings first
+      const { data: currentData } = await supabase
+        .from('site_configuration')
+        .select('value')
+        .eq('key', 'site_settings')
+        .single();
+
+      const currentSettings = currentData?.value || {};
+
+      const { error } = await supabase
+        .from('site_configuration')
+        .upsert({
+          key: 'site_settings',
+          value: {
+            ...currentSettings,
             upcomingProductions,
             recentProductions,
             assistantDesignProductions
-          }),
-        }
-      );
+          }
+        });
 
-      if (response.ok) {
-        showMessage('success', 'Legacy productions imported successfully!');
-      } else {
-        const txt = await response.text();
-        showMessage('error', 'Failed to import legacy productions');
-      }
+      if (error) throw error;
+
+      showMessage('success', 'Legacy productions imported successfully!');
     } catch (e) {
       showMessage('error', 'Import failed');
     } finally {
@@ -488,11 +475,10 @@ export function ResumeManager() {
       {/* Message Banner */}
       {message && (
         <div
-          className={`mb-6 px-4 py-3 rounded-3xl border flex items-center gap-3 ${
-            message.type === 'success'
-              ? 'bg-green-500/10 border-green-500/30 text-green-400'
-              : 'bg-red-500/10 border-red-500/30 text-red-400'
-          }`}
+          className={`mb-6 px-4 py-3 rounded-3xl border flex items-center gap-3 ${message.type === 'success'
+            ? 'bg-green-500/10 border-green-500/30 text-green-400'
+            : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}
         >
           {message.type === 'success' ? (
             <CheckCircle className="w-5 h-5" />
@@ -513,11 +499,10 @@ export function ResumeManager() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            className={`px-4 py-3 text-sm tracking-wider uppercase transition-colors ${
-              activeTab === tab.id
-                ? `${AdminTokens.text.primary} border-b-2 border-blue-500`
-                : `${AdminTokens.text.secondary} hover:text-white`
-            }`}
+            className={`px-4 py-3 text-sm tracking-wider uppercase transition-colors ${activeTab === tab.id
+              ? `${AdminTokens.text.primary} border-b-2 border-blue-500`
+              : `${AdminTokens.text.secondary} hover:text-white`
+              }`}
           >
             {tab.label}
           </button>
@@ -528,7 +513,7 @@ export function ResumeManager() {
       {activeTab === 'contact' && (
         <div className={AdminTokens.card.base}>
           <h3 className="text-lg text-white mb-6">Contact Information</h3>
-          
+
           <div className="space-y-4">
             <div>
               <label className={AdminTokens.text.secondary + ' block mb-2'}>
@@ -626,15 +611,15 @@ export function ResumeManager() {
                   <tr key={idx} className={`border-b ${AdminTokens.border.disabled}`}>
                     <td className="p-2">
                       <div className="flex flex-col gap-1">
-                        <button 
-                          onClick={() => handleMoveProduction('upcoming', idx, 'up')} 
+                        <button
+                          onClick={() => handleMoveProduction('upcoming', idx, 'up')}
                           disabled={idx === 0}
                           className={`${AdminTokens.text.accent} hover:text-blue-600 ${AdminTokens.text.disabled}`}
                         >
                           <ChevronUp className="w-4 h-4" />
                         </button>
-                        <button 
-                          onClick={() => handleMoveProduction('upcoming', idx, 'down')} 
+                        <button
+                          onClick={() => handleMoveProduction('upcoming', idx, 'down')}
                           disabled={idx === (cvData.upcomingProductions?.length || 0) - 1}
                           className={`${AdminTokens.text.accent} hover:text-blue-600 ${AdminTokens.text.disabled}`}
                         >
@@ -673,15 +658,15 @@ export function ResumeManager() {
                   <tr key={idx} className="border-b border-gray-800">
                     <td className="p-2">
                       <div className="flex flex-col gap-1">
-                        <button 
-                          onClick={() => handleMoveProduction('recent', idx, 'up')} 
+                        <button
+                          onClick={() => handleMoveProduction('recent', idx, 'up')}
                           disabled={idx === 0}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
                         >
                           <ChevronUp className="w-4 h-4" />
                         </button>
-                        <button 
-                          onClick={() => handleMoveProduction('recent', idx, 'down')} 
+                        <button
+                          onClick={() => handleMoveProduction('recent', idx, 'down')}
                           disabled={idx === (cvData.recentProductions?.length || 0) - 1}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
                         >
@@ -720,17 +705,17 @@ export function ResumeManager() {
                   <tr key={idx} className="border-b border-gray-800">
                     <td className="p-2">
                       <div className="flex flex-col gap-1">
-                        <button 
+                        <button
                           type="button"
-                          onClick={() => handleMoveProduction('assistant', idx, 'up')} 
+                          onClick={() => handleMoveProduction('assistant', idx, 'up')}
                           disabled={idx === 0}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
                         >
                           <ChevronUp className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           type="button"
-                          onClick={() => handleMoveProduction('assistant', idx, 'down')} 
+                          onClick={() => handleMoveProduction('assistant', idx, 'down')}
                           disabled={idx === (cvData.assistantDesignProductions?.length || 0) - 1}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
                         >
@@ -775,107 +760,107 @@ export function ResumeManager() {
       {/* PDF Tab */}
       {activeTab === 'pdf' && (
         <div>
-      {/* Current Resume */}
-      {cvData.resumeUrl ? (
-        <div className={AdminTokens.card.base + ' mb-6'}>
-          <h3 className="text-lg text-white mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-400" />
-            Current Resume
-          </h3>
+          {/* Current Resume */}
+          {cvData.resumeUrl ? (
+            <div className={AdminTokens.card.base + ' mb-6'}>
+              <h3 className="text-lg text-white mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-400" />
+                Current Resume
+              </h3>
 
-          <div className="space-y-4">
-            <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-2xl">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-white font-medium mb-1">{cvData.resumeFilename}</p>
-                  {cvData.lastUpdated && (
-                    <p className="text-xs text-gray-400">
-                      Last updated: {new Date(cvData.lastUpdated).toLocaleDateString()}
-                    </p>
-                  )}
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-2xl">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-white font-medium mb-1">{cvData.resumeFilename}</p>
+                      {cvData.lastUpdated && (
+                        <p className="text-xs text-gray-400">
+                          Last updated: {new Date(cvData.lastUpdated).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <a
+                        href={cvData.resumeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 hover:bg-blue-500/20 rounded-xl transition-colors"
+                        title="View resume"
+                      >
+                        <ExternalLink className="w-4 h-4 text-blue-400" />
+                      </a>
+                      <a
+                        href={cvData.resumeUrl}
+                        download
+                        className="p-2 hover:bg-blue-500/20 rounded-xl transition-colors"
+                        title="Download resume"
+                      >
+                        <Download className="w-4 h-4 text-blue-400" />
+                      </a>
+                      <button
+                        onClick={handleDelete}
+                        className="p-2 hover:bg-red-500/20 rounded-xl transition-colors"
+                        title="Delete resume"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <a
-                    href={cvData.resumeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 hover:bg-blue-500/20 rounded-xl transition-colors"
-                    title="View resume"
-                  >
-                    <ExternalLink className="w-4 h-4 text-blue-400" />
-                  </a>
-                  <a
-                    href={cvData.resumeUrl}
-                    download
-                    className="p-2 hover:bg-blue-500/20 rounded-xl transition-colors"
-                    title="Download resume"
-                  >
-                    <Download className="w-4 h-4 text-blue-400" />
-                  </a>
-                  <button
-                    onClick={handleDelete}
-                    className="p-2 hover:bg-red-500/20 rounded-xl transition-colors"
-                    title="Delete resume"
-                  >
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </button>
-                </div>
+
+                <p className="text-xs text-gray-500">
+                  To update your resume, upload a new file below. This will replace the current version.
+                </p>
               </div>
             </div>
-
-            <p className="text-xs text-gray-500">
-              To update your resume, upload a new file below. This will replace the current version.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className={AdminTokens.card.base + ' mb-6'}>
-          <div className="text-center py-8">
-            <FileText className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 mb-1">No resume uploaded yet</p>
-            <p className="text-xs text-gray-500">Upload a PDF below to get started</p>
-          </div>
-        </div>
-      )}
-
-      {/* Upload Section */}
-      <div className={AdminTokens.card.base}>
-        <h3 className="text-lg text-white mb-4 flex items-center gap-2">
-          <Upload className="w-5 h-5 text-blue-400" />
-          {cvData.resumeUrl ? 'Upload New Resume' : 'Upload Resume'}
-        </h3>
-
-        <div className="space-y-4">
-          <div>
-            <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
-              Resume File (PDF only, max 10MB)
-            </label>
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={handleFileUpload}
-              disabled={uploading}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-2xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:tracking-wider file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:transition-colors disabled:opacity-50"
-            />
-          </div>
-
-          {uploading && (
-            <div className="flex items-center gap-2 text-blue-400">
-              <Loader className="w-4 h-4 animate-spin" />
-              <span className="text-sm">Uploading resume...</span>
+          ) : (
+            <div className={AdminTokens.card.base + ' mb-6'}>
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400 mb-1">No resume uploaded yet</p>
+                <p className="text-xs text-gray-500">Upload a PDF below to get started</p>
+              </div>
             </div>
           )}
 
-          <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-2xl">
-            <p className="text-xs text-gray-400 leading-relaxed">
-              <strong className="text-white">Tips:</strong><br />
-              • Use a professionally formatted PDF<br />
-              • Keep file size under 10MB for faster loading<br />
-              • Update regularly to reflect your latest experience
-            </p>
+          {/* Upload Section */}
+          <div className={AdminTokens.card.base}>
+            <h3 className="text-lg text-white mb-4 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-blue-400" />
+              {cvData.resumeUrl ? 'Upload New Resume' : 'Upload Resume'}
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
+                  Resume File (PDF only, max 10MB)
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-2xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:tracking-wider file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:transition-colors disabled:opacity-50"
+                />
+              </div>
+
+              {uploading && (
+                <div className="flex items-center gap-2 text-blue-400">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Uploading resume...</span>
+                </div>
+              )}
+
+              <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-2xl">
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  <strong className="text-white">Tips:</strong><br />
+                  • Use a professionally formatted PDF<br />
+                  • Keep file size under 10MB for faster loading<br />
+                  • Update regularly to reflect your latest experience
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
         </div>
       )}
     </div>

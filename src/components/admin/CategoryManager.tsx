@@ -1,12 +1,13 @@
+
 import { useState, useEffect } from 'react';
-import { Save, X, Pencil, Trash2, FileText, Briefcase, Newspaper, Grid3x3 } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
-import { SaveButton, CancelButton, SecondaryButton, IconButton } from './AdminButtons';
+import { Save, X, Pencil, Trash2, FileText, Briefcase, Newspaper, Grid3x3, Plus } from 'lucide-react';
+import { supabase } from '../../utils/supabase/client';
+import { SaveButton, CancelButton, SecondaryButton, IconButton, PrimaryButton } from './AdminButtons';
 import { AdminPageHeader } from './shared/AdminPageHeader';
-import { 
-  DarkInput, 
-  DarkTextarea, 
-  DarkSelect, 
+import {
+  DarkInput,
+  DarkTextarea,
+  DarkSelect,
   DarkLabel,
   formContainerClasses
 } from './DarkModeStyles';
@@ -17,6 +18,7 @@ interface Category {
   slug: string;
   color?: string;
   description?: string;
+  type: string;
   template?: string; // For portfolio categories: which layout template to use
 }
 
@@ -29,20 +31,20 @@ interface CategorySet {
 // Default categories to seed when empty
 const DEFAULT_CATEGORIES: CategorySet = {
   portfolio: [
-    { id: 'scenic', name: 'Scenic Design', slug: 'scenic', color: '#2563EB', template: 'editorial' },
-    { id: 'experiential', name: 'Experiential', slug: 'experiential', color: '#F59E0B', template: 'blog-style' },
-    { id: 'rendering', name: 'Rendering', slug: 'rendering', color: '#9333EA', template: 'rendering' },
+    { id: 'scenic', name: 'Scenic Design', slug: 'scenic', color: '#2563EB', type: 'portfolio', template: 'editorial' },
+    { id: 'experiential', name: 'Experiential', slug: 'experiential', color: '#F59E0B', type: 'portfolio', template: 'blog-style' },
+    { id: 'rendering', name: 'Rendering', slug: 'rendering', color: '#9333EA', type: 'portfolio', template: 'rendering' },
   ],
   articles: [
-    { id: 'philosophy', name: 'Design Philosophy', slug: 'philosophy', color: '#3B82F6' },
-    { id: 'process', name: 'Scenic Design Process', slug: 'process', color: '#10B981' },
-    { id: 'tech', name: 'Technology & Tutorials', slug: 'tech', color: '#8B5CF6' },
-    { id: 'experiential', name: 'Experiential Design', slug: 'experiential', color: '#F59E0B' },
+    { id: 'philosophy', name: 'Design Philosophy', slug: 'philosophy', color: '#3B82F6', type: 'articles' },
+    { id: 'process', name: 'Scenic Design Process', slug: 'process', color: '#10B981', type: 'articles' },
+    { id: 'tech', name: 'Technology & Tutorials', slug: 'tech', color: '#8B5CF6', type: 'articles' },
+    { id: 'experiential', name: 'Experiential Design', slug: 'experiential', color: '#F59E0B', type: 'articles' },
   ],
   news: [
-    { id: 'announcement', name: 'Announcement', slug: 'announcement', color: '#3B82F6' },
-    { id: 'event', name: 'Event', slug: 'event', color: '#10B981' },
-    { id: 'update', name: 'Update', slug: 'update', color: '#F59E0B' },
+    { id: 'announcement', name: 'Announcement', slug: 'announcement', color: '#3B82F6', type: 'news' },
+    { id: 'event', name: 'Event', slug: 'event', color: '#10B981', type: 'news' },
+    { id: 'update', name: 'Update', slug: 'update', color: '#F59E0B', type: 'news' },
   ],
 };
 
@@ -69,32 +71,28 @@ export function CategoryManager() {
     if (!confirm(`This will add default ${type} categories. Continue?`)) {
       return;
     }
-    
+
     setSeeding(true);
     try {
       const defaultCats = DEFAULT_CATEGORIES[type];
-      
-      // Add each default category
-      for (const cat of defaultCats) {
-        await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/categories/${type}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${publicAnonKey}`,
-              // Token in Authorization header
-            },
-            body: JSON.stringify(cat),
-          }
+
+      const { error } = await supabase
+        .from('categories')
+        .upsert(
+          defaultCats.map(c => {
+            const { id, ...rest } = c; // Let DB handle IDs for new inserts unless we want to force them
+            return { ...rest, type }; // Ensure type is set
+          }),
+          { onConflict: 'type,slug' }
         );
-      }
-      
+
+      if (error) throw error;
+
       // Reload categories
       await loadCategories();
       alert(`Default ${type} categories added successfully!`);
-    } catch (err) {
-      alert('Failed to seed categories');
+    } catch (err: any) {
+      alert(`Failed to seed categories: ${err.message}`);
     } finally {
       setSeeding(false);
     }
@@ -102,28 +100,31 @@ export function CategoryManager() {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/categories`,
-        {
-          headers: { 
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-        }
-      );
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setCategories(data.categories || {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+
+      if (data) {
+        const newCategories: CategorySet = {
           portfolio: [],
           articles: [],
           news: [],
+        };
+
+        data.forEach(cat => {
+          if (cat.type === 'portfolio') newCategories.portfolio.push(cat);
+          else if (cat.type === 'articles') newCategories.articles.push(cat);
+          else if (cat.type === 'news') newCategories.news.push(cat);
         });
-      } else {
-        }
+
+        setCategories(newCategories);
+      }
     } catch (err) {
-      } finally {
+      console.error('Error loading categories:', err);
+    } finally {
       setLoading(false);
     }
   };
@@ -135,6 +136,7 @@ export function CategoryManager() {
       color: '#3B82F6',
       description: '',
       template: activeTab === 'portfolio' ? 'editorial' : undefined,
+      type: activeTab,
     });
     setEditingId('new');
     setShowForm(true);
@@ -167,38 +169,33 @@ export function CategoryManager() {
 
     setSaving(true);
     try {
-      // Auto-generate slug if not provided
       const slug = formData.slug?.trim() || generateSlug(formData.name);
-      
+
       const categoryData = {
         ...formData,
         slug,
-        id: editingId === 'new' ? crypto.randomUUID() : editingId,
+        type: activeTab,
       };
 
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/categories/${activeTab}`,
-        {
-          method: editingId === 'new' ? 'POST' : 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-          body: JSON.stringify(categoryData),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.success) {
-        await loadCategories();
-        handleCancel();
+      let result;
+      if (editingId === 'new') {
+        result = await supabase
+          .from('categories')
+          .insert([categoryData]);
       } else {
-        alert('Failed to save category: ' + data.error);
+        result = await supabase
+          .from('categories')
+          .update(categoryData)
+          .eq('id', editingId);
       }
-    } catch (err) {
-      alert('Failed to save category');
+
+      if (result.error) throw result.error;
+
+      await loadCategories();
+      handleCancel();
+
+    } catch (err: any) {
+      alert(`Failed to save category: ${err.message}`);
     } finally {
       setSaving(false);
     }
@@ -210,26 +207,16 @@ export function CategoryManager() {
     }
 
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/categories/${activeTab}/${categoryId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-        }
-      );
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', categoryId);
 
-      const data = await response.json();
+      if (error) throw error;
+      await loadCategories();
 
-      if (data.success) {
-        await loadCategories();
-      } else {
-        alert('Failed to delete category: ' + data.error);
-      }
-    } catch (err) {
-      alert('Failed to delete category');
+    } catch (err: any) {
+      alert(`Failed to delete category: ${err.message}`);
     }
   };
 
@@ -246,11 +233,10 @@ export function CategoryManager() {
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab('portfolio')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${
-              activeTab === 'portfolio'
-                ? 'border-blue-500 text-blue-400'
-                : 'border-transparent text-zinc-400 hover:text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${activeTab === 'portfolio'
+              ? 'border-blue-500 text-blue-400'
+              : 'border-transparent text-zinc-400 hover:text-white'
+              }`}
           >
             <Briefcase className="w-4 h-4" />
             Portfolio Categories
@@ -258,11 +244,10 @@ export function CategoryManager() {
           </button>
           <button
             onClick={() => setActiveTab('articles')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${
-              activeTab === 'articles'
-                ? 'border-blue-500 text-blue-400'
-                : 'border-transparent text-zinc-400 hover:text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${activeTab === 'articles'
+              ? 'border-blue-500 text-blue-400'
+              : 'border-transparent text-zinc-400 hover:text-white'
+              }`}
           >
             <FileText className="w-4 h-4" />
             Article Categories
@@ -270,11 +255,10 @@ export function CategoryManager() {
           </button>
           <button
             onClick={() => setActiveTab('news')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${
-              activeTab === 'news'
-                ? 'border-blue-500 text-blue-400'
-                : 'border-transparent text-zinc-400 hover:text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${activeTab === 'news'
+              ? 'border-blue-500 text-blue-400'
+              : 'border-transparent text-zinc-400 hover:text-white'
+              }`}
           >
             <Newspaper className="w-4 h-4" />
             News Categories
@@ -316,8 +300,8 @@ export function CategoryManager() {
               <DarkInput
                 type="text"
                 value={formData.name || ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
+                onChange={(e) => setFormData({
+                  ...formData,
                   name: e.target.value,
                   slug: generateSlug(e.target.value)
                 })}
@@ -420,7 +404,7 @@ export function CategoryManager() {
         <div className="text-center py-12 text-zinc-400">
           <Grid3x3 className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="mb-4">No categories yet. Create your first one or load defaults!</p>
-          <SecondaryButton 
+          <SecondaryButton
             onClick={() => handleSeedDefaults(activeTab)}
             disabled={seeding}
           >
@@ -432,14 +416,14 @@ export function CategoryManager() {
       {!showForm && currentCategories.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentCategories.map((category) => (
-            <div 
-              key={category.id} 
+            <div
+              key={category.id}
               className="border border-zinc-800 p-4 rounded-lg hover:border-zinc-700 transition-colors bg-zinc-900/50 backdrop-blur"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3 flex-1">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
+                  <div
+                    className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: category.color || '#3B82F6' }}
                   />
                   <h4 className="tracking-tight font-medium text-white">{category.name}</h4>
@@ -458,7 +442,7 @@ export function CategoryManager() {
                   </IconButton>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-zinc-400 uppercase tracking-wider">Slug:</span>

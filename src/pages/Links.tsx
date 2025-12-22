@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ExternalLink, Instagram, Linkedin, Mail, FileText, Video, Github, Twitter, Facebook, Youtube, Newspaper, Image as ImageIcon, Link as LinkIcon, PenTool } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { apiCall } from '../utils/api';
-import { publicAnonKey, projectId } from '../utils/supabase/info';
+// apiCall removed
+// publicAnonKey, projectId removed
+import { supabase } from '../utils/supabase/client';
 import { SEO } from '../components/SEO';
 
 // Interface for the unified dashboard item
@@ -85,37 +86,36 @@ export function Links({ onNavigate }: LinksProps = {}) {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch Custom Links & Bio (Existing)
-      const [linksRes, bioRes] = await Promise.all([
-        fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/links`, {
-          headers: { Authorization: `Bearer ${publicAnonKey}` }
-        }).then(res => res.ok ? res.json() : []),
-        fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/links/bio`, {
-          headers: { Authorization: `Bearer ${publicAnonKey}` }
-        }).then(res => res.ok ? res.json() : null)
-      ]);
+      // 1. Fetch data concurrently
+      const [linksData, profileData, postsData, projectsData, newsData] = await Promise.all([
+        // Social/Custom Links
+        supabase.from('social_links').select('*').eq('enabled', true).order('order'),
+        // Profile
+        supabase.from('profile').select('*').single(),
+        // Articles
+        supabase.from('articles').select('*').eq('published', true).order('publish_date', { ascending: false }).limit(6),
+        // Projects
+        supabase.from('portfolio_projects').select('*').eq('published', true).order('year', { ascending: false }).limit(6),
+        // News
+        supabase.from('news').select('*').order('date', { ascending: false }).limit(6)
+      ]) as any[];
 
-      if (bioRes) setBioData(bioRes);
+      // 2. Handle Profile
+      if (profileData.data) {
+        setBioData({
+          name: profileData.data.name || 'BRANDON PT DAVIS',
+          tagline: profileData.data.tagline || 'Scenic Designer',
+          profileImage: profileData.data.profile_image || ''
+        });
+      }
 
-      // 2. Fetch Content (Articles, Projects, News)
-      const [postsRes, projectsRes, newsRes] = await Promise.all([
-        apiCall('/api/posts'),
-        apiCall('/api/projects'),
-        apiCall('/api/news')
-      ]);
-
-      // Process Data
+      // 3. Process Content
       const dashboardItems: DashboardItem[] = [];
 
       // --- Custom Links (Pinned/Ordered) ---
-      const customLinks: SocialLink[] = Array.isArray(linksRes) ? linksRes : [];
-
-      // Separate pure social icons (small circle) vs custom content links (cards)
-      // The user wants "New, Portfolio, and Articles" auto populated. 
-      // "Additional links" implies standard links.
-      // We will render 'social' type links in a separate row, and 'link' type cards in the grid.
-      const socialRowLinks = customLinks.filter(l => l.enabled && l.type === 'social');
-      const customGridLinks = customLinks.filter(l => l.enabled && l.type !== 'social');
+      const customLinks: any[] = linksData.data || [];
+      const socialRowLinks = customLinks.filter(l => l.type === 'social');
+      const customGridLinks = customLinks.filter(l => l.type !== 'social');
 
       // Add Custom Grid Links
       customGridLinks.forEach(link => {
@@ -125,48 +125,37 @@ export function Links({ onNavigate }: LinksProps = {}) {
           title: link.title,
           subtitle: link.description,
           url: link.url,
-          date: new Date().toISOString(), // Always fresh/top if pinned, or use order
+          date: new Date().toISOString(),
           icon: link.icon || 'link',
-          isPinned: true, // Mark as pinned to sort first
-          // Custom links don't have images in current schema usually, 
-          // but we can try to use og-default or specific logic if added later.
-          // For now, they will rely on a cool gradient fallback.
+          isPinned: true
         });
       });
 
       // --- Articles ---
-      if (postsRes.ok) {
-        const postsData = await postsRes.json();
-        const posts = (postsData.posts || []).filter((p: any) => !p.status || p.status === 'published');
-        posts.forEach((post: any) => {
+      if (postsData.data) {
+        postsData.data.forEach((post: any) => {
           dashboardItems.push({
             id: `article-${post.id}`,
             type: 'article',
             title: post.title,
-            subtitle: new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            subtitle: new Date(post.publish_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             url: `/articles/${post.slug}`,
-            image: post.coverImage,
-            date: post.date,
+            image: post.cover_image,
+            date: post.publish_date,
             icon: 'pen-tool'
           });
         });
       }
 
       // --- Projects ---
-      if (projectsRes.ok) {
-        const projectsData = await projectsRes.json();
-        const projects = projectsData.projects || [];
-        projects.forEach((project: any) => {
+      if (projectsData.data) {
+        projectsData.data.forEach((project: any) => {
           // Construct date from year/month for sorting
           const dateStr = `${project.year}-${String(project.month || 1).padStart(2, '0')}-01`;
 
-          // Robust Image Selection
-          // Use cardImage (from Bento Grid), then fallback to thumbnail/hero/cover
-          // This matches the Portfolio page logic
-          let selectedImage = project.cardImage || project.thumbnail || project.heroImage || project.coverImage;
-
+          let selectedImage = project.card_image || project.cover_image;
           if (!selectedImage && project.galleries?.hero?.[0]) {
-            selectedImage = project.galleries.hero[0].url || project.galleries.hero[0];
+            selectedImage = project.galleries.hero[0];
           }
 
           dashboardItems.push({
@@ -183,46 +172,50 @@ export function Links({ onNavigate }: LinksProps = {}) {
       }
 
       // --- News ---
-      if (newsRes.ok) {
-        const newsData = await newsRes.json();
-        const news = newsData.news || [];
-        news.forEach((item: any) => {
+      if (newsData.data) {
+        newsData.data.forEach((item: any) => {
           dashboardItems.push({
             id: `news-${item.id}`,
             type: 'news',
             title: item.title,
             subtitle: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             url: item.url && item.url.startsWith('http') ? item.url : `/news/${item.slug || item.id}`,
-            image: item.coverImage || item.thumbnail,
+            image: item.cover_image || item.thumbnail,
             date: item.date,
             icon: 'newspaper'
           });
         });
       }
 
-      // 3. Sort Items
-      // Strategy: Pinned custom links first (by order), then everything else by date desc
+      // 4. Sort
       const sortedItems = dashboardItems.sort((a, b) => {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
-
-        if (a.isPinned && b.isPinned) {
-          // Preserve order for pinned items (implicitly handled by order of insertion if source was ordered)
-          // We can assume source 'customGridLinks' was sorted by 'order'
-          return 0;
-        }
-
-        // Date Descending
+        if (a.isPinned && b.isPinned) return 0;
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
 
       setItems(sortedItems);
-      // We pass socialRowLinks separately if needed, but for now we might fetch them again or store them?
-      // Actually, define social state or just filter from raw response?
-      // Let's store social links in a separate state.
-      setSocialRow(socialRowLinks);
+      // Fallback for social links if DB fetch was empty (should check if we want to support this fallback still? 
+      // Maybe not needed if we assume migration run, but safer to keep default state initialized in useState and only update if data found)
+      if (socialRowLinks.length > 0) {
+        // Map DB structure to SocialLink interface if needed, or update state
+        // DB: { id, title, url, icon, enabled, order }
+        // State: SocialLink[]
+        setSocialRow(socialRowLinks.map((l: any) => ({
+          id: l.id,
+          title: l.title,
+          url: l.url,
+          icon: l.icon || 'link',
+          enabled: l.enabled,
+          order: l.order,
+          description: l.description,
+          type: l.type
+        })));
+      }
 
     } catch (error) {
+      console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }

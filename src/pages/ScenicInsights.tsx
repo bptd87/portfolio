@@ -3,7 +3,8 @@ import { motion } from 'motion/react';
 import { BookOpen, Search, X } from 'lucide-react';
 import { BlogCard } from '../components/shared/BlogCard';
 import { blogPosts as staticBlogPosts } from '../data/blog-posts';
-import { apiCall } from '../utils/api';
+// apiCall removed
+import { supabase } from '../utils/supabase/client';
 import { SkeletonBlogCard } from '../components/ui/skeleton';
 
 interface ScenicInsightsProps {
@@ -38,74 +39,44 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch categories using apiCall helper with fallback
-        const categoriesResponse = await apiCall('/api/categories/articles');
-        if (categoriesResponse.ok) {
-          try {
-            const categoriesData = await categoriesResponse.json();
-            if (categoriesData.success && categoriesData.categories) {
-              setCategories(categoriesData.categories);
-            }
-          } catch (jsonError) {
-            console.warn('❌ Failed to parse categories response as JSON');
-          }
+
+        // Fetch categories directly
+        const { data: categoriesData } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('type', 'articles')
+          .order('name');
+
+        if (categoriesData) {
+          setCategories(categoriesData);
         }
 
-        // Fetch articles from API using apiCall helper with fallback
-        const response = await apiCall('/api/posts');
+        // Fetch articles directly
+        const { data: articlesData, error } = await supabase
+          .from('articles')
+          .select('*') // We can validly select * as we want all fields
+          .eq('published', true)
+          .order('published_at', { ascending: false });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`API returned ${response.status}: ${errorText}`);
-        }
+        if (error) throw error;
 
-        const result = await response.json();
-        console.log('📰 Articles API response:', result);
-        if (result.success && Array.isArray(result.posts) && result.posts.length > 0) {
-          console.log(`✅ Loaded ${result.posts.length} articles`);
-          // Normalize fields so cover images and slugs are consistently available
-          const normalized = result.posts.map((p: any) => {
-            const inferFromImagesArray = Array.isArray(p.images) && p.images.length > 0
-              ? (typeof p.images[0] === 'string' ? p.images[0] : p.images[0]?.url)
-              : '';
-            const inferFromContentBlocks = Array.isArray(p.content)
-              ? (() => {
-                const imgBlock = p.content.find((blk: any) => blk?.type === 'image' && (blk?.content || blk?.url));
-                return imgBlock ? (imgBlock.content || imgBlock.url) : '';
-              })()
-              : '';
-            const candidates = [
-              p.coverImage,
-              p.cover_image,
-              p.ogImage,
-              p.thumbnail,
-              p.image,
-              p.imageUrl,
-              p.image_url,
-              p.cover_image_url,
-              p.featuredImage,
-              p.featured_image,
-              p.featured_image_url,
-              p.heroImage,
-              p.hero_image,
-              p.photo,
-              p.cover,
-              p.media?.url,
-              inferFromImagesArray,
-              inferFromContentBlocks,
-            ];
-            const coverImage = candidates.find((v: any) => typeof v === 'string' && v.length > 0) || '';
-            return {
-              ...p,
-              coverImage,
-              slug: p.slug || p.id,
-              date: p.date || p.createdAt || p.created_at || new Date().toISOString().split('T')[0],
-            };
-          });
-          const publishedOnly = normalized.filter((p: any) => !p.status || p.status === 'published');
-          setBlogPosts(publishedOnly);
+        if (articlesData && articlesData.length > 0) {
+          const mappedPosts = articlesData.map((p: any) => ({
+            id: p.id,
+            slug: p.slug,
+            title: p.title,
+            category: p.category || 'Article',
+            date: p.published_at,
+            readTime: '5 min read',
+            excerpt: p.excerpt,
+            coverImage: p.cover_image,
+            focusPoint: p.cover_image_focal_point,
+            tags: p.tags || [],
+            content: [] // Don't need full content for list view
+          }));
+          setBlogPosts(mappedPosts);
         } else {
-          console.warn('❌ No posts in API response, falling back to static blog-posts');
+          // Fallback to static if no DB posts
           const fallback = staticBlogPosts.map(p => ({
             id: p.id,
             slug: p.id,
@@ -120,9 +91,10 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
           }));
           setBlogPosts(fallback);
         }
+
       } catch (err) {
         console.error('❌ Error fetching articles:', err);
-        // Error fallback to static posts
+        // Error fallback
         const fallback = staticBlogPosts.map(p => ({
           id: p.id,
           slug: p.id,

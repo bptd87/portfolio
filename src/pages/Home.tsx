@@ -2,9 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown, BookOpen, Wrench } from 'lucide-react';
 // ImageWithFallback removed (unused)
-import { API_BASE_URL } from '../utils/api';
-import { publicAnonKey } from '../utils/supabase/info';
-import { createClient } from '../utils/supabase/client';
+import { supabase } from '../utils/supabase/client';
 import heroPattern from '../assets/hero-pattern.webp';
 
 import { useSiteSettings } from '../hooks/useSiteSettings';
@@ -78,27 +76,36 @@ export function Home({ onNavigate }: HomeProps) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const supabase = createClient();
 
-        // Fetch projects from SQL Database
-        const { data: projectsData, error } = await supabase
-          .from('portfolio_projects')
-          .select('*')
-          .eq('published', true)
-          .eq('featured', true)
-          .order('year', { ascending: false });
+        // Fetch projects, news, and collaborators in parallel
+        const [projectsRes, newsRes, collabRes] = await Promise.all([
+          supabase
+            .from('portfolio_projects')
+            .select('*')
+            .eq('published', true)
+            .eq('featured', true)
+            .order('year', { ascending: false }),
+          supabase
+            .from('news')
+            .select('*')
+            .eq('published', true)
+            .order('date', { ascending: false })
+            .limit(5),
+          supabase
+            .from('collaborators')
+            .select('name')
+        ]);
 
-        if (error) {
-          console.error('Error fetching projects:', error);
-          // Fallback or just empty
-        }
+        if (projectsRes.error) console.error('Error fetching projects:', projectsRes.error);
+        if (newsRes.error) console.error('Error fetching news:', newsRes.error);
 
-        if (projectsData && projectsData.length > 0) {
-          const projectsArray = projectsData.map((p: any) => ({
+        // Process Projects
+        if (projectsRes.data && projectsRes.data.length > 0) {
+          const projectsArray = projectsRes.data.map((p: any) => ({
             ...p,
             cardImage: p.card_image,
             coverImage: p.card_image, // Fallback
-            focusPoint: p.focus_point || { x: 50, y: 50 } // if we add this col later
+            focusPoint: p.focus_point || { x: 50, y: 50 }
           })).sort((a: any, b: any) => {
             if (a.year && b.year) {
               if (Number(a.year) !== Number(b.year)) {
@@ -112,29 +119,27 @@ export function Home({ onNavigate }: HomeProps) {
           setFeaturedProjects(projectsArray.slice(0, 8));
         }
 
-        // Fetch latest news from API (Keep as is for now, or migrate later)
-        const newsResponse = await fetch(`${API_BASE_URL}/api/news`, {
-          headers: { 'Authorization': `Bearer ${publicAnonKey}` }
-        });
-        const newsResult = await newsResponse.json();
-        if (newsResult.success && newsResult.news && newsResult.news.length > 0) {
-          const newsArray = newsResult.news.sort((a: any, b: any) => {
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
-          });
-          setLatestNews(newsArray.slice(0, 5));
+        // Process News
+        if (newsRes.data && newsRes.data.length > 0) {
+          const newsArray = newsRes.data.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            date: item.date, // DB is timestamp string
+            category: item.category || 'News',
+            coverImage: item.cover_image,
+            excerpt: item.excerpt,
+            slug: item.slug
+            // Note: coverImageFocalPoint missing in DB schema currently
+          }));
+          setLatestNews(newsArray);
         }
 
-        // Fetch collaborators (Keep as is)
-        try {
-          const collabResponse = await fetch(`${API_BASE_URL}/api/collaborators`, {
-            headers: { 'Authorization': `Bearer ${publicAnonKey}` }
-          });
-          const collabResult = await collabResponse.json();
-          if (collabResult.collaborators && collabResult.collaborators.length > 0) {
-            const names = collabResult.collaborators.map((c: any) => c.name);
-            setCollaborators(names);
-          }
-        } catch (collabError) {
+        // Process Collaborators
+        if (collabRes.data && collabRes.data.length > 0) {
+          const names = collabRes.data.map((c: any) => c.name);
+          setCollaborators(names);
+        } else if (!collabRes.data || collabRes.data.length === 0) {
+          // Fallback if no collaborators in DB yet
           setCollaborators([
             'South Coast Repertory',
             'Stephens College',

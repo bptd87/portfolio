@@ -365,6 +365,49 @@ app.post("/make-server-74296234/api/admin/settings", verifyAdminToken, async (c)
   return c.json({ success: true, settings });
 });
 
+// ===== AI GENERATION =====
+app.post("/make-server-74296234/api/admin/ai/generate", verifyAdminToken, async (c) => {
+  try {
+    const { prompt } = await c.req.json();
+    const apiKey = Deno.env.get('OPENAI_API_KEY');
+    
+    if (!apiKey) {
+      return c.json({ error: 'OpenAI configuration missing' }, 500);
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 500,
+      })
+    });
+
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response from AI provider');
+    }
+
+    return c.json({ 
+      success: true, 
+      result: data.choices[0].message.content.trim() 
+    });
+  } catch (err: any) {
+    console.error('AI Error:', err);
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 app.notFound((c) => c.json({ error: 'Endpoint not found' }, 404));
 
 export default app;

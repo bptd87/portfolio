@@ -2,8 +2,12 @@ import { useEffect, useState, useMemo } from 'react';
 import { ArrowLeft, ArrowRight, Tag, Loader2, Twitter, Linkedin, Link2, Check } from 'lucide-react';
 import { ArticleAuthor } from '../../components/shared/ArticleAuthor';
 import { BlockRenderer, ContentBlock } from '../../components/shared/BlockRenderer';
-import { apiCall } from '../../utils/api';
+import { BlogCard } from '../../components/shared/BlogCard';
+import { supabase } from '../../utils/supabase/client';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
+import { LikeButton } from '../../components/shared/LikeButton';
+import { ShareButton } from '../../components/shared/ShareButton';
+import { Eye } from 'lucide-react';
 
 interface Article {
   id: string;
@@ -220,17 +224,23 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
   const [allPosts, setAllPosts] = useState<Article[]>([]);
   const [activeHeading, setActiveHeading] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [views, setViews] = useState(0);
+  const [likes, setLikes] = useState(0);
 
   // Fetch categories for color lookup
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await apiCall('/api/categories/articles');
-        if (response.ok) {
-          const result = await response.json();
-          setCategories(result.categories || []);
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('type', 'articles');
+
+        if (!error && data) {
+          setCategories(data);
         }
       } catch (err) {
+        console.error('Error fetching categories:', err);
       }
     };
     fetchCategories();
@@ -279,13 +289,30 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
   useEffect(() => {
     const fetchAllPosts = async () => {
       try {
-        const response = await apiCall('/api/posts');
-        if (response.ok) {
-          const result = await response.json();
-          const published = (result.posts || []).filter((p: any) => !p.status || p.status === 'published');
-          setAllPosts(published);
+        const { data, error } = await supabase
+          .from('articles')
+          .select('*')
+          .eq('published', true)
+          .order('publish_date', { ascending: false });
+
+        if (!error && data) {
+          // Map DB fields to Article interface
+          const mappedPosts: Article[] = (data as any[]).map(p => ({
+            id: p.id,
+            slug: p.slug,
+            title: p.title,
+            category: p.category || 'Article',
+            date: p.publish_date,
+            readTime: '5 min read', // TODO: Calculate read time from content
+            excerpt: p.excerpt,
+            coverImage: p.cover_image,
+            tags: p.tags || [],
+            content: p.content || []
+          }));
+          setAllPosts(mappedPosts);
         }
       } catch (err) {
+        console.error('Error fetching all posts:', err);
       }
     };
     fetchAllPosts();
@@ -296,38 +323,55 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       try {
         setLoading(true);
         setNotFound(false);
-        // Fetch article using the apiCall helper (has fallback support)
-        const response = await apiCall(`/api/posts/${slug}`);
 
-        if (!response.ok) {
+        // Try to fetch by slug first, then ID
+        let query = supabase.from('articles').select('*').eq('published', true);
+
+        // Simple check if slug looks like a UUID
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+
+        if (isUUID) {
+          query = query.eq('id', slug);
+        } else {
+          query = query.eq('slug', slug);
+        }
+
+        const { data, error } = await query.single<any>();
+
+        if (error || !data) {
           setNotFound(true);
           setLoading(false);
           return;
         }
 
-        const result = await response.json();
-        if (result.post) {
-          if (result.post.status && result.post.status !== 'published') {
-            setNotFound(true);
-            setLoading(false);
-            return;
-          }
-          // If server didn't provide categoryColor, look it up client-side
-          let postWithColor = result.post;
-          if (!postWithColor.categoryColor && postWithColor.category && categories.length > 0) {
-            const clientColor = findCategoryColor(postWithColor.category, categories);
-            if (clientColor) {
-              postWithColor = { ...postWithColor, categoryColor: clientColor };
-            }
-          }
+        const post: Article = {
+          id: data.id,
+          slug: data.slug,
+          title: data.title,
+          category: data.category || 'Article',
+          date: data.publish_date,
+          readTime: '5 min read',
+          excerpt: data.excerpt,
+          coverImage: data.cover_image,
+          tags: data.tags || [],
+          content: data.content || []
+        };
 
-          setArticle(postWithColor);
+        // If server didn't provide categoryColor, look it up client-side
+        let postWithColor = post;
 
-          // Fetch related posts based on same category or tags
-          fetchRelatedPosts(result.post);
-        } else {
-          setNotFound(true);
+        if (!postWithColor.categoryColor && postWithColor.category && categories.length > 0) {
+          const clientColor = findCategoryColor(postWithColor.category, categories);
+          if (clientColor) {
+            postWithColor = { ...postWithColor, categoryColor: clientColor };
+          }
         }
+
+        setArticle(postWithColor);
+
+        // Fetch related posts based on same category or tags
+        fetchRelatedPosts(postWithColor);
+
       } catch (err) {
         setNotFound(true);
       } finally {
@@ -336,7 +380,46 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
     };
 
     fetchArticle();
-  }, [slug]);
+  }, [slug, categories]); // Categories needed for color mapping on load
+
+  // Force-fetch live counts for articles
+  useEffect(() => {
+    if (!article?.id) return;
+
+    const fetchLiveCounts = async () => {
+      try {
+        const { data } = await supabase
+          .from('articles')
+          .select('views, likes')
+          .eq('id', article.id)
+          .single();
+
+        if (data) {
+          setViews(data.views || 0);
+          setLikes(data.likes || 0);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    fetchLiveCounts();
+  }, [article?.id]);
+
+  // Track view on page load
+  useEffect(() => {
+    if (!article) return;
+
+    const incrementView = async () => {
+      try {
+        await supabase.rpc('increment_article_view', { article_id: article.id });
+      } catch (err) {
+        // Silent fail
+      }
+    };
+
+    const timer = setTimeout(incrementView, 2000);
+    return () => clearTimeout(timer);
+  }, [article?.id]);
 
   const handleTagClick = (tag: string) => {
     // Navigate to articles with tag filter
@@ -345,23 +428,34 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
 
   const fetchRelatedPosts = async (post: Article) => {
     try {
-      // Use apiCall helper with fallback support
-      const response = await apiCall('/api/posts/related', {
-        method: 'POST',
-        body: JSON.stringify({
-          category: post.category,
-          tags: post.tags,
-          excludeId: post.id
-        })
-      });
+      // Find related posts from the already fetched allPosts or new query
+      // Let's query specifically for related
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .neq('id', post.id)
+        .eq('published', true)
+        .limit(3);
 
-      if (!response.ok) {
-        return;
+      // Ideally we should filter by category/tags in query, but for now simple fallback
+      // or complex query: .or(`category.eq.${post.category},tags.cs.{${post.tags.join(',')}}`)
+
+      if (!error && data) {
+        const mappedRelated: Article[] = (data as any[]).map(p => ({
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          category: p.category || 'Article',
+          date: p.publish_date,
+          readTime: '5 min read',
+          excerpt: p.excerpt,
+          coverImage: p.cover_image,
+          focusPoint: p.cover_image_focal_point,
+          tags: p.tags || [],
+          content: p.content || []
+        }));
+        setRelatedPosts(mappedRelated);
       }
-
-      const result = await response.json();
-      const published = (result.posts || []).filter((p: any) => !p.status || p.status === 'published');
-      setRelatedPosts(published);
     } catch (err) {
     }
   };
@@ -457,11 +551,18 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                 </span>
               </div>
 
-              {/* Share buttons inline */}
-              <ShareButtons
-                title={article.title}
-                url={typeof window !== 'undefined' ? window.location.href : ''}
-              />
+              <div className="flex items-center gap-4">
+                <LikeButton projectId={article.id} type="post" initialLikes={likes} size="md" />
+                <div className="flex items-center gap-1.5 text-xs tracking-wide opacity-60">
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>{views.toLocaleString()}</span>
+                </div>
+                <ShareButton
+                  title={article.title}
+                  url={typeof window !== 'undefined' ? window.location.href : ''}
+                  size="md"
+                />
+              </div>
             </div>
 
             {/* Title */}
@@ -629,48 +730,27 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {relatedPosts.slice(0, 3).map((post) => (
-                <button
-                  key={post.id}
-                  onClick={() => {
-                    window.scrollTo(0, 0);
-                    onNavigate(`articles/${post.slug}`);
-                  }}
-                  className="group relative aspect-[3/4] rounded-2xl overflow-hidden text-left shadow-lg hover:shadow-xl transition-shadow duration-300"
-                >
-                  {/* Full Image Background */}
-                  {post.coverImage && post.coverImage.trim() !== '' && !post.coverImage.startsWith('blob:') ? (
-                    <ImageWithFallback
-                      src={post.coverImage}
-                      alt={post.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-foreground/10 to-foreground/5" />
-                  )}
-
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-
-                  {/* Text Content */}
-                  <div className="absolute inset-x-0 bottom-0 p-5">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="font-pixel text-[8px] text-white/70 tracking-[0.25em] uppercase">
-                        {post.category.split(' & ')[0]}
-                      </span>
-                      <span className="w-px h-2 bg-white/30" />
-                      <span className="font-pixel text-[8px] text-white/70 tracking-[0.25em]">
-                        {post.readTime}
-                      </span>
-                    </div>
-                    <h3 className="font-display text-white text-lg md:text-xl italic leading-[1.2] mb-2 group-hover:opacity-90 transition-opacity">
-                      {post.title}
-                    </h3>
-                    <p className="text-white/60 text-sm line-clamp-2 leading-relaxed">
-                      {post.excerpt}
-                    </p>
-                  </div>
-                </button>
+              {relatedPosts.slice(0, 3).map((post, index) => (
+                <div key={post.id} className="relative aspect-[3/4]">
+                  <BlogCard
+                    title={post.title}
+                    excerpt={post.excerpt}
+                    date={new Date(post.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                    category={post.category}
+                    readTime={post.readTime}
+                    image={post.coverImage}
+                    onClick={() => {
+                      window.scrollTo(0, 0);
+                      onNavigate(`articles/${post.slug}`);
+                    }}
+                    variant="nothing"
+                    index={index}
+                  />
+                </div>
               ))}
             </div>
           </div>

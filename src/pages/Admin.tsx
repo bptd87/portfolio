@@ -91,8 +91,15 @@ export function Admin({ onNavigate }: AdminProps) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        setIsAuthenticated(true);
-        sessionStorage.setItem('supabase_token', session.access_token);
+        // Enforce admin token presence. If missing, user must re-login to generate it.
+        const token = sessionStorage.getItem('admin_token');
+        if (token) {
+          setIsAuthenticated(true);
+          sessionStorage.setItem('supabase_token', session.access_token);
+        } else {
+          console.warn('Session exists but admin token missing. Forcing re-login.');
+          setIsAuthenticated(false);
+        }
       } else {
         setIsAuthenticated(false);
         sessionStorage.removeItem('supabase_token');

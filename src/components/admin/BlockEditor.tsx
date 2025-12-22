@@ -38,12 +38,12 @@ interface BlockEditorProps {
 }
 
 // Text Formatting Toolbar Component
-function TextFormattingToolbar({ 
-  onInsertBold, 
-  onInsertItalic, 
+function TextFormattingToolbar({
+  onInsertBold,
+  onInsertItalic,
   onInsertLink,
   textareaRef
-}: { 
+}: {
   onInsertBold: () => void;
   onInsertItalic: () => void;
   onInsertLink: () => void;
@@ -65,7 +65,7 @@ function TextFormattingToolbar({
       textarea.value = newValue;
       textarea.focus();
       textarea.setSelectionRange(start + before.length, end + before.length);
-      
+
       // Trigger onChange event
       const event = new Event('input', { bubbles: true });
       textarea.dispatchEvent(event);
@@ -76,7 +76,7 @@ function TextFormattingToolbar({
       textarea.value = newValue;
       textarea.focus();
       textarea.setSelectionRange(start + before.length, start + before.length + placeholder.length);
-      
+
       // Trigger onChange event
       const event = new Event('input', { bubbles: true });
       textarea.dispatchEvent(event);
@@ -108,7 +108,7 @@ function TextFormattingToolbar({
         const newValue = beforeText + `[${selectedText}](${url})` + afterText;
         textarea.value = newValue;
         textarea.focus();
-        
+
         // Trigger onChange event
         const event = new Event('input', { bubbles: true });
         textarea.dispatchEvent(event);
@@ -121,7 +121,7 @@ function TextFormattingToolbar({
         textarea.value = newValue;
         textarea.focus();
         textarea.setSelectionRange(start + 1, start + 10);
-        
+
         // Trigger onChange event
         const event = new Event('input', { bubbles: true });
         textarea.dispatchEvent(event);
@@ -163,13 +163,13 @@ function TextFormattingToolbar({
 }
 
 // Paragraph Block Component - NOW WITH RICH TEXT EDITOR!
-function ParagraphBlock({ 
-  block, 
-  updateBlock, 
-  handleAIFix, 
-  handleAIExpand, 
-  isAiProcessing 
-}: { 
+function ParagraphBlock({
+  block,
+  updateBlock,
+  handleAIFix,
+  handleAIExpand,
+  isAiProcessing
+}: {
   block: ContentBlock;
   updateBlock: (id: string, updates: Partial<ContentBlock>) => void;
   handleAIFix: (id: string, content: string) => Promise<void>;
@@ -210,13 +210,13 @@ function ParagraphBlock({
           </button>
         </div>
       </div>
-      
+
       <RichTextEditor
         value={block.content}
         onChange={(value) => updateBlock(block.id, { content: value })}
         placeholder="Start writing your article content here..."
       />
-      
+
       <p className="text-[10px] opacity-40 mt-2">
         ✨ Use the toolbar above to format text • <strong>Bold text</strong> appears in accent color • Add links, lists, and more
       </p>
@@ -240,13 +240,13 @@ function getFileExtension(filename: string): string {
 export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
   // Ensure blocks is always an array
   const safeBlocks = Array.isArray(blocks) ? blocks : [];
-  
+
   const [expandedBlockId, setExpandedBlockId] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [uploadingDrop, setUploadingDrop] = useState(false);
   const [aiLoading, setAiLoading] = useState<string | null>(null); // blockId or 'global'
   const [showInsertMenu, setShowInsertMenu] = useState<number | null>(null); // index to insert after
-  
+
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Close insert menu when clicking outside
@@ -263,7 +263,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
   // Validate onChange prop on mount and log for debugging
   React.useEffect(() => {
     if (typeof onChange !== 'function') {
-      }
+    }
   }, [onChange]);
 
   // Stable updateBlock function using useCallback
@@ -338,8 +338,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-              // Token in Authorization header,
+              'X-Admin-Token': token || '',
             },
             body: formData,
           }
@@ -372,7 +371,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
   // --- AI Logic ---
   const handleAIFix = async (blockId: string, text: string) => {
     if (!text.trim()) return;
-    
+
     setAiLoading(blockId);
     try {
       const token = sessionStorage.getItem('admin_token');
@@ -382,8 +381,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({
             type: 'fix-grammar',
@@ -408,7 +406,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
 
   const handleAIExpand = async (blockId: string, text: string) => {
     if (!text.trim()) return;
-    
+
     setAiLoading(blockId);
     try {
       const token = sessionStorage.getItem('admin_token');
@@ -418,8 +416,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({
             type: 'expand',
@@ -448,10 +445,10 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
       id: `block-${Date.now()}-${Math.random()}`,
       type,
       content: '',
-      metadata: type === 'heading' 
-        ? { level: 2 } 
-        : type === 'list' 
-          ? { listType: 'bullet' } 
+      metadata: type === 'heading'
+        ? { level: 2 }
+        : type === 'list'
+          ? { listType: 'bullet' }
           : type === 'gallery'
             ? { galleryStyle: 'grid', images: [], enableDownload: false }
             : {},
@@ -459,7 +456,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
     const newBlocks = [...safeBlocks, newBlock];
     onChange(newBlocks);
     setExpandedBlockId(newBlock.id);
-    
+
     setTimeout(() => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }, 100);
@@ -501,8 +498,8 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
       case 'image':
         return (
           <div className="flex items-center gap-4">
-             {block.content && <img src={block.content} alt="Thumbnail" className="w-12 h-12 object-cover rounded bg-secondary" />}
-             <span className="text-gray-400 truncate">{block.content}</span>
+            {block.content && <img src={block.content} alt="Thumbnail" className="w-12 h-12 object-cover rounded bg-secondary" />}
+            <span className="text-gray-400 truncate">{block.content}</span>
           </div>
         );
       case 'video':
@@ -550,7 +547,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
     return (
       <div key={block.id} className={`group border bg-card transition-all duration-200 ${isExpanded ? 'border-accent-brand shadow-lg ring-1 ring-accent-brand/10' : 'border-border hover:border-accent-brand/50'}`}>
         {/* Block Header / Handle */}
-        <div 
+        <div
           className={`flex items-center justify-between p-3 cursor-pointer select-none ${isExpanded ? 'bg-accent-brand/5' : 'bg-background hover:bg-secondary/50'}`}
           onClick={() => setExpandedBlockId(isExpanded ? null : block.id)}
         >
@@ -570,10 +567,10 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
               {block.type === 'divider' && <SeparatorHorizontal className="w-3 h-3" />}
             </div>
             <div className="flex flex-col justify-center">
-               <span className="text-[10px] tracking-widest uppercase opacity-40 font-medium leading-none mb-1">{block.type}</span>
-               <div className="text-sm">
-                 {!isExpanded ? renderBlockPreview(block) : <span className="font-medium">Editing...</span>}
-               </div>
+              <span className="text-[10px] tracking-widest uppercase opacity-40 font-medium leading-none mb-1">{block.type}</span>
+              <div className="text-sm">
+                {!isExpanded ? renderBlockPreview(block) : <span className="font-medium">Editing...</span>}
+              </div>
             </div>
           </div>
 
@@ -605,7 +602,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
-             <button
+            <button
               type="button"
               onClick={() => setExpandedBlockId(isExpanded ? null : block.id)}
               className="p-1.5 hover:bg-secondary rounded text-muted-foreground"
@@ -659,11 +656,11 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
             )}
 
             {/* Paragraph Block */}
-            {block.type === 'paragraph' && <ParagraphBlock 
-              block={block} 
-              updateBlock={updateBlock} 
-              handleAIFix={handleAIFix} 
-              handleAIExpand={handleAIExpand} 
+            {block.type === 'paragraph' && <ParagraphBlock
+              block={block}
+              updateBlock={updateBlock}
+              handleAIFix={handleAIFix}
+              handleAIExpand={handleAIExpand}
               isAiProcessing={isAiProcessing}
             />}
 
@@ -703,28 +700,28 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
             {/* Video Block */}
             {block.type === 'video' && (
               <div className="space-y-4">
-                 <div className="flex gap-4 mb-4">
-                   <label className="flex items-center gap-2 cursor-pointer">
-                     <input 
-                       type="radio" 
-                       name={`video-type-${block.id}`}
-                       checked={!block.metadata?.videoType || block.metadata?.videoType === 'youtube'}
-                       onChange={() => updateBlock(block.id, { metadata: { ...block.metadata, videoType: 'youtube' } })}
-                       className="accent-accent-brand"
-                     />
-                     <span className="text-sm">YouTube</span>
-                   </label>
-                   <label className="flex items-center gap-2 cursor-pointer">
-                     <input 
-                       type="radio" 
-                       name={`video-type-${block.id}`}
-                       checked={block.metadata?.videoType === 'vimeo'}
-                       onChange={() => updateBlock(block.id, { metadata: { ...block.metadata, videoType: 'vimeo' } })}
-                       className="accent-accent-brand"
-                     />
-                     <span className="text-sm">Vimeo</span>
-                   </label>
-                 </div>
+                <div className="flex gap-4 mb-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`video-type-${block.id}`}
+                      checked={!block.metadata?.videoType || block.metadata?.videoType === 'youtube'}
+                      onChange={() => updateBlock(block.id, { metadata: { ...block.metadata, videoType: 'youtube' } })}
+                      className="accent-accent-brand"
+                    />
+                    <span className="text-sm">YouTube</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`video-type-${block.id}`}
+                      checked={block.metadata?.videoType === 'vimeo'}
+                      onChange={() => updateBlock(block.id, { metadata: { ...block.metadata, videoType: 'vimeo' } })}
+                      className="accent-accent-brand"
+                    />
+                    <span className="text-sm">Vimeo</span>
+                  </label>
+                </div>
 
                 <div>
                   <label className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Video URL</label>
@@ -744,23 +741,23 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                       if (block.metadata?.videoType === 'vimeo') {
                         const id = getVimeoId(block.content);
                         return id ? (
-                          <iframe 
-                            src={`https://player.vimeo.com/video/${id}`} 
-                            className="w-full h-full" 
-                            frameBorder="0" 
-                            allow="autoplay; fullscreen; picture-in-picture" 
-                            allowFullScreen 
+                          <iframe
+                            src={`https://player.vimeo.com/video/${id}`}
+                            className="w-full h-full"
+                            frameBorder="0"
+                            allow="autoplay; fullscreen; picture-in-picture"
+                            allowFullScreen
                           />
                         ) : <div className="w-full h-full flex items-center justify-center text-white/40">Invalid Vimeo URL</div>;
                       } else {
                         const id = getYouTubeId(block.content);
                         return id ? (
-                          <iframe 
-                            src={`https://www.youtube.com/embed/${id}`} 
-                            className="w-full h-full" 
-                            frameBorder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowFullScreen 
+                          <iframe
+                            src={`https://www.youtube.com/embed/${id}`}
+                            className="w-full h-full"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
                           />
                         ) : <div className="w-full h-full flex items-center justify-center text-white/40">Invalid YouTube URL</div>;
                       }
@@ -860,11 +857,10 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                             e.preventDefault();
                             updateBlock(block.id, { metadata: { ...block.metadata, galleryStyle: style.value } });
                           }}
-                          className={`relative px-4 py-3 border-2 transition-all text-left rounded-lg ${ 
-                            isActive
-                              ? 'border-accent-brand bg-accent-brand/20 ring-2 ring-accent-brand/30'
-                              : 'border-border hover:border-accent-brand/50 bg-secondary/30'
-                          }`}
+                          className={`relative px-4 py-3 border-2 transition-all text-left rounded-lg ${isActive
+                            ? 'border-accent-brand bg-accent-brand/20 ring-2 ring-accent-brand/30'
+                            : 'border-border hover:border-accent-brand/50 bg-secondary/30'
+                            }`}
                         >
                           {isActive && (
                             <div className="absolute top-2 right-2 w-5 h-5 bg-accent-brand rounded-full flex items-center justify-center">
@@ -904,11 +900,11 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                   label="Gallery Images"
                   images={block.metadata?.images || []}
                   onChange={(images) => {
-                    updateBlock(block.id, (currentBlock) => ({ 
-                      metadata: { 
-                        ...(currentBlock.metadata || {}), 
-                        images 
-                      } 
+                    updateBlock(block.id, (currentBlock) => ({
+                      metadata: {
+                        ...(currentBlock.metadata || {}),
+                        images
+                      }
                     }));
                   }}
                 />
@@ -920,16 +916,16 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
               <div>
                 <label className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Height</label>
                 <div className="flex gap-2">
-                    {['small', 'medium', 'large'].map(size => (
-                      <button
-                        type="button"
-                        key={size}
-                        onClick={() => updateBlock(block.id, { metadata: { ...block.metadata, height: size } })}
-                        className={`flex-1 px-3 py-2 text-sm border capitalize transition-colors ${block.metadata?.height === size ? 'bg-accent-brand text-white border-accent-brand' : 'border-border hover:border-accent-brand'}`}
-                      >
-                        {size}
-                      </button>
-                    ))}
+                  {['small', 'medium', 'large'].map(size => (
+                    <button
+                      type="button"
+                      key={size}
+                      onClick={() => updateBlock(block.id, { metadata: { ...block.metadata, height: size } })}
+                      className={`flex-1 px-3 py-2 text-sm border capitalize transition-colors ${block.metadata?.height === size ? 'bg-accent-brand text-white border-accent-brand' : 'border-border hover:border-accent-brand'}`}
+                    >
+                      {size}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -938,7 +934,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
             {block.type === 'accordion' && (
               <div className="space-y-4">
                 <label className="block text-xs tracking-wider uppercase text-gray-300 mb-2">FAQ / Accordion Items</label>
-                
+
                 {/* Display existing items */}
                 {(block.metadata?.items || []).map((item, idx) => (
                   <div key={idx} className="border border-border p-4 space-y-2 bg-secondary/30">
@@ -983,7 +979,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                     </button>
                   </div>
                 ))}
-                
+
                 {/* Add new item button */}
                 <button
                   type="button"
@@ -996,7 +992,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                   <Plus className="w-4 h-4" />
                   Add Q&A Item
                 </button>
-                
+
                 <p className="text-[10px] opacity-40 mt-2">
                   Tip: FAQ items will be collapsible/expandable on the published article
                 </p>
@@ -1016,7 +1012,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        
+
                         // Upload to Supabase storage
                         try {
                           const token = sessionStorage.getItem('admin_token');
@@ -1024,10 +1020,10 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                             alert('You are not logged in. Please log in to the admin panel first.');
                             return;
                           }
-                          
+
                           const formData = new FormData();
                           formData.append('image', file); // API expects 'image' field
-                          
+
                           const response = await fetch(
                             `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/upload`,
                             {
@@ -1039,23 +1035,23 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                               body: formData,
                             }
                           );
-                          
+
                           if (!response.ok) {
                             throw new Error(`Upload failed with status ${response.status}`);
                           }
-                          
+
                           const data = await response.json();
                           if (data.url) {
-                            updateBlock(block.id, { 
+                            updateBlock(block.id, {
                               content: data.url,
-                              metadata: { 
+                              metadata: {
                                 ...block.metadata,
                                 fileName: file.name,
                                 fileSize: formatFileSize(file.size),
                                 fileType: file.type || getFileExtension(file.name)
                               }
                             });
-                            } else {
+                          } else {
                             alert('Upload failed: ' + (data.error || 'No URL returned'));
                           }
                         } catch (err) {
@@ -1087,7 +1083,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                     )}
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-xs tracking-wider uppercase text-gray-300 mb-2">Button Text (optional)</label>
                   <input
@@ -1098,7 +1094,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                     placeholder="Download PDF"
                   />
                 </div>
-                
+
                 <p className="text-[10px] opacity-40">
                   Visitors will see a download button with the file name
                 </p>
@@ -1121,7 +1117,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                     </button>
                   ))}
                 </div>
-                
+
                 {/* Preview */}
                 <div className="py-6 flex items-center justify-center">
                   {block.content === 'dots' && (
@@ -1151,7 +1147,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
   };
 
   return (
-    <div 
+    <div
       ref={editorRef}
       className={`space-y-6 relative transition-colors ${isDraggingOver ? 'bg-accent-brand/5 ring-2 ring-accent-brand ring-inset rounded-lg' : ''}`}
       onDragOver={handleDragOver}
@@ -1191,7 +1187,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
         {safeBlocks.map((block, index) => (
           <React.Fragment key={block.id}>
             {renderBlockEditor(block, index)}
-            
+
             {/* Insert Block Button - appears between blocks */}
             {index < safeBlocks.length - 1 && (
               <div className="relative h-2 flex items-center justify-center">
@@ -1208,10 +1204,10 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                     >
                       <Plus className="w-4 h-4" />
                     </button>
-                    
+
                     {/* Insert Menu Popup */}
                     {showInsertMenu === index && (
-                      <div 
+                      <div
                         className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-neutral-900 border border-neutral-700 shadow-2xl rounded-lg p-4 z-50"
                         style={{ width: '320px' }}
                         onClick={(e) => e.stopPropagation()}
@@ -1267,9 +1263,9 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                             <span className="text-xs">FAQ</span>
                           </button>
                         </div>
-                        <button 
-                          type="button" 
-                          onClick={() => setShowInsertMenu(null)} 
+                        <button
+                          type="button"
+                          onClick={() => setShowInsertMenu(null)}
                           className="mt-3 w-full text-sm text-neutral-400 hover:text-white py-2 border border-neutral-700 rounded-lg hover:bg-neutral-800 transition-all"
                         >
                           Cancel

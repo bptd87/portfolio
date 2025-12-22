@@ -27,7 +27,7 @@ const retryWithBackoff = async <T,>(
   baseDelay: number = 1000
 ): Promise<T> => {
   let lastError: Error | null = null;
-  
+
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
@@ -40,7 +40,7 @@ const retryWithBackoff = async <T,>(
       }
     }
   }
-  
+
   throw lastError || new Error('Upload failed after retries');
 };
 
@@ -72,7 +72,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'blog', cla
     setError(null);
     setUploading(true);
     setProgress(10);
-    
+
     const toastId = toast.loading(
       isRetry ? `Retrying upload (attempt ${retryCount + 1}/3)...` : 'Optimizing image...'
     );
@@ -137,7 +137,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'blog', cla
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
+              'X-Admin-Token': adminToken,
             },
             body: formData,
           }
@@ -157,7 +157,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'blog', cla
 
         const data = await response.json();
         if (!data.url) throw new Error('No URL returned from server');
-        
+
         setProgress(90);
         onChange(data.url);
         setProgress(100);
@@ -244,7 +244,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'blog', cla
             className={`block border-2 border-dashed transition-colors cursor-pointer w-full h-full min-h-[100px] flex flex-col justify-center ${isDragging
               ? 'border-accent-brand bg-accent-brand/5'
               : error ? 'border-destructive bg-destructive/5'
-              : 'border-border hover:border-accent-brand'
+                : 'border-border hover:border-accent-brand'
               }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -257,7 +257,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'blog', cla
                   <Loader2 className="w-8 h-8 text-accent-brand mb-2 animate-spin" />
                   <p className="text-xs text-gray-400 mb-1">Uploading...</p>
                   <div className="w-24 h-1 bg-neutral-700 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-accent-brand transition-all duration-300"
                       style={{ width: `${Math.min(progress, 100)}%` }}
                     />
@@ -375,7 +375,7 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
               {
                 method: 'POST',
                 headers: {
-                  'Authorization': `Bearer ${publicAnonKey}`,
+                  'X-Admin-Token': adminToken,
                 },
                 body: formData,
               }

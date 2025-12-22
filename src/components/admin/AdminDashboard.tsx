@@ -17,7 +17,7 @@ import {
   Building,
   DollarSign
 } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { supabase } from '../../utils/supabase/client';
 
 type ManagerType = 'articles' | 'portfolio' | 'news' | 'links' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'contact' | 'analytics' | 'redirects' | 'media' | 'directory' | 'crm' | 'finance';
 
@@ -46,6 +46,7 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
     categories: 0,
     contactForms: 0,
     directory: 0,
+    vault: 0,
   });
 
   const [loading, setLoading] = useState(true);
@@ -55,27 +56,52 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
       try {
         const adminToken = sessionStorage.getItem('admin_token');
         if (!adminToken) {
-          console.warn('No admin token found');
-          setLoading(false);
-          return;
+          // Basic check, though actual auth happens via RLS/Login usually, 
+          // here we might just rely on checking if enabled
         }
 
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/stats`,
-          {
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-              'X-Admin-Token': adminToken,
-            },
-          }
-        );
+        // Fetch counts directly from Supabase
+        const [
+          projects,
+          articles,
+          news,
+          tutorials,
+          collaborators,
+          directoryCats,
+          directoryLinks,
+          vaultAssets,
+          vaultCats,
+          categories,
+          bioLinks,
+        ] = await Promise.all([
+          supabase.from('portfolio_projects').select('*', { count: 'exact', head: true }),
+          supabase.from('articles').select('*', { count: 'exact', head: true }),
+          supabase.from('news').select('*', { count: 'exact', head: true }),
+          supabase.from('tutorials').select('*', { count: 'exact', head: true }),
+          supabase.from('collaborators').select('*', { count: 'exact', head: true }),
+          supabase.from('directory_categories').select('*', { count: 'exact', head: true }),
+          supabase.from('directory_links').select('*', { count: 'exact', head: true }),
+          supabase.from('vault_assets').select('*', { count: 'exact', head: true }),
+          supabase.from('vault_categories').select('*', { count: 'exact', head: true }),
+          supabase.from('categories').select('*', { count: 'exact', head: true }),
+          supabase.from('bio_links').select('*', { count: 'exact', head: true }),
+        ]);
 
-        if (response.ok) {
-          const data = await response.json();
-          setStats(data);
-        }
+        setStats({
+          portfolio: projects.count || 0,
+          articles: articles.count || 0,
+          news: news.count || 0,
+          tutorials: tutorials.count || 0,
+          collaborators: collaborators.count || 0,
+          directory: (directoryCats.count || 0) + (directoryLinks.count || 0),
+          vault: (vaultAssets.count || 0) + (vaultCats.count || 0),
+          links: bioLinks.count || 0,
+          categories: categories.count || 0,
+          contactForms: 0, // Not yet implemented
+        });
+
       } catch (error) {
-        // Error loading stats
+        console.error('Error loading stats:', error);
       } finally {
         setLoading(false);
       }

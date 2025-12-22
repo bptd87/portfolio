@@ -63,7 +63,7 @@ export function RedirectsManager() {
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/settings`,
         { headers: { 'Authorization': `Bearer ${publicAnonKey}` } }
       );
-      
+
       let currentSettings = {};
       if (currentSettingsResponse.ok) {
         const data = await currentSettingsResponse.json();
@@ -76,8 +76,7 @@ export function RedirectsManager() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({
             ...currentSettings,
@@ -207,7 +206,7 @@ export function RedirectsManager() {
                       placeholder="/old-path"
                     />
                   </div>
-                  
+
                   <div className="flex items-center gap-4">
                     <ArrowRight className="w-4 h-4 opacity-20 flex-shrink-0 hidden md:block" />
                     <div className="space-y-1 flex-1">
@@ -236,7 +235,7 @@ export function RedirectsManager() {
                       Permanent (301)
                     </label>
                   </div>
-                  
+
                   <IconButton onClick={() => removeRedirect(redirect.id)} variant="danger" className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <Trash2 className="w-4 h-4" />
                   </IconButton>

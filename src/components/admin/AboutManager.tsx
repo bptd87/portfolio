@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, Save, RotateCcw, AlertCircle, CheckCircle, Loader, Image as ImageIcon } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { supabase } from '../../utils/supabase/client';
 import { PrimaryButton, SecondaryButton } from './AdminButtons';
 import { ImageUploader } from './ImageUploader';
 import { AdminTokens } from '../../styles/admin-tokens';
@@ -59,7 +59,6 @@ export function AboutManager() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const adminToken = sessionStorage.getItem('admin_token');
 
   useEffect(() => {
     loadContent();
@@ -70,39 +69,28 @@ export function AboutManager() {
       setLoading(true);
 
       // Fetch site settings
-      const settingsResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/settings`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
-        }
-      );
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('site_configuration')
+        .select('value')
+        .eq('key', 'site_settings')
+        .single();
 
-      if (settingsResponse.ok) {
-        const data = await settingsResponse.json();
-        if (data.settings) {
-          setContent({ ...defaultContent, ...data.settings });
-        }
+      if (settingsData?.value) {
+        setContent({ ...defaultContent, ...settingsData.value });
       }
 
       // Fetch gallery photos
-      const galleryResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/about-gallery`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
-        }
-      );
+      const { data: galleryData, error: galleryError } = await supabase
+        .from('about_gallery')
+        .select('*')
+        .order('display_order');
 
-      if (galleryResponse.ok) {
-        const galleryData = await galleryResponse.json();
-        if (galleryData.photos) {
-          setGalleryPhotos(galleryData.photos);
-        }
+      if (galleryData) {
+        setGalleryPhotos(galleryData);
       }
+
     } catch (error) {
+      console.error('Error loading content:', error);
       showMessage('error', 'Failed to load content');
     } finally {
       setLoading(false);
@@ -111,52 +99,102 @@ export function AboutManager() {
 
   const handleSave = async () => {
     try {
+      console.log('💾 Starting About page save...', { hasPhotos: galleryPhotos.length });
       setSaving(true);
 
-      if (!adminToken) {
-        alert('You are not logged in. Please log in to the admin panel first.');
-        return;
+      // Save main about content
+      console.log('📝 Saving about content to site_configuration...');
+      const { error: settingsError } = await supabase
+        .from('site_configuration')
+        .upsert({ key: 'site_settings', value: content } as any);
+
+      if (settingsError) {
+        console.error('❌ Error saving settings:', settingsError);
+        throw settingsError;
+      }
+      console.log('✅ About content saved');
+
+      // Get existing photo IDs from database
+      console.log('🔍 Fetching existing gallery photos from DB...');
+      const { data: existingPhotos } = await supabase
+        .from('about_gallery')
+        .select('id');
+
+      const existingIds = existingPhotos?.map((p: any) => p.id) || [];
+      const currentIds = galleryPhotos.filter(p => p.id).map(p => p.id);
+
+      console.log('📊 Photo comparison:', { existingIds, currentIds, toDelete: existingIds.length - currentIds.length });
+
+      // Delete photos that were removed
+      const idsToDelete = existingIds.filter(id => !currentIds.includes(id));
+
+      if (idsToDelete.length > 0) {
+        console.log('🗑️ Deleting removed photos:', idsToDelete);
+        await supabase.from('about_gallery').delete().in('id', idsToDelete);
       }
 
-      // Save site settings
-      const settingsResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/settings`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${adminToken}`,
-          },
-          body: JSON.stringify(content),
+      // Handle gallery photos: insert new ones, update existing ones
+      if (galleryPhotos.length > 0) {
+        // Separate new photos from existing ones
+        const newPhotos = galleryPhotos.filter(p => !p.id);
+        const existingPhotos = galleryPhotos.filter(p => p.id);
+
+        console.log('📸 Photo breakdown:', { total: galleryPhotos.length, new: newPhotos.length, existing: existingPhotos.length });
+
+        // Insert new photos (without ID - DB will auto-generate)
+        if (newPhotos.length > 0) {
+          console.log('➕ Inserting new photos:', newPhotos);
+          const photosToInsert = newPhotos.map((p, index) => ({
+            image_url: p.image_url,
+            caption: p.caption,
+            alt_text: p.alt_text,
+            display_order: existingPhotos.length + index + 1
+          }));
+
+          const { error: insertError } = await supabase
+            .from('about_gallery')
+            .insert(photosToInsert);
+
+          if (insertError) {
+            console.error('❌ Insert error:', insertError);
+            throw insertError;
+          }
+          console.log('✅ New photos inserted');
         }
-      );
 
-      if (!settingsResponse.ok) {
-        showMessage('error', 'Failed to save settings');
-        return;
-      }
+        // Update existing photos
+        if (existingPhotos.length > 0) {
+          console.log('✏️ Updating existing photos:', existingPhotos.length);
+          for (let i = 0; i < existingPhotos.length; i++) {
+            const p = existingPhotos[i];
+            const { error: updateError } = await supabase
+              .from('about_gallery')
+              .update({
+                image_url: p.image_url,
+                caption: p.caption,
+                alt_text: p.alt_text,
+                display_order: i + 1
+              })
+              .eq('id', p.id);
 
-      // Save gallery photos
-      const galleryResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/about-gallery`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${adminToken}`,
-          },
-          body: JSON.stringify({ photos: galleryPhotos }),
+            if (updateError) {
+              console.error('❌ Update error for photo:', p.id, updateError);
+              throw updateError;
+            }
+          }
+          console.log('✅ Existing photos updated');
         }
-      );
-
-      if (galleryResponse.ok) {
-        showMessage('success', 'About page updated successfully!');
-        setHasUnsavedChanges(false);
-      } else {
-        showMessage('error', 'Failed to save gallery photos');
       }
-    } catch (error) {
-      showMessage('error', 'Error saving changes');
+
+      console.log('🎉 Save complete, reloading data...');
+      showMessage('success', 'About page updated successfully!');
+      setHasUnsavedChanges(false);
+      // Reload to get new IDs
+      loadContent();
+
+    } catch (error: any) {
+      console.error('💥 Fatal error saving changes:', error);
+      showMessage('error', 'Error saving changes: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -376,6 +414,7 @@ export function AboutManager() {
                       if (newPhotos[index]) {
                         newPhotos[index].image_url = url;
                       } else {
+                        // For new photos, don't set ID initially, let DB generate it on save (or if we save it here, undefined ID)
                         newPhotos[index] = {
                           image_url: url,
                           caption: '',

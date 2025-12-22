@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { supabase } from '../utils/supabase/client';
 import { motion } from 'motion/react';
 import { ArrowUpRight, Globe, Linkedin, Instagram } from 'lucide-react';
 
@@ -28,19 +28,28 @@ export function Collaborators({ onNavigate }: CollaboratorsProps) {
   useEffect(() => {
     const fetchCollaborators = async () => {
       try {
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/collaborators`,
-          {
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-          }
-        );
+        const { data, error } = await supabase
+          .from('collaborators')
+          .select('*')
+          .order('name');
 
-        if (response.ok) {
-          const data = await response.json();
-          const collaboratorsData = data.collaborators || data || [];
-          setCollaborators(collaboratorsData);
+        if (error) throw error;
+
+        if (data) {
+          // Map DB to frontend interface
+          const mappedCollaborators: Collaborator[] = data.map(c => ({
+            id: c.id,
+            name: c.name,
+            type: (c.type as any) || 'person',
+            role: c.role || 'Collaborator',
+            bio: c.bio,
+            website: c.website,
+            linkedin: c.linkedin,
+            instagram: c.instagram,
+            featured: false, // Default as not in DB yet
+            projectCount: 0 // Default as not computed yet
+          }));
+          setCollaborators(mappedCollaborators);
         }
       } catch (err) {
         console.error('Error fetching collaborators:', err);

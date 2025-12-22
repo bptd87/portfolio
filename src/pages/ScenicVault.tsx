@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Download, Search, ArrowLeft, X, Filter, ChevronRight,
@@ -5,8 +6,9 @@ import {
   FileType, HardDrive, Calendar, Eye, Tag, Layers, Box, ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { supabase } from '../utils/supabase/client';
 
 // Types
 interface ReferencePhoto {
@@ -52,12 +54,12 @@ interface VaultCategory {
 
 // Default categories
 const DEFAULT_CATEGORIES: VaultCategory[] = [
-  { id: 'furniture', name: 'Furniture', slug: 'furniture', description: 'Period and modern furniture', icon: 'armchair', order: 1 },
-  { id: 'props', name: 'Props', slug: 'props', description: 'Hand props and set dressing', icon: 'theater', order: 2 },
-  { id: 'architectural', name: 'Architectural', slug: 'architectural', description: 'Windows, doors, moldings', icon: 'building', order: 3 },
-  { id: 'foliage', name: 'Foliage', slug: 'foliage', description: 'Trees, plants, greenery', icon: 'tree', order: 4 },
-  { id: 'lighting', name: 'Lighting', slug: 'lighting', description: 'Practicals and fixtures', icon: 'lamp', order: 5 },
-  { id: '2d-symbols', name: '2D Symbols', slug: '2d-symbols', description: 'Figures and scale references', icon: 'user', order: 6 },
+  { id: '1', name: 'Furniture', slug: 'furniture', description: 'Period and modern furniture', icon: 'armchair', order: 1 },
+  { id: '2', name: 'Props', slug: 'props', description: 'Hand props and set dressing', icon: 'theater', order: 2 },
+  { id: '3', name: 'Architectural', slug: 'architectural', description: 'Windows, doors, moldings', icon: 'building', order: 3 },
+  { id: '4', name: 'Foliage', slug: 'foliage', description: 'Trees, plants, greenery', icon: 'tree', order: 4 },
+  { id: '5', name: 'Lighting', slug: 'lighting', description: 'Practicals and fixtures', icon: 'lamp', order: 5 },
+  { id: '6', name: '2D Symbols', slug: '2d-symbols', description: 'Figures and scale references', icon: 'user', order: 6 },
 ];
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -65,73 +67,8 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   tree: TreePine, lamp: Lamp, user: User, folder: FolderOpen,
 };
 
-// Mock assets for development preview
-const MOCK_ASSETS: VaultAsset[] = [
-  {
-    id: '1', name: 'Victorian Settee', slug: 'victorian-settee', category: 'furniture',
-    assetType: '3d', vwxFileUrl: '#', vwxVersion: '2024',
-    previewImageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=450&fit=crop',
-    referencePhotos: [], era: '1860-1900', style: 'Victorian',
-    tags: ['sofa', 'seating', 'period'], downloadCount: 127, featured: true,
-    enabled: true, createdAt: '2024-01-15', updatedAt: '2024-01-15', fileSize: '2.4 MB',
-  },
-  {
-    id: '2', name: 'Art Deco Floor Lamp', slug: 'art-deco-floor-lamp', category: 'lighting',
-    assetType: '3d', vwxFileUrl: '#', vwxVersion: '2024',
-    previewImageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800&h=450&fit=crop',
-    referencePhotos: [], era: '1920-1940', style: 'Art Deco',
-    tags: ['lamp', 'floor lamp', 'practical'], downloadCount: 89, featured: true,
-    enabled: true, createdAt: '2024-02-10', updatedAt: '2024-02-10', fileSize: '1.8 MB',
-  },
-  {
-    id: '3', name: 'Georgian Door Frame', slug: 'georgian-door-frame', category: 'architectural',
-    assetType: '3d', vwxFileUrl: '#', vwxVersion: '2024',
-    previewImageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=450&fit=crop',
-    referencePhotos: [], era: '1714-1830', style: 'Georgian',
-    tags: ['door', 'millwork', 'entrance'], downloadCount: 203, featured: true,
-    enabled: true, createdAt: '2024-03-05', updatedAt: '2024-03-05', fileSize: '3.1 MB',
-  },
-  {
-    id: '4', name: 'Potted Fern Collection', slug: 'potted-fern-collection', category: 'foliage',
-    assetType: '3d', vwxFileUrl: '#', vwxVersion: '2024',
-    previewImageUrl: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=800&h=450&fit=crop',
-    referencePhotos: [], style: 'Natural',
-    tags: ['plant', 'fern', 'greenery'], downloadCount: 156, featured: false,
-    enabled: true, createdAt: '2024-03-20', updatedAt: '2024-03-20', fileSize: '4.2 MB',
-  },
-  {
-    id: '5', name: 'Vintage Telephone', slug: 'vintage-telephone', category: 'props',
-    assetType: '3d', vwxFileUrl: '#', vwxVersion: '2024',
-    previewImageUrl: 'https://images.unsplash.com/photo-1558618047-f4b511eaa53a?w=800&h=450&fit=crop',
-    referencePhotos: [], era: '1930-1960', style: 'Mid-Century',
-    tags: ['phone', 'desk prop', 'period'], downloadCount: 78, featured: false,
-    enabled: true, createdAt: '2024-04-01', updatedAt: '2024-04-01', fileSize: '0.9 MB',
-  },
-  {
-    id: '6', name: 'Section Symbol Set', slug: 'section-symbol-set', category: '2d-symbols',
-    assetType: '2d', vwxFileUrl: '#', vwxVersion: '2024',
-    previewImageUrl: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&h=450&fit=crop',
-    referencePhotos: [],
-    tags: ['drafting', 'symbols', 'annotation'], downloadCount: 312, featured: false,
-    enabled: true, createdAt: '2024-04-15', updatedAt: '2024-04-15', fileSize: '0.3 MB',
-  },
-  {
-    id: '7', name: 'Tufted Chesterfield', slug: 'tufted-chesterfield', category: 'furniture',
-    assetType: '3d', vwxFileUrl: '#', vwxVersion: '2024',
-    previewImageUrl: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800&h=450&fit=crop',
-    referencePhotos: [], era: '1880-1920', style: 'Victorian',
-    tags: ['sofa', 'leather', 'tufted'], downloadCount: 245, featured: false,
-    enabled: true, createdAt: '2024-05-01', updatedAt: '2024-05-01', fileSize: '3.7 MB',
-  },
-  {
-    id: '8', name: 'Crystal Chandelier', slug: 'crystal-chandelier', category: 'lighting',
-    assetType: '3d', vwxFileUrl: '#', vwxVersion: '2024',
-    previewImageUrl: 'https://images.unsplash.com/photo-1543198126-a8ad8e47fb22?w=800&h=450&fit=crop',
-    referencePhotos: [], era: '1850-1920', style: 'Victorian',
-    tags: ['chandelier', 'crystal', 'overhead'], downloadCount: 189, featured: false,
-    enabled: true, createdAt: '2024-05-15', updatedAt: '2024-05-15', fileSize: '5.2 MB',
-  },
-];
+// Mock assets for development preview if DB is empty
+const MOCK_ASSETS: VaultAsset[] = [];
 
 interface ScenicVaultProps {
   onNavigate: (page: string) => void;
@@ -156,37 +93,81 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/vault/public`,
-        { headers: { Authorization: `Bearer ${publicAnonKey}` } }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          // Use API data if available, otherwise keep mock data
-          if (data.assets && data.assets.length > 0) {
-            setAssets(data.assets);
-          }
-          const serverCategories = data.categories || [];
-          setCategories(serverCategories.length > 0 ? serverCategories : DEFAULT_CATEGORIES);
-        }
+      // Fetch Categories
+      const { data: catData, error: catError } = await supabase
+        .from('vault_categories')
+        .select('*')
+        .order('order', { ascending: true });
+
+      if (!catError && catData && catData.length > 0) {
+        setCategories(catData);
+      }
+
+      // Fetch Assets
+      const { data: assetData, error: assetError } = await supabase
+        .from('vault_assets')
+        .select('*')
+        .eq('enabled', true)
+        .order('created_at', { ascending: false });
+
+      if (!assetError && assetData) {
+        // Map DB snake_case to frontend camelCase
+        const mappedAssets: VaultAsset[] = assetData.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          slug: a.slug,
+          category: a.category,
+          assetType: a.asset_type,
+          vwxFileUrl: a.vwx_file_url,
+          previewImageUrl: a.preview_image_url,
+          glbFileUrl: a.glb_file_url,
+          thumbnailUrl: a.thumbnail_url,
+          vwxVersion: a.vwx_version || '2024',
+          backwardsCompatible: a.backwards_compatible,
+          referencePhotos: a.reference_photos || [],
+          notes: a.description,
+          tags: a.tags || [],
+          downloadCount: a.downloads || 0,
+          featured: a.featured,
+          enabled: a.enabled,
+          createdAt: a.created_at,
+          updatedAt: a.updated_at,
+          // Optional fields that might not be in DB schema yet but are in interface
+          era: a.era,
+          style: a.style,
+          period: a.period,
+          fileSize: a.file_size
+        }));
+        setAssets(mappedAssets);
       }
     } catch (error) {
-      // Keep mock assets and default categories on error
+      console.error('Error fetching vault data:', error);
+      // Fallback to defaults currently in state
     } finally {
       setLoading(false);
     }
   };
 
   const handleDownload = async (asset: VaultAsset) => {
-    try {
-      await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/vault/assets/${asset.id}/download`,
-        { method: 'POST', headers: { Authorization: `Bearer ${publicAnonKey}` } }
-      );
-    } catch (error) {
-    }
+    // Open file immediately
     window.open(asset.vwxFileUrl, '_blank');
+
+    // Attempt to increment download count (fire and forget)
+    try {
+      // We can create an RPC for this later if we want strict counting, 
+      // or just rely on RLS allowing update of 'downloads' column if we set it up.
+      // For now, let's just use a simple RPC if it existed, or skip it.
+      // Or if we want to be client-side only for now:
+      /*
+      await supabase.from('vault_assets')
+          .update({ downloads: asset.downloadCount + 1 })
+          .eq('id', asset.id);
+      */
+      // But RLS likely blocks public update.
+      // We'll leave this empty for now until an RPC is made.
+    } catch (error) {
+      console.error('Failed to track download', error);
+    }
   };
 
   const getCategoryIcon = (iconName: string) => CATEGORY_ICONS[iconName] || FolderOpen;
@@ -482,6 +463,7 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
           <div className="max-w-2xl">
             <button
               onClick={() => onNavigate('studio')}
+              //   href="/studio"
               className="font-pixel text-[11px] tracking-[0.3em] text-muted-foreground hover:text-foreground uppercase mb-4 flex items-center gap-2 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />

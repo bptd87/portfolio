@@ -1,8 +1,3 @@
-/**
- * SITE SETTINGS MANAGER
- * 
- * Manage global site settings including homepage content, bio, contact info, and SEO defaults.
- */
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -18,9 +13,8 @@ import {
   Loader,
   Image as ImageIcon,
   Type,
-  Link as LinkIcon,
 } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { supabase } from '../../utils/supabase/client';
 import { PrimaryButton, SecondaryButton } from './AdminButtons';
 import { ImageUploader } from './ImageUploader';
 import { AdminTokens } from '../../styles/admin-tokens';
@@ -29,22 +23,22 @@ interface SiteSettings {
   // Homepage Hero
   heroTitle: string;
   heroSubtitle: string;
-  
+
   // About/Bio
   bioText: string;
   profileImageUrl: string;
-  
+
   // Contact Information
   contactEmail: string;
   contactPhone: string;
   contactLocation: string;
   availabilityStatus: string;
-  
+
   // SEO Defaults
   siteTitle: string;
   siteDescription: string;
   defaultOgImage: string;
-  
+
   // Footer
   footerCopyright: string;
 }
@@ -53,22 +47,22 @@ const defaultSettings: SiteSettings = {
   // Homepage
   heroTitle: 'Brandon PT Davis',
   heroSubtitle: 'ART × TECHNOLOGY × DESIGN',
-  
+
   // About/Bio
   bioText: 'Scenic designer, educator, and creative technologist crafting immersive environments where story and space converge.',
   profileImageUrl: '',
-  
+
   // Contact
   contactEmail: 'info@brandonptdavis.com',
   contactPhone: '',
   contactLocation: 'Southern California',
   availabilityStatus: 'Available for projects',
-  
+
   // SEO Defaults
   siteTitle: 'Brandon PT Davis - Scenic Designer',
   siteDescription: 'Scenic designer, educator, and creative technologist crafting immersive environments where story and space converge.',
   defaultOgImage: '',
-  
+
   // Footer
   footerCopyright: `© ${new Date().getFullYear()} Brandon PT Davis. All rights reserved.`,
 };
@@ -83,7 +77,6 @@ export function SiteSettingsManager() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const adminToken = sessionStorage.getItem('admin_token');
 
   // Load settings from database
   useEffect(() => {
@@ -93,24 +86,22 @@ export function SiteSettingsManager() {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/settings`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
-        }
-      );
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.settings) {
-          setSettings({ ...defaultSettings, ...data.settings });
+      const { data, error } = await supabase
+        .from('site_configuration')
+        .select('value')
+        .eq('key', 'site_settings')
+        .single();
+
+      if (error) {
+        if (error.code !== 'PGRST116') { // Ignore "Row not found" error
+          console.error('Error loading settings:', error);
         }
+      } else if (data && data.value) {
+        setSettings({ ...defaultSettings, ...data.value });
       }
     } catch (error) {
-      // Error loading settings
+      console.error('Error loading settings:', error);
     } finally {
       setLoading(false);
     }
@@ -119,36 +110,23 @@ export function SiteSettingsManager() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      
-      if (!adminToken) {
-        alert('You are not logged in. Please log in to the admin panel first.');
-        return;
-      }
-      
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/settings`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
-          },
-          body: JSON.stringify(settings),
-        }
-      );
 
-      const responseText = await response.text();
-      if (response.ok) {
-        showMessage('success', 'Settings saved successfully!');
-        setHasUnsavedChanges(false);
-        setShowSuccessToast(true);
-        setTimeout(() => setShowSuccessToast(false), 3000);
-      } else {
-        showMessage('error', `Failed to save settings`);
-      }
-    } catch (error) {
-      showMessage('error', `Error saving settings`);
+      const { error } = await supabase
+        .from('site_configuration')
+        .upsert({
+          key: 'site_settings',
+          value: settings
+        });
+
+      if (error) throw error;
+
+      showMessage('success', 'Settings saved successfully!');
+      setHasUnsavedChanges(false);
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+    } catch (error: any) {
+      console.error('Error saving settings:', error);
+      showMessage('error', `Failed to save settings: ${error.message}`);
     } finally {
       setSaving(false);
     }
@@ -194,11 +172,10 @@ export function SiteSettingsManager() {
       {/* Message Banner */}
       {message && (
         <div
-          className={`mb-6 px-4 py-3 rounded-3xl border flex items-center gap-3 ${
-            message.type === 'success'
-              ? 'bg-green-500/10 border-green-500/30 text-green-400'
-              : 'bg-red-500/10 border-red-500/30 text-red-400'
-          }`}
+          className={`mb-6 px-4 py-3 rounded-3xl border flex items-center gap-3 ${message.type === 'success'
+            ? 'bg-green-500/10 border-green-500/30 text-green-400'
+            : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}
         >
           {message.type === 'success' ? (
             <CheckCircle className="w-5 h-5" />
@@ -218,11 +195,10 @@ export function SiteSettingsManager() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-300'
-                }`}
+                className={`flex items-center gap-2 px-4 py-3 text-xs tracking-wider uppercase border-b-2 transition-all ${activeTab === tab.id
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-300'
+                  }`}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
@@ -242,7 +218,7 @@ export function SiteSettingsManager() {
                 <Type className="w-5 h-5 text-blue-400" />
                 Hero Section
               </h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
@@ -282,7 +258,7 @@ export function SiteSettingsManager() {
                 <User className="w-5 h-5 text-blue-400" />
                 About/Bio
               </h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
@@ -320,7 +296,7 @@ export function SiteSettingsManager() {
                 <Mail className="w-5 h-5 text-blue-400" />
                 Contact Information
               </h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
@@ -386,7 +362,7 @@ export function SiteSettingsManager() {
                 <Search className="w-5 h-5 text-blue-400" />
                 SEO Defaults
               </h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
@@ -440,7 +416,7 @@ export function SiteSettingsManager() {
                 <Globe className="w-5 h-5 text-blue-400" />
                 Footer Content
               </h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>

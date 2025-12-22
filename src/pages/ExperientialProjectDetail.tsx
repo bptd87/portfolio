@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SEO } from '../components/SEO';
 import { LikeButton } from '../components/shared/LikeButton';
 import { ShareButton } from '../components/shared/ShareButton';
-import { apiCall } from '../utils/api';
+// apiCall removed
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { createClient } from '../utils/supabase/client';
+import { supabase } from '../utils/supabase/client';
 
 
 interface ExperientialProjectDetailProps {
@@ -82,31 +82,51 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
   const fetchProject = async () => {
     try {
       setLoading(true);
-      const response = await apiCall(`/api/projects/${slug}`);
 
-      if (!response.ok) throw new Error('Failed to fetch project');
-      const data = await response.json();
+      // Fetch project directly
+      const { data: projectData, error } = await supabase
+        .from('portfolio_projects')
+        .select('*')
+        .eq('slug', slug)
+        .eq('published', true)
+        .single();
 
-      if (!data.success || !data.project) throw new Error('Invalid project data');
-      setProject(data.project);
-      setViews(data.project.views || 0);
+      if (error || !projectData) throw new Error('Failed to fetch project');
 
-      // Increment view count
+      // Map fields (ensure compatibility with existing template logic)
+      const mappedProject = {
+        ...projectData,
+        cardImage: projectData.card_image || projectData.cover_image,
+        coverImage: projectData.cover_image || projectData.card_image,
+        // Add any other specific mappings if needed (e.g. galleries, camelCase props?)
+        // The template uses camelCase like `experientialContent`, `keyFeatures`?
+        // The DB columns are generally snake_case.
+        // I see usages like `project.process`, `project.experientialContent`, `project.galleries`.
+        // If the DB has JSON columns `process`, `experiential_content`, `galleries`, `key_features`, `metrics`...
+        // I need to map snake_case DB columns to camelCase if the UI expects it.
+        // Looking at line 39: `project.experientialContent`.
+        // DB column likely `experiential_content`.
+        experientialContent: projectData.experiential_content || projectData.experientialContent,
+        keyFeatures: projectData.key_features || projectData.keyFeatures,
+        metrics: projectData.metrics || projectData.metrics_data,
+        videoUrls: projectData.video_urls || projectData.videoUrls,
+        team: projectData.team || projectData.team_members
+      };
+
+      setProject(mappedProject);
+      setViews(projectData.views || 0);
+
+      // Increment view count via RPC
       try {
-        const viewResponse = await apiCall(`/api/projects/${data.project.id}/view`, { method: 'POST' });
-        if (viewResponse.ok) {
-          const viewData = await viewResponse.json();
-          if (viewData.success && viewData.views !== undefined) {
-            setViews(viewData.views);
-          }
-        }
+        await supabase.rpc('increment_project_view', { project_id: projectData.id });
+        // Optimistically update views
+        setViews((v) => v + 1);
       } catch (err) {
         console.error('Failed to increment view', err);
       }
 
-      // Fetch all projects for navigation (direct from Supabase)
+      // Fetch all projects for navigation
       try {
-        const supabase = createClient();
         const { data: allProjects, error: projectsError } = await supabase
           .from('portfolio_projects')
           .select('*')

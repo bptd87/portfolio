@@ -132,3 +132,21 @@ export function DevToolButton({
     </button>
   );
 }
+
+export function ActionButton({
+  children,
+  className = '',
+  icon: Icon,
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      type="button"
+      className={`flex items-center gap-2 px-3 py-1.5 border border-gray-700 hover:border-gray-500 hover:bg-gray-800 text-gray-300 hover:text-white rounded-md transition-all text-xs font-medium flex-shrink-0 ${className}`}
+      {...props}
+    >
+      {Icon && <Icon className="w-3 h-3" />}
+      {children}
+    </button>
+  );
+}

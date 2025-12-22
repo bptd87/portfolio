@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search as SearchIcon, ArrowRight, Loader2, Folder, FileText, Newspaper, Users, Wrench, Package } from 'lucide-react';
-import { API_BASE_URL } from '../utils/api';
-import { publicAnonKey } from '../utils/supabase/info';
+// API_BASE_URL removed
+import { supabase } from '../utils/supabase/client';
 import { calculateRelevance } from '../utils/search';
 
 // Static pages that are always searchable
@@ -60,133 +60,108 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
       const dynamicContent: SearchResult[] = [...staticPages];
 
       try {
-        // Fetch projects
-        const projectsRes = await fetch(`${API_BASE_URL}/api/projects`, {
-          headers: { 'Authorization': `Bearer ${publicAnonKey}` }
-        });
-        if (projectsRes.ok) {
-          const projectsData = await projectsRes.json();
-          if (projectsData.success && projectsData.projects) {
-            projectsData.projects
-              .filter((p: any) => p.published !== false)
-              .forEach((project: any) => {
-                dynamicContent.push({
-                  title: project.title,
-                  description: project.description || `${project.category} design${project.venue ? ` for ${project.venue}` : ''}${project.year ? ` (${project.year})` : ''}`,
-                  category: 'Projects',
-                  route: `project/${project.slug || project.id}`,
-                  keywords: `${project.category || ''} ${project.venue || ''} ${project.client || ''} ${project.tags?.join(' ') || ''}`,
-                  image: project.cardImage || project.coverImage
-                });
-              });
-          }
-        }
+        const [projectsRes, articlesRes, newsRes, collabRes, vaultRes, tutorialsRes] = await Promise.all([
+          supabase.from('portfolio_projects').select('*').eq('published', true),
+          supabase.from('articles').select('*').eq('published', true),
+          supabase.from('news').select('*').eq('published', true),
+          supabase.from('collaborators').select('*'),
+          supabase.from('vault_assets').select('*').eq('enabled', true),
+          supabase.from('tutorials').select('*').eq('published', true)
+        ]);
 
-        // Fetch articles
-        const articlesRes = await fetch(`${API_BASE_URL}/api/articles`, {
-          headers: { 'Authorization': `Bearer ${publicAnonKey}` }
-        });
-        if (articlesRes.ok) {
-          const articlesData = await articlesRes.json();
-          if (articlesData.success && articlesData.articles) {
-            articlesData.articles
-              .filter((a: any) => a.published !== false)
-              .forEach((article: any) => {
-                dynamicContent.push({
-                  title: article.title,
-                  description: article.excerpt || article.description || 'Article on scenic design',
-                  category: 'Articles',
-                  route: `scenic-insights/${article.slug || article.id}`,
-                  keywords: `${article.tags?.join(' ') || ''} ${article.category || ''}`,
-                  image: article.coverImage
-                });
-              });
-          }
-        }
-
-        // Fetch news
-        const newsRes = await fetch(`${API_BASE_URL}/api/news`, {
-          headers: { 'Authorization': `Bearer ${publicAnonKey}` }
-        });
-        if (newsRes.ok) {
-          const newsData = await newsRes.json();
-          if (newsData.success && newsData.news) {
-            newsData.news.forEach((item: any) => {
-              dynamicContent.push({
-                title: item.title,
-                description: item.excerpt || item.description || 'News update',
-                category: 'News',
-                route: `news/${item.slug || item.id}`,
-                keywords: `${item.tags?.join(' ') || ''} ${item.category || ''} ${item.location || ''}`,
-                image: item.coverImage
-              });
+        // Projects
+        if (projectsRes.data) {
+          projectsRes.data.forEach((project: any) => {
+            dynamicContent.push({
+              title: project.title,
+              description: project.description || `${project.category} design${project.venue ? ` for ${project.venue}` : ''}${project.year ? ` (${project.year})` : ''}`,
+              category: 'Projects',
+              route: `project/${project.slug || project.id}`,
+              keywords: `${project.category || ''} ${project.venue || ''} ${project.client || ''} ${project.tags?.join(' ') || ''}`,
+              image: project.card_image || project.cover_image
             });
-          }
+          });
         }
 
-        // Fetch collaborators
-        const collabRes = await fetch(`${API_BASE_URL}/api/collaborators`, {
-          headers: { 'Authorization': `Bearer ${publicAnonKey}` }
-        });
-        if (collabRes.ok) {
-          const collabData = await collabRes.json();
-          if (collabData.collaborators) {
-            collabData.collaborators.forEach((collab: any) => {
-              dynamicContent.push({
-                title: collab.name,
-                description: `${collab.role || collab.type || 'Collaborator'}${collab.bio ? ` - ${collab.bio.substring(0, 100)}...` : ''}`,
-                category: 'Collaborators',
-                route: 'collaborators',
-                keywords: `${collab.type || ''} ${collab.role || ''} ${collab.projects?.join(' ') || ''}`,
-                image: collab.avatar
-              });
+        // Articles
+        if (articlesRes.data) {
+          articlesRes.data.forEach((article: any) => {
+            dynamicContent.push({
+              title: article.title,
+              description: article.excerpt || 'Article on scenic design',
+              category: 'Articles',
+              route: `scenic-insights/${article.slug || article.id}`,
+              keywords: `${article.tags?.join(' ') || ''} ${article.category || ''}`,
+              image: article.cover_image
             });
-          }
+          });
         }
 
-        // Fetch vault assets
-        const vaultRes = await fetch(`${API_BASE_URL}/api/vault`, {
-          headers: { 'Authorization': `Bearer ${publicAnonKey}` }
-        });
-        if (vaultRes.ok) {
-          const vaultData = await vaultRes.json();
-          if (vaultData.assets) {
-            vaultData.assets.forEach((asset: any) => {
-              dynamicContent.push({
-                title: asset.name,
-                description: asset.description || `${asset.category || 'Asset'} - ${asset.fileType || 'Download'}`,
-                category: 'Vault Assets',
-                route: `scenic-vault/${asset.id}`,
-                keywords: `${asset.tags?.join(' ') || ''} ${asset.category || ''} ${asset.fileType || ''}`,
-                image: asset.thumbnail
-              });
+        // News
+        if (newsRes.data) {
+          newsRes.data.forEach((item: any) => {
+            dynamicContent.push({
+              title: item.title,
+              description: item.excerpt || 'News update',
+              category: 'News',
+              route: `news/${item.slug || item.id}`,
+              keywords: `${item.tags?.join(' ') || ''} ${item.category || ''} ${item.location || ''}`,
+              image: item.cover_image
             });
-          }
+          });
         }
 
-        // Fetch tutorials
-        const tutorialsRes = await fetch(`${API_BASE_URL}/api/tutorials`, {
-          headers: { 'Authorization': `Bearer ${publicAnonKey}` }
-        });
-        if (tutorialsRes.ok) {
-          const tutorialsData = await tutorialsRes.json();
-          if (tutorialsData.tutorials) {
-            tutorialsData.tutorials
-              .filter((t: any) => t.published !== false)
-              .forEach((tutorial: any) => {
-                dynamicContent.push({
-                  title: tutorial.title,
-                  description: tutorial.description || 'Video tutorial',
-                  category: 'Tutorials',
-                  route: `scenic-studio/${tutorial.slug || tutorial.id}`,
-                  keywords: `${tutorial.tags?.join(' ') || ''} tutorial video`,
-                  image: tutorial.thumbnail
-                });
-              });
-          }
+        // Collaborators
+        if (collabRes.data) {
+          collabRes.data.forEach((collab: any) => {
+            dynamicContent.push({
+              title: collab.name,
+              description: `${collab.role || collab.type || 'Collaborator'}${collab.bio ? ` - ${collab.bio.substring(0, 100)}...` : ''}`,
+              category: 'Collaborators',
+              route: 'collaborators',
+              keywords: `${collab.type || ''} ${collab.role || ''}`,
+              image: collab.image_url // Note: DB uses image_url, frontend might wait avatar but we map here
+            });
+          });
+        }
+
+        // Vault Assets
+        if (vaultRes.data) {
+          vaultRes.data.forEach((asset: any) => {
+            dynamicContent.push({
+              title: asset.name,
+              description: asset.notes || `${asset.category || 'Asset'} - ${asset.asset_type || 'Download'}`,
+              category: 'Vault Assets',
+              route: `scenic-vault`, // Link to main vault page as assets are modal based usually, or if we have specific route
+              // Wait, previous code used `scenic-vault/${asset.id}`. Does Vault support deep linking?
+              // The ScenicVault component uses `selectedAsset` state. Deep linking might not be implemented yet.
+              // I'll keep it as `scenic-vault` for now to avoid broken links, or check if ScenicVault handles ID param.
+              // ScenicVault.tsx didn't seem to read ID from URL. It used state.
+              // So I'll just route to 'scenic-vault' and maybe the user can find it.
+              // Or better, I'll pass query param '?asset=${asset.id}' if I update ScenicVault to read it?
+              // For now, simple route.
+              keywords: `${asset.tags?.join(' ') || ''} ${asset.category || ''} ${asset.asset_type || ''}`,
+              image: asset.thumbnail_url
+            });
+          });
+        }
+
+        // Tutorials
+        if (tutorialsRes.data) {
+          tutorialsRes.data.forEach((tutorial: any) => {
+            dynamicContent.push({
+              title: tutorial.title,
+              description: tutorial.description || 'Video tutorial',
+              category: 'Tutorials',
+              route: `scenic-studio/${tutorial.slug || tutorial.id}`,
+              keywords: `${tutorial.tags?.join(' ') || ''} tutorial video`,
+              image: tutorial.thumbnail_url
+            });
+          });
         }
 
       } catch (error) {
+        console.error('Error fetching search content:', error);
       }
 
       setAllContent(dynamicContent);

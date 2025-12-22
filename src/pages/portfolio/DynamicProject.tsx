@@ -74,7 +74,36 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
     };
 
     fetchProject();
+    fetchProject();
   }, [slug]);
+
+  // Force-fetch live counts to ensure no stale data
+  useEffect(() => {
+    if (!project?.id) return;
+
+    const fetchLiveCounts = async () => {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const { projectId: sbProjectId, publicAnonKey: sbAnonKey } = await import('../../utils/supabase/info');
+        const supabase = createClient(`https://${sbProjectId}.supabase.co`, sbAnonKey);
+
+        const { data } = await supabase
+          .from('portfolio_projects')
+          .select('views, likes')
+          .eq('id', project.id)
+          .single();
+
+        if (data) {
+          setViews(data.views || 0);
+          setLikes(data.likes || 0);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    fetchLiveCounts();
+  }, [project?.id]);
 
   // Track view on page load
   useEffect(() => {
@@ -185,6 +214,14 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
+      {project && (
+        <SEO
+          title={project.title}
+          description={project.description}
+          image={project.cardImage || project.renderings?.[0]?.url}
+          keywords={[project.category, project.subcategory, 'Scenic Design', 'Theatre']}
+        />
+      )}
       {/* Hero Carousel */}
       {project.renderings && project.renderings.length > 0 && (
         <div className="relative h-[60vh] bg-black overflow-hidden">
@@ -301,8 +338,10 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
               <p className="text-black dark:text-white">{project.subcategory}</p>
             </div>
             <div className="bg-secondary border border-border p-4">
-              <p className="text-xs text-accent-brand tracking-wider uppercase mb-2">Year</p>
-              <p className="text-black dark:text-white">{project.year}</p>
+              <p className="text-xs text-accent-brand tracking-wider uppercase mb-2">Date</p>
+              <p className="text-black dark:text-white">
+                {project.month && new Date(0, project.month - 1).toLocaleString('default', { month: 'long' })} {project.year}
+              </p>
             </div>
           </div>
         </div>

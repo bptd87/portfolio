@@ -106,7 +106,9 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
             .from('portfolio_projects')
             .select('*')
             .eq('published', true)
-            .order('year', { ascending: false });
+            .order('year', { ascending: false })
+            .order('month', { ascending: false, nullsFirst: false })
+            .order('created_at', { ascending: false });
 
           if (error) {
             console.error('Error fetching projects:', error);
@@ -496,8 +498,12 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
                         {(bentoSize.includes('row-span-2') || window.innerWidth < 1024) && (
                           <div className="flex items-center gap-3 text-sm text-white/60">
                             {project.venue && <span>{project.venue}</span>}
-                            {project.venue && project.year && <span>·</span>}
-                            {project.year && <span>{project.year}</span>}
+                            {project.venue && (project.year || project.month) && <span>·</span>}
+                            <span>
+                              {project.month && new Date(0, project.month - 1).toLocaleString('default', { month: 'long' })}
+                              {project.month && ' '}
+                              {project.year}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -546,7 +552,10 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
             <div
               id="thumbnails-scroll-container"
               className="flex gap-3 overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory"
-              style={{ maskImage: 'linear-gradient(to right, black 80%, transparent 100%)' }}
+              style={{
+                maskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)'
+              }}
             >
               {filteredProjects.map((project, index) => (
                 <motion.button

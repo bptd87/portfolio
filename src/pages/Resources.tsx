@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   ExternalLink, Building2, Code, Palette, BookOpen, ArrowLeft, FolderOpen
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { supabase } from '../utils/supabase/client';
 
 interface ResourcesProps {
   onNavigate: (page: string) => void;
@@ -78,27 +78,34 @@ export function Resources({ onNavigate }: ResourcesProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/directory`,
-          {
-            headers: { Authorization: `Bearer ${publicAnonKey}` },
-          }
-        );
+        const [categoriesRes, linksRes] = await Promise.all([
+          supabase.from('directory_categories').select('*').order('order'),
+          supabase.from('directory_links').select('*').eq('enabled', true).order('order')
+        ]);
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            // Only use API data if it has content
-            if (data.links && data.links.length > 0) {
-              setLinks(data.links.filter((l: DirectoryLink) => l.enabled));
-            }
-            if (data.categories && data.categories.length > 0) {
-              setCategories(data.categories);
-            }
-          }
+        if (categoriesRes.error) console.error('Error fetching categories:', categoriesRes.error);
+        if (linksRes.error) console.error('Error fetching links:', linksRes.error);
+
+        if (categoriesRes.data && categoriesRes.data.length > 0) {
+          setCategories(categoriesRes.data);
         }
+
+        if (linksRes.data && linksRes.data.length > 0) {
+          // Map DB links to frontend interface (if needed, but looks like columns match mostly)
+          const mappedLinks = linksRes.data.map(l => ({
+            id: l.id,
+            title: l.title,
+            url: l.url,
+            description: l.description,
+            category: l.category_slug, // DB column is category_slug
+            enabled: l.enabled,
+            order: l.order
+          }));
+          setLinks(mappedLinks);
+        }
+
       } catch (error) {
-        // Keep fallback data on error
+        console.error('Error fetching directory data:', error);
       } finally {
         setLoading(false);
       }
@@ -128,7 +135,7 @@ export function Resources({ onNavigate }: ResourcesProps) {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 pt-24 pb-24">
-      
+
       {/* Header */}
       <section className="px-6 lg:px-12 pb-12">
         <div className="max-w-[1400px] mx-auto">
@@ -139,7 +146,7 @@ export function Resources({ onNavigate }: ResourcesProps) {
             <ArrowLeft className="w-4 h-4" />
             Back to Studio
           </button>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -183,7 +190,7 @@ export function Resources({ onNavigate }: ResourcesProps) {
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Links Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-0 md:pl-16">
                   {category.links.map((link, linkIndex) => (

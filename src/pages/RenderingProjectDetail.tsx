@@ -4,10 +4,10 @@ import { motion } from 'motion/react';
 import { SEO } from '../components/SEO';
 import { LikeButton } from '../components/shared/LikeButton';
 import { ShareButton } from '../components/shared/ShareButton';
-import { apiCall } from '../utils/api';
+// apiCall removed
 import { RenderingTemplate } from './portfolio/RenderingTemplate';
 import { useImageColors } from '../hooks/useImageColors';
-import { createClient } from '../utils/supabase/client';
+import { supabase } from '../utils/supabase/client';
 
 interface RenderingProjectDetailProps {
   slug: string;
@@ -31,29 +31,42 @@ export function RenderingProjectDetail({ slug, onNavigate }: RenderingProjectDet
   const fetchProject = async () => {
     try {
       setLoading(true);
-      const response = await apiCall(`/api/projects/${slug}`);
 
-      if (!response.ok) throw new Error('Failed to fetch project');
-      const data = await response.json();
+      // Fetch project directly
+      const { data: projectData, error } = await supabase
+        .from('portfolio_projects')
+        .select('*')
+        .eq('slug', slug)
+        .eq('published', true)
+        .single();
 
-      if (!data.success || !data.project) throw new Error('Invalid project data');
-      setProject(data.project);
+      if (error || !projectData) throw new Error('Failed to fetch project');
 
-      // Increment view count
+      // Map snake_case to camelCase for frontend compatibility
+      const mappedProject = {
+        ...projectData,
+        cardImage: projectData.card_image || projectData.cover_image,
+        coverImage: projectData.cover_image || projectData.card_image,
+        clientName: projectData.client_name || projectData.clientName || projectData.client || '',
+        // Note: DB probably has client_name, but template might check multiple
+        softwareUsed: projectData.software_used || projectData.softwareUsed,
+        projectOverview: projectData.project_overview || projectData.projectOverview,
+        designNotes: projectData.design_notes || projectData.designNotes,
+        videoUrls: projectData.video_urls || projectData.videoUrls,
+        fullWidth: projectData.full_width || projectData.fullWidth || false, // Fallback
+      };
+
+      setProject(mappedProject);
+
+      // Increment view count via RPC
       try {
-        const viewResponse = await apiCall(`/api/projects/${data.project.id}/view`, { method: 'POST' });
-        if (viewResponse.ok) {
-          const viewData = await viewResponse.json();
-          if (viewData.success && viewData.views !== undefined) {
-            // Update the project object with new view count
-            setProject((prev: any) => ({ ...prev, views: viewData.views }));
-          }
-        }
+        await supabase.rpc('increment_project_view', { project_id: projectData.id });
+        // Optimistically update views
+        setProject((prev: any) => ({ ...prev, views: (prev.views || 0) + 1 }));
       } catch (err) { }
 
-      // Fetch adjacent projects (direct from Supabase)
+      // Fetch adjacent projects
       try {
-        const supabase = createClient();
         const { data: allProjects, error: projectsError } = await supabase
           .from('portfolio_projects')
           .select('*')
@@ -68,30 +81,23 @@ export function RenderingProjectDetail({ slug, onNavigate }: RenderingProjectDet
             coverImage: p.cover_image || p.card_image,
           }));
 
-          console.log('🔍 All projects fetched:', mappedProjects.length);
-
           // Filter for rendering projects (case-insensitive, partial match)
           const sameCategory = mappedProjects.filter((p: any) => {
             const cat = (p.category || '').toLowerCase();
             return cat.includes('rendering') || cat.includes('visualization');
           });
-          console.log('🔍 Same category (Rendering/Visualization) projects:', sameCategory.length, sameCategory.map((p: any) => ({ title: p.title, category: p.category })));
 
           const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
-          console.log('🔍 Current index:', currentIndex);
 
           if (currentIndex > -1 && sameCategory.length > 1) {
             const nextIndex = (currentIndex + 1) % sameCategory.length;
             const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
-            console.log('🔍 Setting prev:', sameCategory[prevIndex]?.title, 'next:', sameCategory[nextIndex]?.title);
             setNextProject(sameCategory[nextIndex]);
             setPrevProject(sameCategory[prevIndex]);
 
             // Get up to 3 related projects (excluding current)
             const otherProjects = sameCategory.filter((p: any) => p.slug !== slug);
             setRelatedProjects(otherProjects.slice(0, 3));
-          } else {
-            console.log('⚠️ Only one Rendering project found, no prev/next navigation available');
           }
         }
       } catch (err) {

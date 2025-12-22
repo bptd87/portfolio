@@ -146,12 +146,168 @@ async function migrateKVToSQL() {
     }
     console.log(`✨ Migrated ${configCount} configuration items\n`);
 
+    // Migrate Directory (Categories & Links)
+    console.log("📂 Migrating Directory...");
+    
+    // 1. Categories
+    const categoryEntries = kv.list({ prefix: ["directory_categories"] });
+    let dirCatCount = 0;
+    for await (const entry of categoryEntries) {
+        const cat = entry.value as any;
+        const { error } = await supabase.from('directory_categories').upsert({
+            // id: cat.id, // Let SQL generate UUID if not present, or preserve if exists
+            slug: cat.slug || cat.id, // Fallback if slug missing
+            name: cat.name,
+            description: cat.description,
+            icon: cat.icon || 'folder',
+            display_order: cat.order || 0,
+            // created_at: cat.created_at // specific handling if needed
+        }, { onConflict: 'slug' }); // Use slug as the unique constraint for upsert
+
+        if (error) console.error(`  ❌ Failed to migrate directory category: ${cat.name}`, error.message);
+        else dirCatCount++;
+    }
+    console.log(`  ✅ Migrated ${dirCatCount} directory categories`);
+
+    // 2. Links
+    const linkEntries = kv.list({ prefix: ["directory_links"] });
+    let dirLinkCount = 0;
+    for await (const entry of linkEntries) {
+        const link = entry.value as any;
+        const { error } = await supabase.from('directory_links').upsert({
+            // id: link.id, 
+            title: link.title,
+            url: link.url,
+            description: link.description,
+            category_slug: link.category, // Map old 'category' field to 'category_slug'
+            enabled: link.enabled ?? true,
+            display_order: link.order || 0,
+            // created_at: link.created_at
+        });
+
+        if (error) console.error(`  ❌ Failed to migrate directory link: ${link.title}`, error.message);
+        else dirLinkCount++;
+    }
+    console.log(`  ✅ Migrated ${dirLinkCount} directory links\n`);
+
+    console.log(`✨ Migrated ${dirLinkCount} directory links\n`);
+
+    // Migrate Projects
+    console.log("🏗️ Migrating Projects...");
+    const projectEntries = kv.list({ prefix: ["projects"] });
+    let projectCount = 0;
+    for await (const entry of projectEntries) {
+        const p = entry.value as any;
+        const { error } = await supabase.from('portfolio_projects').upsert({
+            id: p.id,
+            slug: p.slug,
+            title: p.title,
+            category: p.category || p.type,
+            year: p.year,
+            venue: p.venue,
+            client_name: p.client || p.clientName,
+            cover_image: p.coverImage || p.cover_image,
+            card_image: p.cardImage || p.card_image,
+            description: p.description,
+            project_overview: p.projectOverview || p.project_overview,
+            design_notes: p.designNotes || p.design_notes,
+            software_used: p.softwareUsed || p.software_used,
+            video_urls: p.videoUrls || p.video_urls,
+            published: p.published ?? true,
+            created_at: p.created_at || new Date().toISOString(),
+            // Map other fields as best effort
+        });
+
+        if (error) console.error(`  ❌ Failed to migrate project: ${p.title}`, error.message);
+        else {
+            projectCount++;
+            console.log(`  ✅ Migrated: ${p.title}`);
+        }
+    }
+    console.log(`✨ Migrated ${projectCount} projects\n`);
+
+    // Migrate Articles (Posts)
+    console.log("✍️ Migrating Articles...");
+    const postEntries = kv.list({ prefix: ["posts"] });
+    let postCount = 0;
+    for await (const entry of postEntries) {
+        const p = entry.value as any;
+        const { error } = await supabase.from('articles').upsert({
+            id: p.id,
+            slug: p.slug,
+            title: p.title,
+            excerpt: p.excerpt,
+            content: p.content, // Assuming content block structure matches
+            category: p.category,
+            cover_image: p.coverImage || p.cover_image,
+            publish_date: p.date || p.publish_date,
+            tags: p.tags || [],
+            published: p.published ?? true,
+            created_at: p.created_at || new Date().toISOString(),
+        });
+
+        if (error) console.error(`  ❌ Failed to migrate article: ${p.title}`, error.message);
+        else {
+            postCount++;
+            console.log(`  ✅ Migrated: ${p.title}`);
+        }
+    }
+    console.log(`✨ Migrated ${postCount} articles\n`);
+
+    // Migrate Vault Categories
+    console.log("🗄️ Migrating Vault Categories...");
+    const vaultCatEntries = kv.list({ prefix: ["vault_categories"] });
+    let vaultCatCount = 0;
+    for await (const entry of vaultCatEntries) {
+        const c = entry.value as any;
+        const { error } = await supabase.from('vault_categories').upsert({
+            id: c.id,
+            name: c.name,
+            slug: c.slug || c.id,
+            description: c.description,
+            created_at: c.created_at || new Date().toISOString(),
+        });
+
+        if (error) console.error(`  ❌ Failed to migrate vault category: ${c.name}`, error.message);
+        else vaultCatCount++;
+    }
+    console.log(`✨ Migrated ${vaultCatCount} vault categories\n`);
+
+    // Migrate Vault Assets
+    console.log("💎 Migrating Vault Assets...");
+    const vaultAssetEntries = kv.list({ prefix: ["vault_assets"] });
+    let vaultAssetCount = 0;
+    for await (const entry of vaultAssetEntries) {
+        const a = entry.value as any;
+        const { error } = await supabase.from('vault_assets').upsert({
+            id: a.id,
+            name: a.name,
+            description: a.description,
+            category_id: a.categoryId || a.category_id, // Might need mapping if IDs changed, but assuming consistent UUIDs if possible
+            asset_type: a.assetType || a.asset_type || 'model',
+            thumbnail_url: a.thumbnailUrl || a.thumbnail_url,
+            file_url: a.fileUrl || a.file_url,
+            file_size: a.fileSize || a.file_size,
+            downloads: a.downloads || 0,
+            enabled: a.enabled ?? true,
+            created_at: a.created_at || new Date().toISOString(),
+        });
+
+        if (error) console.error(`  ❌ Failed to migrate vault asset: ${a.name}`, error.message);
+        else vaultAssetCount++;
+    }
+    console.log(`✨ Migrated ${vaultAssetCount} vault assets\n`);
+
     console.log("🎉 Migration complete!");
     console.log("\nSummary:");
     console.log(`  News: ${newsCount}`);
     console.log(`  Tutorials: ${tutorialCount}`);
     console.log(`  Collaborators: ${collaboratorCount}`);
     console.log(`  Configuration: ${configCount}`);
+    console.log(`  Projects: ${projectCount}`);
+    console.log(`  Articles: ${postCount}`);
+    console.log(`  Vault assets: ${vaultAssetCount}`);
+    console.log(`  Vault categories: ${vaultCatCount}`);
 
   } catch (error) {
     console.error("❌ Migration failed:", error);

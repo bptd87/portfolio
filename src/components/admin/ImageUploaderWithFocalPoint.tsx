@@ -65,8 +65,7 @@ export function ImageUploaderWithFocalPoint({
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
+            'X-Admin-Token': adminToken,
           },
           body: formData,
         }

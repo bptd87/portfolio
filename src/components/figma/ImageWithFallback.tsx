@@ -57,11 +57,11 @@ const buildOptimizedSupabaseUrl = (
 
   const width = custom?.width || (
     preset === 'thumbnail' ? 400 :
-    preset === 'card' ? 900 :
-    preset === 'hero' ? 1920 :
-    preset === 'gallery' ? 1600 :
-    preset === 'full' ? 2400 :
-    1600
+      preset === 'card' ? 900 :
+        preset === 'hero' ? 1920 :
+          preset === 'gallery' ? 1600 :
+            preset === 'full' ? 2400 :
+              1600
   )
 
   const quality = custom?.quality || 70
@@ -188,7 +188,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
       onLoad(e)
     }
   }
-  
+
   // Reset hasLoadedOnce only if src actually changes to a different image
   useEffect(() => {
     if (src && src !== lastSrcRef.current) {
@@ -238,7 +238,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   const roundedClasses = className?.match(/rounded-\[?\d+px?\]?|rounded-\w+/g)?.join(' ') || '';
   // Remove rounded classes from className to avoid duplication on img
   const imgClassName = className?.replace(/rounded-\[?\d+px?\]?|rounded-\w+/g, '').trim() || className || '';
-  
+
   return (
     <div className={`relative inline-block w-full h-full overflow-hidden ${roundedClasses}`} style={style}>
       {/* Skeleton loader - shown while image is loading, disabled for priority to avoid flash */}
@@ -263,14 +263,11 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
         title={finalTitle}
         className={`${imgClassName} ${roundedClasses} ${blurUp && isLoading && isInView && showTransition ? 'blur-sm scale-105' : ''
           } ${isLoading && showTransition ? 'opacity-0' : 'opacity-100'} ${showTransition ? 'transition-all duration-500 ease-out' : ''}`}
-        style={{
-          ...style,
-          ...(isLoading && showTransition ? { visibility: 'hidden' } : {}),
-        }}
+        style={style}
         {...rest}
         onError={handleError}
         onLoad={handleLoad}
-        loading={lazy && !isPriority ? 'lazy' : 'eager'}
+        loading={lazy && !isPriority && !isInView ? 'lazy' : 'eager'}
         decoding="async"
         fetchpriority={fetchPriority}
       />

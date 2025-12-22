@@ -57,6 +57,7 @@ interface DailyTraffic {
 export function AnalyticsManager() {
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
   const [dailyTraffic, setDailyTraffic] = useState<DailyTraffic[]>([]);
+  const adminToken = sessionStorage.getItem('admin_token');
   const [topPages, setTopPages] = useState<PageView[]>([]);
   const [topLocations, setTopLocations] = useState<{ location: string; views: number }[]>([]);
   const [deviceStats, setDeviceStats] = useState<{ name: string; value: number }[]>([]);
@@ -76,7 +77,7 @@ export function AnalyticsManager() {
         // 1. Fetch Content Stats (Existing API)
         const statsResponse = await fetch(
           `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/stats`,
-          { headers: { 'Authorization': `Bearer ${publicAnonKey}` } }
+          { headers: { 'X-Admin-Token': adminToken || '' } }
         );
         if (statsResponse.ok) {
           setStats(await statsResponse.json());

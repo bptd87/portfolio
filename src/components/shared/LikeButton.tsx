@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Heart } from 'lucide-react';
-import { publicAnonKey } from '../../utils/supabase/info';
-import { API_BASE_URL } from '../../utils/api';
 
 interface LikeButtonProps {
   projectId: string; // Used as the unique identifier for both projects and posts
@@ -56,29 +54,22 @@ export function LikeButton({
     }
     localStorage.setItem(storageKey, JSON.stringify(likedItems));
 
-    // Send to server
+    // Call RPC directly using Supabase client
     try {
-      const endpoint = newIsLiked ? 'like' : 'unlike';
-      // Construct URL: /api/projects/:id/like or /api/posts/:id/like
-      const resourceType = type === 'post' ? 'posts' : 'projects';
+      const { supabase } = await import('../../utils/supabase/client');
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/${resourceType}/${id}/${endpoint}`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const rpcName = type === 'post'
+        ? (newIsLiked ? 'increment_article_like' : 'decrement_article_like')
+        : (newIsLiked ? 'increment_project_like' : 'decrement_project_like');
 
-      const data = await response.json();
-      if (data.success) {
-        // Update with server's count (in case of race conditions)
-        setLikes(data.likes);
-      }
+      const params = type === 'post' ? { article_id: id } : { project_id: id };
+
+      const { error } = await supabase.rpc(rpcName, params);
+
+      if (error) throw error;
+
     } catch (err) {
+      console.error('Like failed:', err);
       // Revert on error
       setIsLiked(!newIsLiked);
       setLikes(prev => newIsLiked ? Math.max(0, prev - 1) : prev + 1);

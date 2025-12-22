@@ -39,15 +39,14 @@ export function ProjectSEOTools({
 
     try {
       const token = sessionStorage.getItem('admin_token');
-      
+
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/ai/seo-tags`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({
             title,
@@ -87,15 +86,14 @@ export function ProjectSEOTools({
 
     try {
       const token = sessionStorage.getItem('admin_token');
-      
+
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/ai/seo-description`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({
             title,

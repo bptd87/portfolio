@@ -151,14 +151,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/million-dollar-quartet</loc>
-    <lastmod>2025-12-14T11:00:04.503Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://brandonptdavis.com/project/bell-book-and-candle</loc>
-    <lastmod>2025-12-14T11:00:05.476Z</lastmod>
+    <loc>https://brandonptdavis.com/project/much-ado-about-nothing</loc>
+    <lastmod>2025-12-14T11:00:04.409Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -169,8 +163,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/much-ado-about-nothing</loc>
-    <lastmod>2025-12-14T11:00:04.409Z</lastmod>
+    <loc>https://brandonptdavis.com/project/guys-on-ice</loc>
+    <lastmod>2025-12-14T11:00:04.765Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://brandonptdavis.com/project/million-dollar-quartet</loc>
+    <lastmod>2025-12-14T11:00:04.503Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -181,8 +181,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/guys-on-ice</loc>
-    <lastmod>2025-12-14T11:00:04.765Z</lastmod>
+    <loc>https://brandonptdavis.com/project/bell-book-and-candle</loc>
+    <lastmod>2025-12-14T11:00:05.476Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -247,14 +247,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/ashes-of-the-underworld</loc>
-    <lastmod>2025-12-14T11:02:00.143Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://brandonptdavis.com/project/tomas-and-the-library-lady</loc>
-    <lastmod>2025-12-14T11:00:05.024Z</lastmod>
+    <loc>https://brandonptdavis.com/project/an-inspector-calls</loc>
+    <lastmod>2025-12-14T11:00:05.242Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -271,8 +265,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/an-inspector-calls</loc>
-    <lastmod>2025-12-14T11:00:05.242Z</lastmod>
+    <loc>https://brandonptdavis.com/project/tomas-and-the-library-lady</loc>
+    <lastmod>2025-12-14T11:00:05.024Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://brandonptdavis.com/project/ashes-of-the-underworld</loc>
+    <lastmod>2025-12-14T11:02:00.143Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -295,8 +295,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/red-line-caf</loc>
-    <lastmod>2025-12-14T11:00:05.151Z</lastmod>
+    <loc>https://brandonptdavis.com/project/company</loc>
+    <lastmod>2025-12-14T11:00:05.362Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -313,8 +313,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/company</loc>
-    <lastmod>2025-12-14T11:00:05.362Z</lastmod>
+    <loc>https://brandonptdavis.com/project/red-line-caf</loc>
+    <lastmod>2025-12-14T11:00:05.151Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

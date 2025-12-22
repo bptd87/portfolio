@@ -4,13 +4,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { YouTubeEmbed } from '../components/shared/YouTubeEmbed';
 import { LikeButton } from '../components/shared/LikeButton';
 import { ShareButton } from '../components/shared/ShareButton';
-import { apiCall } from '../utils/api';
+// apiCall removed
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { SEO } from '../components/SEO';
 import { generateProjectMetadata } from '../utils/seo/metadata';
 import { generateCreativeWorkSchema } from '../utils/seo/structured-data';
-import { PageLoader } from '../components/PageLoader';
-import { createClient } from '../utils/supabase/client';
+// PageLoader removed
+import { supabase } from '../utils/supabase/client';
 
 interface ProjectDetailNewProps {
   slug: string;
@@ -77,7 +77,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
       if (showLoader) setLoading(true);
 
       // Fetch project directly from Supabase
-      const supabase = createClient();
+      // supabase constant imported from client
       const { data: projectData, error: projectError } = await supabase
         .from('portfolio_projects')
         .select('*')
@@ -112,7 +112,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
 
       // Fetch all projects for navigation (direct from Supabase)
       try {
-        const supabase = createClient();
+        // supabase constant imported from client
         const { data: allProjects, error: projectsError } = await supabase
           .from('portfolio_projects')
           .select('*')
@@ -150,20 +150,18 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
 
   const incrementViews = async () => {
     try {
-      // First fetch project to get ID (if slug is different or to verify)
-      const response = await apiCall(`/api/projects/${slug}`);
+      // Get ID from slug first
+      const { data, error } = await supabase
+        .from('portfolio_projects')
+        .select('id')
+        .eq('slug', slug)
+        .single();
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.project && data.project.id) {
-          try {
-            await apiCall(`/api/projects/${data.project.id}/view`, { method: 'POST' });
-          } catch {
-            // Silently fail if view tracking endpoint doesn't exist
-          }
-        }
+      if (!error && data) {
+        await supabase.rpc('increment_project_view', { project_id: data.id });
       }
     } catch (error) {
+      // Silent fail
     }
   };
 

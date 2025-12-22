@@ -22,8 +22,7 @@ export function AIAltTextGenerator({ imageUrl, context, onAltTextGenerated }: AI
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({ imageUrl, context }),
         }
@@ -35,7 +34,7 @@ export function AIAltTextGenerator({ imageUrl, context, onAltTextGenerated }: AI
         onAltTextGenerated(data.altText);
       }
     } catch (err) {
-      } finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -89,8 +88,7 @@ export function AICaptionGenerator({ imageUrl, context, onCaptionGenerated }: AI
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({ imageUrl, context }),
         }
@@ -102,7 +100,7 @@ export function AICaptionGenerator({ imageUrl, context, onCaptionGenerated }: AI
         onCaptionGenerated(data.caption);
       }
     } catch (err) {
-      } finally {
+    } finally {
       setLoading(false);
     }
   };

@@ -44,7 +44,7 @@ export function ArticleSEOTools({
 
     try {
       const token = sessionStorage.getItem('admin_token');
-      
+
       // Extract text content from blocks
       const textContent = content
         .filter((block) => ['paragraph', 'heading', 'quote'].includes(block.type))
@@ -58,8 +58,7 @@ export function ArticleSEOTools({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({
             title,
@@ -98,7 +97,7 @@ export function ArticleSEOTools({
 
     try {
       const token = sessionStorage.getItem('admin_token');
-      
+
       // Extract text content from blocks
       const textContent = content
         .filter((block) => ['paragraph', 'heading', 'quote'].includes(block.type))
@@ -112,8 +111,7 @@ export function ArticleSEOTools({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({
             title,
@@ -150,7 +148,7 @@ export function ArticleSEOTools({
 
     try {
       const token = sessionStorage.getItem('admin_token');
-      
+
       // Extract text content from blocks
       const textContent = content
         .filter((block) => ['paragraph', 'heading', 'quote'].includes(block.type))
@@ -164,8 +162,7 @@ export function ArticleSEOTools({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
+            'X-Admin-Token': token || '',
           },
           body: JSON.stringify({
             title,

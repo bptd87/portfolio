@@ -12,6 +12,8 @@ export function createClient() {
   return supabaseClient;
 }
 
+export const supabase = createClient();
+
 // Helper function to get data from KV store
 export async function getFromKV(key: string) {
   const supabase = createClient();
@@ -23,7 +25,7 @@ export async function getFromKV(key: string) {
       .from('kv_store_980dd7a4')
       .select('value')
       .eq('key', key)
-      .maybeSingle();
+      .maybeSingle<any>();
     
     if (error) {
       console.error('[KV] Query error:', error);
@@ -54,7 +56,8 @@ export async function getByPrefixFromKV(prefix: string) {
     const { data, error } = await supabase
       .from('kv_store_980dd7a4')
       .select('key, value')
-      .like('key', `${prefix}%`);
+      .like('key', `${prefix}%`)
+      .returns<any[]>();
     
     if (error) {
       console.error('[KV] Query error:', error);

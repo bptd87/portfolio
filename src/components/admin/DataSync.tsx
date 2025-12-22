@@ -47,7 +47,7 @@ export function DataSync() {
 
     try {
       const token = sessionStorage.getItem('admin_token');
-      
+
       // Check if token exists
       if (!token) {
         setResult({
@@ -57,29 +57,28 @@ export function DataSync() {
         setSyncing(false);
         return;
       }
-      
+
       let postsSuccess = 0;
       let projectsSuccess = 0;
       let newsSuccess = 0;
-      
+
       // First, fetch existing projects to preserve manually edited data
       const existingProjectsResponse = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`,
         {
-          headers: { 
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header 
+          headers: {
+            'X-Admin-Token': token || '',
           },
         }
       );
       const existingData = await existingProjectsResponse.json();
       const existingProjects = existingData.success ? existingData.projects || [] : [];
-      
+
       // Create a map for quick lookup
       const existingProjectsMap = new Map(
         existingProjects.map((p: any) => [p.slug || p.id, p])
       );
-      
+
       // Sync blog posts
       for (const post of blogPosts) {
         const response = await fetch(
@@ -88,8 +87,7 @@ export function DataSync() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${publicAnonKey}`, // Required by Supabase
-              // Token in Authorization header // Our custom auth
+              'X-Admin-Token': token || '',
             },
             body: JSON.stringify({
               ...post,
@@ -119,7 +117,7 @@ export function DataSync() {
           if (project.credits.choreographer) creditsArray.push({ role: 'Choreographer', name: project.credits.choreographer });
           if (project.credits.musicalDirector) creditsArray.push({ role: 'Musical Director', name: project.credits.musicalDirector });
         }
-        
+
         // Check if project exists and has manually edited data
         const existing = existingProjectsMap.get(project.id);
         const hasManualGalleries = existing?.galleries && (
@@ -129,7 +127,7 @@ export function DataSync() {
         const hasManualTags = existing?.tags && existing.tags.length > 0;
         const hasManualNotes = existing?.designNotes && existing.designNotes.length > 0;
         const hasManualVideos = existing?.youtubeVideos && existing.youtubeVideos.length > 0;
-        
+
         // Build the project data - preserve manual edits
         const projectData = {
           ...project,
@@ -144,15 +142,14 @@ export function DataSync() {
           likes: existing?.likes || 0,
           views: existing?.views || 0,
         };
-        
+
         const response = await fetch(
           `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${publicAnonKey}`, // Required by Supabase
-              // Token in Authorization header // Our custom auth
+              'X-Admin-Token': token || '',
             },
             body: JSON.stringify(projectData),
           }
@@ -171,8 +168,7 @@ export function DataSync() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${publicAnonKey}`, // Required by Supabase
-              // Token in Authorization header // Our custom auth
+              'X-Admin-Token': token || '',
             },
             body: JSON.stringify({
               ...newsItem,
@@ -183,8 +179,8 @@ export function DataSync() {
         const result = await response.json();
         if (result.success) {
           newsSuccess++;
-          } else {
-          }
+        } else {
+        }
       }
 
       setResult({
@@ -207,7 +203,7 @@ export function DataSync() {
 
     try {
       const token = sessionStorage.getItem('admin_token');
-      
+
       if (!token) {
         setResult({
           success: false,
@@ -216,40 +212,38 @@ export function DataSync() {
         setResyncingContent(false);
         return;
       }
-      
+
       // First, fetch all existing articles
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/posts`,
         {
-          headers: { 
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header 
+          headers: {
+            'X-Admin-Token': token || '',
           },
         }
       );
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error('Failed to fetch existing articles');
       }
-      
+
       const existingArticles = data.posts || [];
       let updated = 0;
-      
+
       // Update each article that has no content or empty content
       for (const article of existingArticles) {
         if (!article.content || article.content.length === 0) {
           // Find matching blog post from data files
           const matchingPost = blogPosts.find(p => p.id === article.slug);
-          
+
           const updateResponse = await fetch(
             `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/posts/${article.id}`,
             {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${publicAnonKey}`,
-                // Token in Authorization header
+                'X-Admin-Token': token || '',
               },
               body: JSON.stringify({
                 ...article,
@@ -257,18 +251,18 @@ export function DataSync() {
               }),
             }
           );
-          
+
           if (updateResponse.ok) {
             updated++;
-            }
+          }
         }
       }
-      
+
       setResult({
         success: true,
         message: `Added placeholder content to ${updated} articles!`,
       });
-      
+
     } catch (err) {
       setResult({
         success: false,
@@ -297,11 +291,10 @@ export function DataSync() {
 
       {result && (
         <div
-          className={`mb-4 px-4 py-3 border flex items-center gap-3 ${
-            result.success
+          className={`mb-4 px-4 py-3 border flex items-center gap-3 ${result.success
               ? 'bg-green-50 border-green-200 text-green-700'
               : 'bg-red-50 border-red-200 text-red-700'
-          }`}
+            }`}
         >
           {result.success ? (
             <CheckCircle className="w-5 h-5 flex-shrink-0" />
@@ -384,7 +377,7 @@ export function DataSync() {
           <p><strong className="text-gray-900">Add Content to Existing:</strong> Add placeholder content to articles that have none</p>
         </div>
       )}
-      
+
       {/* Database Debug Tool */}
       <div className="mt-8">
         <DatabaseDebug />

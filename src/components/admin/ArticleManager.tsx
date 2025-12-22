@@ -3,8 +3,8 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Layout, Image, FileText, Search } from 'lucide-react';
-import { projectId } from '../../utils/supabase/info';
-import { getByPrefixFromKV } from '../../utils/supabase/client';
+// import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { createClient } from '../../utils/supabase/client';
 import { ImageUploader, ImageGalleryManager } from './ImageUploader';
 import { ArticleSEOTools } from './ArticleSEOTools';
 import { FocusPointPicker } from './FocusPointPicker';
@@ -190,7 +190,7 @@ const normalizeContentBlocks = (article: any): any[] => {
 };
 
 export function ArticleManager() {
-
+  const supabase = createClient();
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -274,101 +274,43 @@ export function ArticleManager() {
   }, [showForm, editingId, methods]);
 
   // Load articles
+  // Load articles
   useEffect(() => {
     const loadArticles = async () => {
+      if (showForm || showImporter) return;
+
       try {
-        // Load articles from KV store
-        const kvArticles = await getByPrefixFromKV('blog_post:');
-        console.log('🔵 ArticleManager: KV articles loaded:', { count: kvArticles?.length, kvArticles });
+        setLoading(true);
+        const { data: sqlArticles, error } = await supabase
+          .from('articles')
+          .select('*')
+          .order('date', { ascending: false });
 
-        // If KV store has articles, use them; otherwise fall back to static blog-posts data
-        if (kvArticles && kvArticles.length > 0) {
-          // Sort by date (newest first)
-          const sorted = kvArticles.sort((a: any, b: any) => {
-            const dateA = a.createdAt || a.date || a.created_at || '';
-            const dateB = b.createdAt || b.date || b.created_at || '';
-            return dateB.localeCompare(dateA);
-          });
+        if (error) throw error;
 
-          // Normalize common field names and infer cover image/content from available data
-          const normalized = sorted.map((a: any) => {
-            // Try multiple sources for cover image
-            const inferFromImagesArray = Array.isArray(a.images) && a.images.length > 0
-              ? (typeof a.images[0] === 'string' ? a.images[0] : a.images[0]?.url)
-              : '';
-            const inferFromContentBlocks = Array.isArray(a.content)
-              ? (() => {
-                const imgBlock = a.content.find((blk: any) => blk?.type === 'image' && (blk?.content || blk?.url));
-                return imgBlock ? (imgBlock.content || imgBlock.url) : '';
-              })()
-              : '';
-            const coverImage = a.coverImage || a.cover_image || a.ogImage || inferFromImagesArray || inferFromContentBlocks || '';
+        console.log('🔵 ArticleManager: SQL articles loaded:', { count: sqlArticles?.length });
 
-            const contentBlocks = normalizeContentBlocks({ ...a, coverImage });
-
-            return {
-              id: a.id || a.slug || a.key || `${a.title || 'untitled'}-${a.date || ''}`,
-              title: a.title || '',
-              category: a.category || 'Design Philosophy & Scenic Insights',
-              date: a.date || a.createdAt || a.created_at || '',
-              readTime: a.readTime || '',
-              excerpt: a.excerpt || a.summary || '',
-              featured: !!a.featured,
-              status: a.status || 'draft',
-              coverImage,
-              tags: a.tags || [],
-              content: contentBlocks || [],
-            } as any;
-          });
-
-          console.log('✅ Using KV store articles (normalized)', { count: normalized.length });
-          setArticles(normalized);
-        } else {
-          // Fall back to static blog-posts data (includes cover images)
-          console.log('⚠️ KV store empty, loading from static blog-posts data...', { blogPostsCount: blogPosts.length });
-          const blogPostsWithMetadata = blogPosts.map(post => {
-            console.log(`📄 Processing post: ${post.id}`, { hasImage: !!post.coverImage, image: post.coverImage });
-            return {
-              id: post.id,
-              title: post.title,
-              category: post.category,
-              date: post.date,
-              readTime: post.readTime,
-              excerpt: post.excerpt,
-              featured: post.featured,
-              status: 'published',
-              coverImage: post.coverImage, // ← This has the images!
-              tags: post.tags,
-              content: [],
-            };
-          });
-          console.log('📚 Final articles to display:', { count: blogPostsWithMetadata.length, articles: blogPostsWithMetadata });
-          setArticles(blogPostsWithMetadata);
-        }
-      } catch (err) {
-        console.error('❌ Failed to load articles:', err);
-        // Fall back to static data on error
-        console.log('🔄 Error recovery: using static blog-posts data...');
-        const blogPostsWithMetadata = blogPosts.map(post => ({
-          id: post.id,
-          title: post.title,
-          category: post.category,
-          date: post.date,
-          readTime: post.readTime,
-          excerpt: post.excerpt,
-          featured: post.featured,
-          status: 'published',
-          coverImage: post.coverImage,
-          tags: post.tags,
-          content: [],
+        // Normalize data
+        const normalized = (sqlArticles || []).map((a: any) => ({
+          ...a,
+          id: a.id,
+          coverImage: a.cover_image || a.coverImage || '',
+          focusPoint: a.cover_image_focal_point || a.focusPoint || undefined,
+          content: a.content || [],
+          date: a.date || a.created_at || new Date().toISOString()
         }));
-        setArticles(blogPostsWithMetadata);
+
+        setArticles(normalized);
+      } catch (err) {
+        console.error('Failed to load articles:', err);
+        setArticles([]);
       } finally {
         setLoading(false);
       }
     };
+
     loadArticles();
-  }, []);
+  }, [showForm, showImporter]);
 
   const handleCreate = () => {
     methods.reset({
@@ -460,53 +402,54 @@ export function ArticleManager() {
 
   const onSubmit = async (data: ArticleFormData) => {
     try {
-      const adminToken = sessionStorage.getItem('admin_token');
-      if (!adminToken) {
-        toast.error('Admin authentication required');
-        return;
-      }
-
       const payload = {
-        ...data,
-        id: editingId === 'new' ? undefined : editingId,
+        title: data.title,
+        slug: data.slug,
+        excerpt: data.excerpt,
         content: Array.isArray(data.content) ? data.content : [],
-        createdAt: editingId === 'new' ? new Date().toISOString() : undefined,
-        updatedAt: new Date().toISOString(),
+        category: data.category,
+        cover_image: data.coverImage,
+        cover_image_focal_point: data.focusPoint,
+        date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
+        read_time: data.readTime || estimateReadTime(Array.isArray(data.content) ? data.content : [], data.excerpt),
+        tags: data.tags || [],
+        published: data.status === 'published',
+        updated_at: new Date().toISOString(),
       };
 
-      // Use the correct API endpoint for KV store
-      const endpoint = `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/posts`;
+      let error;
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': adminToken,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        toast.success(editingId === 'new' ? 'Article created successfully' : 'Article updated successfully');
-        setShowForm(false);
-        setEditingId(null);
-        // Reload articles
-        const articles = await getByPrefixFromKV('blog_post:');
-        const sorted = articles.sort((a: any, b: any) => {
-          const dateA = a.createdAt || a.date || a.created_at || '';
-          const dateB = b.createdAt || b.date || b.created_at || '';
-          return dateB.localeCompare(dateA);
-        });
-        setArticles(sorted || []);
+      if (editingId === 'new') {
+        const { error: insertError } = await supabase
+          .from('articles')
+          .insert([payload]);
+        error = insertError;
       } else {
-        toast.error(result.message || 'Failed to save article');
-        console.error('Save error:', result);
+        const { error: updateError } = await supabase
+          .from('articles')
+          .update(payload)
+          .eq('id', editingId);
+        error = updateError;
       }
-    } catch (err) {
-      toast.error('Failed to save article');
-      console.error(err);
+
+      if (error) throw error;
+
+      toast.success(editingId === 'new' ? 'Article created successfully' : 'Article updated successfully');
+      setShowForm(false);
+      setEditingId(null);
+      // Reload articles
+      const { data: updatedData } = await supabase.from('articles').select('*').order('date', { ascending: false });
+      const normalized = (updatedData || []).map((a: any) => ({
+        ...a,
+        id: a.id,
+        coverImage: a.cover_image || a.coverImage || '',
+        content: a.content || [],
+        date: a.date || a.created_at || new Date().toISOString()
+      }));
+      setArticles(normalized);
+    } catch (err: any) {
+      console.error('Save error:', err);
+      toast.error(err.message || 'Failed to save article');
     }
   };
 
@@ -588,8 +531,8 @@ export function ArticleManager() {
                       type="button"
                       onClick={() => setActiveTab(tab.key)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium ${activeTab === tab.key
-                          ? 'bg-blue-600 text-white'
-                          : 'text-zinc-400 hover:bg-zinc-800'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-zinc-400 hover:bg-zinc-800'
                         }`}
                     >
                       {tab.label}

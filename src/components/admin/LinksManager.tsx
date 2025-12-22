@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, GripVertical, Eye, EyeOff, ExternalLink, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { supabase } from '../../utils/supabase/client';
 import { ImageUploaderWithFocalPoint } from './ImageUploaderWithFocalPoint';
 import { PrimaryButton, SecondaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
-import { 
-  DarkInput, 
-  DarkTextarea, 
-  DarkSelect, 
+import {
+  DarkInput,
+  DarkTextarea,
+  DarkSelect,
   DarkLabel,
   formContainerClasses,
   listItemClasses,
@@ -70,6 +70,7 @@ export function LinksManager() {
   const [saving, setSaving] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
 
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -78,34 +79,26 @@ export function LinksManager() {
     setLoading(true);
     try {
       // Fetch links
-      const linksResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/links`,
-        {
-          headers: { Authorization: `Bearer ${publicAnonKey}` },
-        }
-      );
+      const { data: linksData, error: linksError } = await supabase
+        .from('bio_links')
+        .select('*')
+        .order('order');
 
-      if (linksResponse.ok) {
-        const data = await linksResponse.json();
-        setLinks(Array.isArray(data) ? data : []);
-      }
+      if (linksData) setLinks(linksData);
 
-      // Fetch bio data
-      const bioResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/links/bio`,
-        {
-          headers: { Authorization: `Bearer ${publicAnonKey}` },
-        }
-      );
+      // Fetch bio data from site_configuration
+      const { data: bioDataWrapper, error: bioError } = await supabase
+        .from('site_configuration')
+        .select('value')
+        .eq('key', 'bio_data')
+        .single();
 
-      if (bioResponse.ok) {
-        const data = await bioResponse.json();
-        if (data) {
-          setBioData(data);
-        }
+      if (bioDataWrapper?.value) {
+        setBioData(bioDataWrapper.value);
       }
     } catch (error) {
-      } finally {
+      console.error("Error fetching data:", error);
+    } finally {
       setLoading(false);
     }
   };
@@ -113,24 +106,14 @@ export function LinksManager() {
   const handleSaveBio = async () => {
     setSavingBio(true);
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/links/bio`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(bioData),
-        }
-      );
+      const { error } = await supabase
+        .from('site_configuration')
+        .upsert({ key: 'bio_data', value: bioData });
 
-      if (response.ok) {
-        alert('✅ Bio updated successfully!');
-      } else {
-        alert('❌ Failed to update bio');
-      }
+      if (error) throw error;
+      alert('✅ Bio updated successfully!');
     } catch (error) {
+      console.error("Error saving bio:", error);
       alert('❌ Error saving bio');
     } finally {
       setSavingBio(false);
@@ -145,38 +128,30 @@ export function LinksManager() {
 
     setSaving(true);
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/links`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...formData,
-            order: links.length + 1,
-          }),
-        }
-      );
+      const { data, error } = await supabase
+        .from('bio_links')
+        .insert([{
+          ...formData,
+          order: links.length + 1
+        }])
+        .select() // Need to select to get ID
+        .single();
 
-      if (response.ok) {
-        const newLink = await response.json();
-        setLinks([...links, newLink]);
-        setShowAddForm(false);
-        setFormData({
-          title: '',
-          url: '',
-          icon: 'external',
-          description: '',
-          type: 'link',
-          enabled: true,
-        });
-        alert('✅ Link added successfully!');
-      } else {
-        alert('❌ Failed to add link');
-      }
+      if (error) throw error;
+
+      setLinks([...links, data]);
+      setShowAddForm(false);
+      setFormData({
+        title: '',
+        url: '',
+        icon: 'external',
+        description: '',
+        type: 'link',
+        enabled: true,
+      });
+      alert('✅ Link added successfully!');
     } catch (error) {
+      console.error("Error adding link:", error);
       alert('❌ Error adding link');
     } finally {
       setSaving(false);
@@ -185,43 +160,30 @@ export function LinksManager() {
 
   const handleUpdateLink = async (id: string, updates: Partial<SocialLink>) => {
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/links/${id}`,
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updates),
-        }
-      );
+      const { data, error } = await supabase
+        .from('bio_links')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
-      if (response.ok) {
-        const updatedLink = await response.json();
-        setLinks(links.map(link => link.id === id ? updatedLink : link));
-      }
+      if (error) throw error;
+      setLinks(links.map(link => link.id === id ? data : link));
     } catch (error) {
-      }
+      console.error("Error updating link:", error);
+    }
   };
 
   const handleDeleteLink = async (id: string) => {
     if (!confirm('Delete this link?')) return;
 
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/links/${id}`,
-        {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${publicAnonKey}` },
-        }
-      );
-
-      if (response.ok) {
-        setLinks(links.filter(link => link.id !== id));
-        alert('✅ Link deleted');
-      }
+      const { error } = await supabase.from('bio_links').delete().eq('id', id);
+      if (error) throw error;
+      setLinks(links.filter(link => link.id !== id));
+      alert('✅ Link deleted');
     } catch (error) {
+      console.error("Error deleting link:", error);
       alert('❌ Error deleting link');
     }
   };
@@ -413,9 +375,8 @@ export function LinksManager() {
               .map((link, index) => (
                 <div
                   key={link.id}
-                  className={`flex items-center gap-3 p-4 bg-background/30 border border-neutral-500/20 rounded-2xl ${
-                    !link.enabled ? 'opacity-50' : ''
-                  }`}
+                  className={`flex items-center gap-3 p-4 bg-background/30 border border-neutral-500/20 rounded-2xl ${!link.enabled ? 'opacity-50' : ''
+                    }`}
                 >
                   {/* Move Buttons */}
                   <div className="flex flex-col gap-0.5">
@@ -438,11 +399,10 @@ export function LinksManager() {
                   {/* Link Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`font-pixel text-[9px] px-2 py-0.5 rounded tracking-wider ${
-                        link.type === 'social' 
-                          ? 'bg-blue-500/20 text-blue-400' 
-                          : 'bg-foreground/10 text-foreground/60'
-                      }`}>
+                      <span className={`font-pixel text-[9px] px-2 py-0.5 rounded tracking-wider ${link.type === 'social'
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'bg-foreground/10 text-foreground/60'
+                        }`}>
                         {link.type === 'social' ? 'SOCIAL ICON' : 'MAIN LINK'}
                       </span>
                     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Play, Plus, Edit2, Trash2, Save, X, ExternalLink, AlertCircle, ChevronDown, ChevronUp, Settings, Wand2, Loader2, Sparkles } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { Plus, Search, Filter, MoreVertical, Edit2, Trash2, Video, Clock, Layout, List, Circle, ChevronDown, ChevronUp, Settings, Wand2, Loader2, Sparkles, ExternalLink, AlertCircle, X, Save, Play } from 'lucide-react';
+// import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { createClient } from '../../utils/supabase/client';
 import { DEFAULT_CATEGORIES, TUTORIALS as STATIC_TUTORIALS, type TutorialCategory } from '../../data/tutorials';
 import { BlockEditor, ContentBlock } from './BlockEditor';
 import { ImageUploader } from './ImageUploader';
@@ -64,6 +65,7 @@ const emptyTutorial: Tutorial = {
 };
 
 export function TutorialsManager() {
+  const supabase = createClient();
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [categories, setCategories] = useState<TutorialCategory[]>(DEFAULT_CATEGORIES);
   const [loading, setLoading] = useState(true);
@@ -74,6 +76,7 @@ export function TutorialsManager() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['basic']));
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [aiLoading, setAiLoading] = useState<string | null>(null);
+  // const [legacyCount, setLegacyCount] = useState(0); 
 
   const [formData, setFormData] = useState<Tutorial>(emptyTutorial);
 
@@ -81,41 +84,40 @@ export function TutorialsManager() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const token = sessionStorage.getItem('admin_token');
 
-      // Fetch tutorials
-      const tutorialsResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials`,
-        {
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // Fetch tutorials from SQL
+      const { data: sqlTutorials, error: tutorialsError } = await supabase
+        .from('tutorials')
+        .select('*')
+        .order('publish_date', { ascending: false });
 
-      if (tutorialsResponse.ok) {
-        const data = await tutorialsResponse.json();
-        setTutorials(data.tutorials || []);
-      }
+      if (tutorialsError) throw tutorialsError;
 
-      // Fetch categories
-      const categoriesResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorial-categories`,
-        {
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // Extract raw data from SQL and map to interface
+      const mappedTutorials: Tutorial[] = (sqlTutorials || []).map((t: any) => ({
+        id: t.id,
+        slug: t.slug,
+        title: t.title,
+        description: t.description || '',
+        category: t.category || 'quick-tips',
+        duration: t.duration || t.content?.duration || '',
+        thumbnail: t.thumbnail_url || '',
+        videoUrl: t.video_url || '',
+        publishDate: t.publish_date || t.created_at || new Date().toISOString(),
+        tutorialContent: t.content?.blocks || t.content || [],
+        learningObjectives: t.content?.learningObjectives || [],
+        keyShortcuts: t.content?.keyShortcuts || [],
+        commonPitfalls: t.content?.commonPitfalls || [],
+        proTips: t.content?.proTips || [],
+        resources: t.content?.resources || [],
+        relatedTutorials: t.content?.relatedTutorials || []
+      }));
+      setTutorials(mappedTutorials);
+      setCategories(DEFAULT_CATEGORIES);
 
-      if (categoriesResponse.ok) {
-        const data = await categoriesResponse.json();
-        setCategories(data.categories || DEFAULT_CATEGORIES);
-      }
     } catch (err) {
-      setError('Failed to connect to server');
+      console.error('Fetch error:', err);
+      setError('Failed to load tutorials');
     } finally {
       setLoading(false);
     }
@@ -134,32 +136,43 @@ export function TutorialsManager() {
       setLoading(true);
       setError('');
       setSuccess('');
-      // const token = sessionStorage.getItem('admin_token');
 
       let importedCount = 0;
       let failedCount = 0;
 
+      // Group upserts? Or one by one to count success?
+      // One by one is safer for reporting
       for (const tutorial of STATIC_TUTORIALS) {
         try {
-          const response = await fetch(
-            `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${publicAnonKey}`,
-                // Token in Authorization header,
-              },
-              body: JSON.stringify(tutorial),
-            }
-          );
+          // Map static tutorial to DB schema
+          const payload = {
+            title: tutorial.title,
+            slug: tutorial.slug,
+            description: tutorial.description,
+            video_url: tutorial.videoUrl,
+            thumbnail_url: tutorial.thumbnail,
+            category: tutorial.category,
+            content: {
+              blocks: tutorial.tutorialContent || [],
+              learningObjectives: tutorial.learningObjectives || [],
+              keyShortcuts: tutorial.keyShortcuts || [],
+              commonPitfalls: tutorial.commonPitfalls || [],
+              proTips: tutorial.proTips || [],
+              resources: tutorial.resources || [],
+              relatedTutorials: tutorial.relatedTutorials || [],
+              duration: tutorial.duration
+            },
+            updated_at: new Date().toISOString()
+          };
 
-          if (response.ok) {
-            importedCount++;
-          } else {
-            failedCount++;
-          }
+          const { error } = await supabase
+            .from('tutorials')
+            .upsert(payload, { onConflict: 'slug' });
+
+          if (error) throw error;
+          importedCount++;
         } catch (err) {
+          console.error('Import failed for', tutorial.title, err);
           failedCount++;
         }
       }
@@ -167,7 +180,7 @@ export function TutorialsManager() {
       setSuccess(`Import complete: ${importedCount} imported, ${failedCount} failed.`);
       await fetchData();
     } catch (err) {
-      setError('Import failed');
+      setError('Import process failed');
     } finally {
       setLoading(false);
     }
@@ -253,32 +266,63 @@ export function TutorialsManager() {
         return;
       }
 
-      // const token = sessionStorage.getItem('admin_token');
+      // Pack complex fields into content JSONB
+      // The schema has specific columns: slug, title, description, video_url, thumbnail_url, category, tags, published
+      // content is JSONB. We use it for everything else.
+      const packedContent = {
+        blocks: formData.tutorialContent || [],
+        learningObjectives: formData.learningObjectives || [],
+        keyShortcuts: formData.keyShortcuts || [],
+        commonPitfalls: formData.commonPitfalls || [],
+        proTips: formData.proTips || [],
+        resources: formData.resources || [],
+        relatedTutorials: formData.relatedTutorials || [],
+        duration: formData.duration // storing duration here as schema doesn't seem to have it separate in create table snippet? 
+        // Wait, schema check: id, slug, title, description, content, video_url, thumbnail_url, tags, category, published... 
+        // No duration column. So content is the place.
+      };
 
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials`,
-        {
-          method: isAdding ? 'POST' : 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const payload = {
+        title: formData.title,
+        slug: formData.slug,
+        description: formData.description,
+        video_url: formData.videoUrl,
+        thumbnail_url: formData.thumbnail,
+        category: formData.category,
+        content: packedContent, // Storing as JSON
+        // If 'tags' exists in interface? Not in base interface shown in snippet, but assuming it might be added or we ignore it.
+        // Interface on line 19 doesn't show tags.
+        updated_at: new Date().toISOString()
+      };
 
-      const data = await response.json();
-      if (response.ok) {
-        setSuccess(isAdding ? 'Tutorial added successfully!' : 'Tutorial updated successfully!');
-        await fetchData();
-        handleCancel();
-        setTimeout(() => setSuccess(''), 3000);
+      let error;
+
+      if (isAdding) {
+        const { error: insertError } = await supabase.from('tutorials').insert([{
+          ...payload,
+          // id is auto-generated usually, but we have formData.id. If uuid, maybe leave it out or force it.
+          // Schema has id default gen_random_uuid().
+          // If we generated a dummy ID in handleAdd (Date.now()), we should probably NOT send it if it's not UUID.
+          // Let's assume database handles ID creation, unless we are updating.
+        }]);
+        error = insertError;
       } else {
-        setError(data.error || 'Failed to save tutorial');
+        const { error: updateError } = await supabase
+          .from('tutorials')
+          .update(payload)
+          .eq('id', editingId); // Use editingId for safety
+        error = updateError;
       }
-    } catch (err) {
-      setError(`Failed to connect to server: ${err instanceof Error ? err.message : 'Unknown error'}`);
+
+      if (error) throw error;
+
+      setSuccess(isAdding ? 'Tutorial added successfully!' : 'Tutorial updated successfully!');
+      await fetchData();
+      handleCancel();
+      setTimeout(() => setSuccess(''), 3000);
+
+    } catch (err: any) {
+      setError(err.message || 'Failed to save tutorial');
     }
   };
 
@@ -288,27 +332,16 @@ export function TutorialsManager() {
     }
 
     try {
-      // const token = sessionStorage.getItem('admin_token');
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/tutorials/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
-          },
-        }
-      );
+      const { error } = await supabase.from('tutorials').delete().eq('id', id);
 
-      if (response.ok) {
-        setSuccess('Tutorial deleted successfully!');
-        await fetchData();
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        setError('Failed to delete tutorial');
-      }
-    } catch (err) {
-      setError('Failed to connect to server');
+      if (error) throw error;
+
+      setSuccess('Tutorial deleted successfully');
+      setTutorials(prev => prev.filter(t => t.id !== id));
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError('Failed to delete tutorial');
+      console.error(err);
     }
   };
 
@@ -375,33 +408,31 @@ export function TutorialsManager() {
   const generateWithAI = async (type: string, context: string) => {
     setAiLoading(type);
     try {
-      // const token = sessionStorage.getItem('admin_token');
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/ai/generate`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header,
-          },
-          body: JSON.stringify({
-            type,
-            context,
-            prompt: formData.title + (formData.description ? ': ' + formData.description : '')
-          }),
-        }
-      );
+      const token = sessionStorage.getItem('admin_token');
 
-      const data = await response.json();
-      if (data.success && data.result) {
+      const { data, error } = await supabase.functions.invoke('make-server-74296234/api/admin/ai/generate', {
+        method: 'POST',
+        headers: {
+          'X-Admin-Token': token || '',
+        },
+        body: {
+          type,
+          context,
+          prompt: formData.title + (formData.description ? ': ' + formData.description : '')
+        }
+      });
+
+      if (error) throw error;
+
+      if (data && data.success && data.result) {
         return data.result;
       } else {
-        setError('AI generation failed: ' + (data.error || 'Unknown error'));
+        setError('AI generation failed: ' + (data?.error || 'Unknown error'));
         return null;
       }
-    } catch (err) {
-      setError('Failed to connect to AI service');
+    } catch (err: any) {
+      console.error('AI Error:', err);
+      setError('Failed to connect to AI service: ' + (err.message || 'Unknown error'));
       return null;
     } finally {
       setAiLoading(null);

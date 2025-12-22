@@ -1,95 +1,84 @@
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../utils/supabase/client';
+import { Plus, Edit2, Trash2, Save, X, Search, Image as ImageIcon, Link as LinkIcon, MapPin, Tag } from 'lucide-react';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
-import { NewsBlock, newsItems as hardcodedNews } from '../../data/news';
-import { SquarespaceImporter } from './SquarespaceImporter';
+import { PrimaryButton, IconButton, SaveButton, CancelButton } from './AdminButtons';
+import { InfoBanner } from './InfoBanner';
 import { ImageUploader } from './ImageUploader';
 import { FocusPointPicker } from './FocusPointPicker';
-import { useCategories } from '../../hooks/useCategories';
-import { PrimaryButton, SaveButton, CancelButton, IconButton } from './AdminButtons';
-import {
-  DarkInput,
-  DarkTextarea,
-  DarkSelect,
-  DarkLabel,
-  formContainerClasses,
-  listItemClasses
-} from './DarkModeStyles';
 import { TagInput } from './ui/TagInput';
-import { InfoBanner } from './InfoBanner';
 import { NewsBlockEditor } from './NewsBlockEditor';
+import { DarkInput, DarkTextarea, DarkSelect, DarkLabel, formContainerClasses, listItemClasses } from './DarkModeStyles';
+import { SquarespaceImporter } from './SquarespaceImporter';
 
 interface NewsItem {
   id: string;
   title: string;
   date: string;
-  lastModified: string;
   category: string;
-  excerpt: string;
-  content?: string;
-  blocks?: NewsBlock[];
-  link?: string;
-  location?: string;
+  excerpt?: string;
+  content?: string | any[];
   coverImage?: string;
   coverImageFocalPoint?: { x: number; y: number };
-  images?: { url: string; caption?: string }[];
-  tags: string[];
+  location?: string;
+  tags?: string[];
+  link?: string;
   slug?: string;
 }
 
 export function NewsManager() {
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Partial<NewsItem>>({});
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState<Partial<NewsItem> & { blocks?: any[], images?: any[] }>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [showImporter, setShowImporter] = useState(false);
-
-  const { categories } = useCategories();
+  const [categories, setCategories] = useState<{ news: any[] }>({ news: [] });
 
   useEffect(() => {
+    loadCategories();
     loadNews();
   }, []);
+
+  const loadCategories = async () => {
+    const { data } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('type', 'news')
+      .order('name');
+
+    if (data) {
+      setCategories({ news: data });
+    }
+  };
 
   const loadNews = async () => {
     setLoading(true);
     try {
-      const token = sessionStorage.getItem('admin_token');
-      // Use authenticated endpoint to get all news
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token || publicAnonKey}`,
-          },
-        }
-      );
+      const { data, error } = await supabase
+        .from('news')
+        .select('*')
+        .order('date', { ascending: false });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch news');
-      }
+      if (error) throw error;
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Sort news by date (newest first)
-        const sortedNews = (data.news || []).sort((a: NewsItem, b: NewsItem) => {
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        });
-        setNewsItems(sortedNews);
-        toast.success(`Loaded ${sortedNews.length} news items from server`);
-      } else {
-        console.error('API return success: false, using local data');
-        const sorted = [...hardcodedNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setNewsItems(sorted as any);
-        toast.error('Failed to load news, using local data');
+      if (data) {
+        // Map snake_case to camelCase
+        const mappedNews = data.map((item: any) => ({
+          ...item,
+          coverImage: item.cover_image,
+          coverImageFocalPoint: item.cover_image_focal_point,
+          // content blocks might be stored in 'content' column as JSON or text
+          // If content is JSON blocks:
+          blocks: typeof item.content === 'object' ? item.content : [],
+          // If content is string markdown:
+          content: typeof item.content === 'string' ? item.content : '',
+        }));
+        setNewsItems(mappedNews);
       }
     } catch (err) {
-      console.error('API error, using local data as fallback:', err);
-      const sorted = [...hardcodedNews].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setNewsItems(sorted as any);
-      toast.error('Error loading news, using local data');
+      console.error('Error loading news:', err);
+      toast.error('Error loading news');
     } finally {
       setLoading(false);
     }
@@ -100,7 +89,6 @@ export function NewsManager() {
       title: '',
       category: categories.news[0]?.name || '',
       date: new Date().toISOString().split('T')[0],
-      lastModified: new Date().toISOString().split('T')[0],
       excerpt: '',
       tags: [],
       images: [],
@@ -117,10 +105,7 @@ export function NewsManager() {
 
   const handleSave = async () => {
     try {
-      const token = sessionStorage.getItem('admin_token');
       const isNew = editingId === 'new';
-
-      // Generate slug if new
       let slug = formData.slug;
       if (isNew && formData.title) {
         slug = formData.title
@@ -129,38 +114,44 @@ export function NewsManager() {
           .replace(/(^-|-$)/g, '');
       }
 
-      const url = isNew
-        ? `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news`
-        : `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news/${editingId}`;
-
-      const dataToSave = {
-        ...formData,
+      const payload = {
+        title: formData.title,
         slug,
-        lastModified: new Date().toISOString().split('T')[0],
+        date: formData.date,
+        category: formData.category,
+        excerpt: formData.excerpt,
+        content: formData.blocks || formData.content, // storing blocks as JSON in content column
+        location: formData.location,
+        link: formData.link,
+        cover_image: formData.coverImage,
+        cover_image_focal_point: formData.coverImageFocalPoint,
+        tags: formData.tags,
+        updated_at: new Date().toISOString()
       };
 
-      const response = await fetch(url, {
-        method: isNew ? 'POST' : 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(dataToSave),
-      });
-
-      if (response.ok) {
-        await loadNews();
-        setShowForm(false);
-        setEditingId(null);
-        setFormData({});
-        toast.success('News item saved successfully');
+      let error;
+      if (isNew) {
+        const { error: insertError } = await supabase.from('news').insert([payload]);
+        error = insertError;
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        toast.error('Failed to save news item: ' + (errorData.error || response.statusText));
+        const { error: updateError } = await supabase
+          .from('news')
+          .update(payload)
+          .eq('id', editingId);
+        error = updateError;
       }
-    } catch (err) {
+
+      if (error) throw error;
+
+      await loadNews();
+      setShowForm(false);
+      setEditingId(null);
+      setFormData({});
+      toast.success('News item saved successfully');
+
+    } catch (err: any) {
       console.error('Save error:', err);
-      toast.error('Failed to save news item');
+      toast.error('Failed to save news item: ' + err.message);
     }
   };
 
@@ -168,24 +159,12 @@ export function NewsManager() {
     if (!confirm('Are you sure you want to delete this news item?')) return;
 
     try {
-      const token = sessionStorage.getItem('admin_token');
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
+      const { error } = await supabase.from('news').delete().eq('id', id);
+      if (error) throw error;
 
-      if (response.ok) {
-        await loadNews();
-        toast.success('News item deleted');
-      } else {
-        throw new Error('Failed to delete');
-      }
-    } catch (err) {
+      await loadNews();
+      toast.success('News item deleted');
+    } catch (err: any) {
       console.error('Delete error:', err);
       toast.error('Failed to delete news item');
     }
@@ -197,7 +176,7 @@ export function NewsManager() {
     setFormData({});
   };
 
-  if (loading) {
+  if (loading && !newsItems.length) {
     return <div className="text-center py-12 opacity-60">Loading news...</div>;
   }
 

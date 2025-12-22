@@ -85,14 +85,27 @@ app.post("/make-server-74296234/api/projects/:id/view", async (c) => {
 });
 
 app.post("/make-server-74296234/api/projects/:id/like", async (c) => {
-  await supabase.rpc('increment_project_like', { project_id: c.req.param('id') });
-  const { data } = await supabase.from('portfolio_projects').select('views, likes').eq('id', c.req.param('id')).single();
-  return c.json({ success: true, views: data?.views || 0, likes: data?.likes || 0 });
+  // Direct update fallback to ensure working counter
+  const { data } = await supabase.from('portfolio_projects').select('likes').eq('id', c.req.param('id')).single();
+  const currentLikes = data?.likes || 0;
+  const newLikes = currentLikes + 1;
+  await supabase.from('portfolio_projects').update({ likes: newLikes }).eq('id', c.req.param('id'));
+  return c.json({ success: true, likes: newLikes });
+});
+
+app.post("/make-server-74296234/api/projects/:id/unlike", async (c) => {
+  const { data } = await supabase.from('portfolio_projects').select('likes').eq('id', c.req.param('id')).single();
+  const currentLikes = data?.likes || 0;
+  const newLikes = Math.max(0, currentLikes - 1);
+  if (currentLikes > 0) {
+    await supabase.from('portfolio_projects').update({ likes: newLikes }).eq('id', c.req.param('id'));
+  }
+  return c.json({ success: true, likes: newLikes });
 });
 
 // ===== ARTICLES =====
 app.get("/make-server-74296234/api/posts", async (c) => {
-  const { data, error } = await supabase.from('articles').select('*').eq('published', true).order('date', { ascending: false });
+  const { data, error } = await supabase.from('articles').select('*').order('date', { ascending: false });
   if (error) return c.json({ error: error.message }, 500);
   return c.json({ success: true, posts: data });
 });
@@ -104,15 +117,30 @@ app.get("/make-server-74296234/api/posts/:slug", async (c) => {
 });
 
 app.post("/make-server-74296234/api/posts/:id/view", async (c) => {
-  await supabase.rpc('increment_article_view', { article_id: c.req.param('id') });
-  const { data } = await supabase.from('articles').select('views, likes').eq('id', c.req.param('id')).single();
-  return c.json({ success: true, views: data?.views || 0, likes: data?.likes || 0 });
+  // Direct update for views
+  const { data } = await supabase.from('articles').select('views').eq('id', c.req.param('id')).single();
+  const currentViews = data?.views || 0;
+  await supabase.from('articles').update({ views: currentViews + 1 }).eq('id', c.req.param('id'));
+  return c.json({ success: true, views: currentViews + 1 });
 });
 
 app.post("/make-server-74296234/api/posts/:id/like", async (c) => {
-  await supabase.rpc('increment_article_like', { article_id: c.req.param('id') });
-  const { data } = await supabase.from('articles').select('views, likes').eq('id', c.req.param('id')).single();
-  return c.json({ success: true, views: data?.views || 0, likes: data?.likes || 0 });
+  // Direct update for likes
+  const { data } = await supabase.from('articles').select('likes').eq('id', c.req.param('id')).single();
+  const currentLikes = data?.likes || 0;
+  const newLikes = currentLikes + 1;
+  await supabase.from('articles').update({ likes: newLikes }).eq('id', c.req.param('id'));
+  return c.json({ success: true, likes: newLikes });
+});
+
+app.post("/make-server-74296234/api/posts/:id/unlike", async (c) => {
+  // Fallback decrement since no RPC exists
+  const { data } = await supabase.from('articles').select('likes').eq('id', c.req.param('id')).single();
+  const currentLikes = data?.likes || 0;
+  if (currentLikes > 0) {
+    await supabase.from('articles').update({ likes: currentLikes - 1 }).eq('id', c.req.param('id'));
+  }
+  return c.json({ success: true, likes: Math.max(0, currentLikes - 1) });
 });
 
 // ===== ADMIN CRUD (Generic Helper Concept or Explicit Routes) =====
@@ -173,7 +201,7 @@ app.delete("/make-server-74296234/api/admin/posts/:id", verifyAdminToken, async 
 // === Placeholder for Part 2 ===
 // ===== NEWS =====
 app.get("/make-server-74296234/api/news", async (c) => {
-  const { data, error } = await supabase.from('news').select('*').eq('published', true).order('date', { ascending: false });
+  const { data, error } = await supabase.from('news').select('*').order('date', { ascending: false });
   if (error) return c.json({ error: error.message }, 500);
   return c.json({ success: true, news: data });
 });

@@ -6,7 +6,7 @@ import { PhotoGallery } from '../components/shared/PhotoGallery';
 import { CounterAnimation } from '../components/shared/CounterAnimation';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useTheme } from '../components/ThemeProvider';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { supabase } from '../utils/supabase/client';
 
 interface AboutProps {
   onNavigate: (page: string) => void;
@@ -76,32 +76,30 @@ export function About({ onNavigate }: AboutProps) {
   React.useEffect(() => {
     const fetchGalleryPhotos = async () => {
       try {
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/about-gallery`,
-          {
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-          }
-        );
+        console.log('🖼️ Fetching gallery photos from database...');
+        const { data, error } = await supabase
+          .from('about_gallery')
+          .select('*')
+          .order('display_order');
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.photos && data.photos.length > 0) {
-            setGalleryPhotos(data.photos.map((photo: any) => ({
-              src: photo.image_url,
-              alt: photo.alt_text,
-              caption: photo.caption
-            })));
-          } else {
-            // Fallback to hardcoded photos if no data
-            setGalleryPhotos(personalPhotos);
-          }
+        console.log('📊 Gallery fetch result:', { data, error, count: data?.length });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          console.log('✅ Using database photos:', data);
+          setGalleryPhotos(data.map((photo: any) => ({
+            src: photo.image_url,
+            alt: photo.alt_text,
+            caption: photo.caption
+          })));
         } else {
+          console.log('⚠️ No photos in database, using fallback');
+          // Fallback to hardcoded photos if no data
           setGalleryPhotos(personalPhotos);
         }
       } catch (error) {
-        console.error('Error fetching gallery photos:', error);
+        console.error('❌ Error fetching gallery photos:', error);
         setGalleryPhotos(personalPhotos);
       } finally {
         setLoadingGallery(false);
