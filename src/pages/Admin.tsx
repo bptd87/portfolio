@@ -66,7 +66,7 @@ export function Admin({ onNavigate }: AdminProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeView, setActiveView] = useState<ManagerView>('dashboard');
-  
+
   React.useEffect(() => {
   }, [activeView]);
 
@@ -75,17 +75,27 @@ export function Admin({ onNavigate }: AdminProps) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsAuthenticated(true);
-        sessionStorage.setItem('admin_token', session.access_token);
+        // Store both the Supabase token and the admin API token
+        sessionStorage.setItem('supabase_token', session.access_token);
+        // Generate admin token in the format the Edge Function expects: base64("admin:password")
+        // Since we don't have the password here, we'll set a flag to generate it on login
+        const existingAdminToken = sessionStorage.getItem('admin_token');
+        if (!existingAdminToken) {
+          // If no admin token exists, user needs to re-login
+          setIsAuthenticated(false);
+        }
       }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
       if (session) {
-        sessionStorage.setItem('admin_token', session.access_token);
+        setIsAuthenticated(true);
+        sessionStorage.setItem('supabase_token', session.access_token);
       } else {
+        setIsAuthenticated(false);
+        sessionStorage.removeItem('supabase_token');
         sessionStorage.removeItem('admin_token');
       }
     });
@@ -107,7 +117,14 @@ export function Admin({ onNavigate }: AdminProps) {
       if (error) throw error;
 
       if (data.session) {
-        sessionStorage.setItem('admin_token', data.session.access_token);
+        // Store Supabase session token
+        sessionStorage.setItem('supabase_token', data.session.access_token);
+
+        // Generate admin token in base64 format: base64("admin:password")
+        // The Edge Function expects this format
+        const adminToken = btoa(`admin:${password}`);
+        sessionStorage.setItem('admin_token', adminToken);
+
         setIsAuthenticated(true);
         setEmail('');
         setPassword('');
@@ -267,7 +284,7 @@ export function Admin({ onNavigate }: AdminProps) {
 
   return (
     <SimpleErrorBoundary>
-        <AdminLayout
+      <AdminLayout
         activeView={activeView}
         onNavigate={(view) => {
           setActiveView(view as ManagerView);

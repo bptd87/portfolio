@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Search as SearchIcon, ArrowRight, Loader2, Folder, FileText, Newspaper, Users, Wrench, Package } from 'lucide-react';
 import { API_BASE_URL } from '../utils/api';
 import { publicAnonKey } from '../utils/supabase/info';
+import { calculateRelevance } from '../utils/search';
 
 // Static pages that are always searchable
 const staticPages = [
@@ -33,6 +34,9 @@ interface SearchResult {
   route: string;
   keywords?: string;
   image?: string;
+  altText?: string;
+  score?: number;
+  matchedFields?: string[];
 }
 
 interface SearchProps {
@@ -45,8 +49,9 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
   const [allContent, setAllContent] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Fetch all dynamic content on mount
   useEffect(() => {
@@ -182,7 +187,7 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
         }
 
       } catch (error) {
-        }
+      }
 
       setAllContent(dynamicContent);
       setLoading(false);
@@ -200,26 +205,36 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
     setSearching(true);
-    
+
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-    
+
     debounceRef.current = setTimeout(() => {
       setSearching(false);
     }, 150);
   }, []);
 
-  // Filter search results
-  const filteredResults = searchQuery.trim() 
-    ? allContent.filter(item => {
-        const query = searchQuery.toLowerCase();
-        return (
-          item.title.toLowerCase().includes(query) ||
-          item.description.toLowerCase().includes(query) ||
-          (item.keywords && item.keywords.toLowerCase().includes(query))
+  // Filter search results with fuzzy matching and relevance scoring
+  const filteredResults = searchQuery.trim()
+    ? allContent
+      .map(item => {
+        const match = calculateRelevance(
+          searchQuery,
+          item.title,
+          item.description,
+          item.keywords,
+          item.altText
         );
+        return {
+          ...item,
+          score: match.score,
+          matchedFields: match.matchedFields
+        };
       })
+      .filter(item => item.score > 0) // Only show items with matches
+      .filter(item => activeFilters.length === 0 || activeFilters.includes(item.category)) // Apply category filters
+      .sort((a, b) => (b.score || 0) - (a.score || 0)) // Sort by relevance
     : [];
 
   // Group results by category with priority ordering
@@ -266,7 +281,7 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
           <p className="font-sans text-muted-foreground mb-8">
             Find projects, articles, tutorials, assets, and more
           </p>
-          
+
           {/* Search Input */}
           <div className="relative max-w-2xl mx-auto">
             <input
@@ -332,15 +347,15 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
                             {/* Thumbnail */}
                             {item.image && (
                               <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                                <img 
-                                  src={item.image} 
-                                  alt="" 
+                                <img
+                                  src={item.image}
+                                  alt=""
                                   className="w-full h-full object-cover"
                                   onError={(e) => (e.currentTarget.style.display = 'none')}
                                 />
                               </div>
                             )}
-                            
+
                             <div className="flex-1 min-w-0">
                               <h3 className="font-sans text-foreground font-medium mb-1 group-hover:text-foreground/80 transition-colors line-clamp-1">
                                 {item.title}
@@ -349,7 +364,7 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
                                 {item.description}
                               </p>
                             </div>
-                            
+
                             <ArrowRight className="w-5 h-5 text-muted-foreground/50 group-hover:text-foreground/50 group-hover:translate-x-1 transition-all flex-shrink-0 mt-1" />
                           </div>
                         </button>

@@ -53,11 +53,19 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        const adminToken = sessionStorage.getItem('admin_token');
+        if (!adminToken) {
+          console.warn('No admin token found');
+          setLoading(false);
+          return;
+        }
+
         const response = await fetch(
           `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/stats`,
           {
             headers: {
               'Authorization': `Bearer ${publicAnonKey}`,
+              'X-Admin-Token': adminToken,
             },
           }
         );

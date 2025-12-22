@@ -4,9 +4,10 @@ import { motion } from 'motion/react';
 import { SEO } from '../components/SEO';
 import { LikeButton } from '../components/shared/LikeButton';
 import { ShareButton } from '../components/shared/ShareButton';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { apiCall } from '../utils/api';
 import { RenderingTemplate } from './portfolio/RenderingTemplate';
 import { useImageColors } from '../hooks/useImageColors';
+import { createClient } from '../utils/supabase/client';
 
 interface RenderingProjectDetailProps {
   slug: string;
@@ -30,15 +31,7 @@ export function RenderingProjectDetail({ slug, onNavigate }: RenderingProjectDet
   const fetchProject = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${slug}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await apiCall(`/api/projects/${slug}`);
 
       if (!response.ok) throw new Error('Failed to fetch project');
       const data = await response.json();
@@ -47,55 +40,62 @@ export function RenderingProjectDetail({ slug, onNavigate }: RenderingProjectDet
       setProject(data.project);
 
       // Increment view count
-      await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${data.project.id}/view`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
+      try {
+        const viewResponse = await apiCall(`/api/projects/${data.project.id}/view`, { method: 'POST' });
+        if (viewResponse.ok) {
+          const viewData = await viewResponse.json();
+          if (viewData.success && viewData.views !== undefined) {
+            // Update the project object with new view count
+            setProject((prev: any) => ({ ...prev, views: viewData.views }));
+          }
         }
-      );
+      } catch (err) { }
 
-      // Fetch adjacent projects
-      const allProjectsResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
+      // Fetch adjacent projects (direct from Supabase)
+      try {
+        const supabase = createClient();
+        const { data: allProjects, error: projectsError } = await supabase
+          .from('portfolio_projects')
+          .select('*')
+          .eq('published', true)
+          .order('year', { ascending: false });
+
+        if (!projectsError && allProjects) {
+          // Map database fields to frontend format
+          const mappedProjects = allProjects.map((p: any) => ({
+            ...p,
+            cardImage: p.card_image || p.cover_image,
+            coverImage: p.cover_image || p.card_image,
+          }));
+
+          console.log('🔍 All projects fetched:', mappedProjects.length);
+
+          // Filter for rendering projects (case-insensitive, partial match)
+          const sameCategory = mappedProjects.filter((p: any) => {
+            const cat = (p.category || '').toLowerCase();
+            return cat.includes('rendering') || cat.includes('visualization');
+          });
+          console.log('🔍 Same category (Rendering/Visualization) projects:', sameCategory.length, sameCategory.map((p: any) => ({ title: p.title, category: p.category })));
+
+          const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
+          console.log('🔍 Current index:', currentIndex);
+
+          if (currentIndex > -1 && sameCategory.length > 1) {
+            const nextIndex = (currentIndex + 1) % sameCategory.length;
+            const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
+            console.log('🔍 Setting prev:', sameCategory[prevIndex]?.title, 'next:', sameCategory[nextIndex]?.title);
+            setNextProject(sameCategory[nextIndex]);
+            setPrevProject(sameCategory[prevIndex]);
+
+            // Get up to 3 related projects (excluding current)
+            const otherProjects = sameCategory.filter((p: any) => p.slug !== slug);
+            setRelatedProjects(otherProjects.slice(0, 3));
+          } else {
+            console.log('⚠️ Only one Rendering project found, no prev/next navigation available');
+          }
         }
-      );
-
-      if (allProjectsResponse.ok) {
-        const allProjectsData = await allProjectsResponse.json();
-        const allProjects = allProjectsData.success ? allProjectsData.projects : [];
-        console.log('🔍 All projects fetched:', allProjects.length);
-
-        // Filter for rendering projects (case-insensitive, partial match)
-        const sameCategory = allProjects.filter((p: any) => {
-          const cat = (p.category || '').toLowerCase();
-          return cat.includes('rendering') || cat.includes('visualization');
-        });
-        console.log('🔍 Same category (Rendering/Visualization) projects:', sameCategory.length, sameCategory.map((p: any) => ({ title: p.title, category: p.category })));
-
-        const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
-        console.log('🔍 Current index:', currentIndex);
-
-        if (currentIndex > -1 && sameCategory.length > 1) {
-          const nextIndex = (currentIndex + 1) % sameCategory.length;
-          const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
-          console.log('🔍 Setting prev:', sameCategory[prevIndex]?.title, 'next:', sameCategory[nextIndex]?.title);
-          setNextProject(sameCategory[nextIndex]);
-          setPrevProject(sameCategory[prevIndex]);
-
-          // Get up to 3 related projects (excluding current)
-          const otherProjects = sameCategory.filter((p: any) => p.slug !== slug);
-          setRelatedProjects(otherProjects.slice(0, 3));
-        } else {
-          console.log('⚠️ Only one Rendering project found, no prev/next navigation available');
-        }
+      } catch (err) {
+        console.error('Failed to fetch related projects:', err);
       }
     } catch (error) {
       console.error('Error fetching project:', error);
@@ -359,7 +359,7 @@ export function RenderingProjectDetail({ slug, onNavigate }: RenderingProjectDet
                 className="inline-flex items-center gap-2 px-8 py-3 bg-neutral-900 rounded-full border border-white/10 hover:border-white/20 transition-all font-pixel text-xs tracking-[0.3em] text-white"
               >
                 <ArrowLeft className="w-4 h-4" />
-                BACK TO PORTFOLIO
+                <span className="text-center">BACK TO PORTFOLIO</span>
               </button>
             </motion.div>
 

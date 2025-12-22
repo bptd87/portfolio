@@ -260,6 +260,7 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
       {/* FIXED GRADIENT BACKGROUND LAYER */}
       <div
         className="fixed inset-0 z-0"
+        data-nav="dark"
         style={{
           background: colors
             ? `

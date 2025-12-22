@@ -2,19 +2,24 @@ import { motion } from 'motion/react';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { PAGE_METADATA } from '../utils/seo/metadata';
+import { useTheme } from '../components/ThemeProvider';
 
 interface TermsOfUseProps {
   onNavigate?: (page: string, slug?: string) => void;
 }
 
 export function TermsOfUse({ onNavigate }: TermsOfUseProps) {
+  const { theme } = useTheme();
   const effectiveDate = "July 5, 2025";
 
   return (
     <>
       <SEO metadata={PAGE_METADATA['terms-of-use']} />
 
-      <div className="min-h-screen bg-background text-foreground pt-32 pb-24">
+      <div
+        className="min-h-screen bg-background text-foreground pt-32 pb-24"
+        data-nav={theme === 'dark' ? 'dark' : 'light'}
+      >
         <div className="max-w-4xl mx-auto px-6">
 
           {/* Back Navigation */}

@@ -20,6 +20,13 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
   const [activeTag, setActiveTag] = useState<string | null>(initialTag || null);
   const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
 
+  // Set initial category from prop (URL parameter)
+  useEffect(() => {
+    if (initialCategory) {
+      setActiveCategory(initialCategory);
+    }
+  }, [initialCategory]);
+
   // Set initial tag from prop
   useEffect(() => {
     if (initialTag) {
@@ -33,11 +40,14 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
         setLoading(true);
         // Fetch categories using apiCall helper with fallback
         const categoriesResponse = await apiCall('/api/categories/articles');
-
         if (categoriesResponse.ok) {
-          const categoriesData = await categoriesResponse.json();
-          if (categoriesData.success && categoriesData.categories) {
-            setCategories(categoriesData.categories);
+          try {
+            const categoriesData = await categoriesResponse.json();
+            if (categoriesData.success && categoriesData.categories) {
+              setCategories(categoriesData.categories);
+            }
+          } catch (jsonError) {
+            console.warn('❌ Failed to parse categories response as JSON');
           }
         }
 
@@ -60,9 +70,9 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
               : '';
             const inferFromContentBlocks = Array.isArray(p.content)
               ? (() => {
-                  const imgBlock = p.content.find((blk: any) => blk?.type === 'image' && (blk?.content || blk?.url));
-                  return imgBlock ? (imgBlock.content || imgBlock.url) : '';
-                })()
+                const imgBlock = p.content.find((blk: any) => blk?.type === 'image' && (blk?.content || blk?.url));
+                return imgBlock ? (imgBlock.content || imgBlock.url) : '';
+              })()
               : '';
             const candidates = [
               p.coverImage,

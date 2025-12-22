@@ -32,19 +32,19 @@ function findCategoryColor(categoryName: string, categories: Category[]): string
   const normalizedName = categoryName.toLowerCase().trim();
 
   // 1. Exact match
-  let match = categories.find(c => c.name.toLowerCase().trim() === normalizedName);
+  let match = categories.find(c => c.name?.toLowerCase().trim() === normalizedName);
   if (match?.color) return match.color;
 
   // 2. Starts with match (e.g., "Design Philosophy" matches "Design Philosophy & Scenic Insights")
-  match = categories.find(c => normalizedName.startsWith(c.name.toLowerCase().trim()));
+  match = categories.find(c => c.name && normalizedName.startsWith(c.name.toLowerCase().trim()));
   if (match?.color) return match.color;
 
   // 3. Contains match (e.g., looking for "Technology" in "Technology & Tutorials")
-  match = categories.find(c => normalizedName.includes(c.name.toLowerCase().trim()));
+  match = categories.find(c => c.name && normalizedName.includes(c.name.toLowerCase().trim()));
   if (match?.color) return match.color;
 
   // 4. Reverse contains (category name contains our search term)
-  match = categories.find(c => c.name.toLowerCase().trim().includes(normalizedName));
+  match = categories.find(c => c.name && c.name.toLowerCase().trim().includes(normalizedName));
   if (match?.color) return match.color;
 
   return undefined;
@@ -531,71 +531,6 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
 
       {/* Article Content */}
       <article className={`max-w-4xl mx-auto px-6 md:px-12 ${article.coverImage && article.coverImage.trim() !== '' ? 'pt-12 pb-16' : 'py-16 md:py-24'}`}>
-        {/* If no cover image, show header here */}
-        {(!article.coverImage || article.coverImage.trim() === '') && (
-          <div className="mb-12">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onNavigate('articles');
-              }}
-              className="group flex items-center gap-3 mb-12 px-6 py-3 bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 rounded-full transition-all"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-pixel text-[10px] tracking-[0.2em]">BACK TO ARTICLES</span>
-            </button>
-
-            {/* Meta row with share buttons */}
-            <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
-              <div className="flex items-center gap-4 flex-wrap">
-                <span
-                  className="font-pixel text-[11px] tracking-[0.3em] uppercase font-medium"
-                  style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 1 : 0.6 }}
-                >
-                  {article.category.split(' & ')[0]}
-                </span>
-                <span
-                  className="w-px h-3"
-                  style={{ backgroundColor: article.categoryColor ? `${article.categoryColor}40` : 'currentColor', opacity: article.categoryColor ? 1 : 0.2 }}
-                />
-                <span
-                  className="font-pixel text-[11px] tracking-[0.3em]"
-                  style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 0.8 : 0.6 }}
-                >
-                  {new Date(article.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  }).toUpperCase()}
-                </span>
-                <span
-                  className="w-px h-3"
-                  style={{ backgroundColor: article.categoryColor ? `${article.categoryColor}40` : 'currentColor', opacity: article.categoryColor ? 1 : 0.2 }}
-                />
-                <span
-                  className="font-pixel text-[11px] tracking-[0.3em]"
-                  style={{ color: article.categoryColor || 'inherit', opacity: article.categoryColor ? 0.8 : 0.6 }}
-                >
-                  {article.readTime}
-                </span>
-              </div>
-
-              <ShareButtons
-                title={article.title}
-                url={typeof window !== 'undefined' ? window.location.href : ''}
-              />
-            </div>
-
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl mb-6 italic leading-[1.05]">
-              {article.title}
-            </h1>
-
-            <p className="text-foreground/60 text-lg md:text-xl leading-relaxed max-w-3xl">
-              {article.excerpt}
-            </p>
-          </div>
-        )}
-
         {/* Article Content - Clean magazine layout */}
         <div className="prose-custom-wrapper">
           <BlockRenderer blocks={article.content || []} accentColor={article.categoryColor} />

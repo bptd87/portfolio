@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { YouTubeEmbed } from '../components/shared/YouTubeEmbed';
 import { LikeButton } from '../components/shared/LikeButton';
 import { ShareButton } from '../components/shared/ShareButton';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { apiCall } from '../utils/api';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { SEO } from '../components/SEO';
 import { generateProjectMetadata } from '../utils/seo/metadata';
 import { generateCreativeWorkSchema } from '../utils/seo/structured-data';
 import { PageLoader } from '../components/PageLoader';
+import { createClient } from '../utils/supabase/client';
 
 interface ProjectDetailNewProps {
   slug: string;
@@ -64,7 +65,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
         const parsed = JSON.parse(cached);
         setProject(parsed);
         setLoading(false);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     fetchProject(!cached);
@@ -74,59 +75,71 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
   const fetchProject = async (showLoader: boolean = true) => {
     try {
       if (showLoader) setLoading(true);
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${slug}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
 
-      if (!response.ok) throw new Error('Failed to fetch project');
-      const data = await response.json();
+      // Fetch project directly from Supabase
+      const supabase = createClient();
+      const { data: projectData, error: projectError } = await supabase
+        .from('portfolio_projects')
+        .select('*')
+        .eq('slug', slug)
+        .eq('published', true)
+        .single();
 
-      if (!data.success || !data.project) throw new Error('Invalid project data');
+      if (projectError || !projectData) {
+        throw new Error('Failed to fetch project');
+      }
+
+      // Map database fields to frontend format
+      const mappedProject: any = {
+        ...projectData,
+        cardImage: projectData.card_image || projectData.cover_image,
+        coverImage: projectData.cover_image || projectData.card_image,
+      };
 
       // Check if category includes "Experiential"
-      if (data.project.category && data.project.category.includes('Experiential')) {
-        setProject({ ...data.project, useExperientialTemplate: true });
-        cacheProjectData({ ...data.project, useExperientialTemplate: true });
+      if (mappedProject.category && mappedProject.category.includes('Experiential')) {
+        setProject({ ...mappedProject, useExperientialTemplate: true });
+        cacheProjectData({ ...mappedProject, useExperientialTemplate: true });
       }
       // Check if category includes "Rendering" or "Visualization"
-      else if (data.project.category && (data.project.category.includes('Rendering') || data.project.category.includes('Visualization'))) {
-        setProject({ ...data.project, useRenderingTemplate: true });
-        cacheProjectData({ ...data.project, useRenderingTemplate: true });
+      else if (mappedProject.category && (mappedProject.category.includes('Rendering') || mappedProject.category.includes('Visualization'))) {
+        setProject({ ...mappedProject, useRenderingTemplate: true });
+        cacheProjectData({ ...mappedProject, useRenderingTemplate: true });
       } else {
-        setProject(data.project);
-        cacheProjectData(data.project);
+        setProject(mappedProject);
+        cacheProjectData(mappedProject);
       }
 
-      // Fetch all projects for navigation
-      const allProjectsResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
+      // Fetch all projects for navigation (direct from Supabase)
+      try {
+        const supabase = createClient();
+        const { data: allProjects, error: projectsError } = await supabase
+          .from('portfolio_projects')
+          .select('*')
+          .eq('published', true)
+          .order('year', { ascending: false });
+
+        if (!projectsError && allProjects) {
+          // Map database fields to frontend format
+          const mappedProjects = allProjects.map((p: any) => ({
+            ...p,
+            cardImage: p.card_image || p.cover_image,
+            coverImage: p.cover_image || p.card_image,
+          }));
+
+          const sameCategory = mappedProjects.filter((p: any) => p.category === mappedProject.category);
+
+          const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
+          if (currentIndex > -1) {
+            const nextIndex = (currentIndex + 1) % sameCategory.length;
+            const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
+
+            setNextProject(sameCategory[nextIndex]);
+            setPrevProject(sameCategory[prevIndex]);
+          }
         }
-      );
-
-      if (allProjectsResponse.ok) {
-        const allProjectsData = await allProjectsResponse.json();
-        const allProjects = allProjectsData.success ? allProjectsData.projects : [];
-        const sameCategory = allProjects.filter((p: any) => p.category === data.project.category);
-
-        const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
-        if (currentIndex > -1) {
-          const nextIndex = (currentIndex + 1) % sameCategory.length;
-          const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
-
-          setNextProject(sameCategory[nextIndex]);
-          setPrevProject(sameCategory[prevIndex]);
-        }
+      } catch (err) {
+        console.error('Failed to fetch related projects:', err);
       }
     } catch (error) {
       // Error fetching related projects
@@ -137,30 +150,14 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
 
   const incrementViews = async () => {
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${slug}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // First fetch project to get ID (if slug is different or to verify)
+      const response = await apiCall(`/api/projects/${slug}`);
 
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.project && data.project.id) {
           try {
-            await fetch(
-              `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${data.project.id}/view`,
-              {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${publicAnonKey}`,
-                  'Content-Type': 'application/json',
-                },
-              }
-            );
+            await apiCall(`/api/projects/${data.project.id}/view`, { method: 'POST' });
           } catch {
             // Silently fail if view tracking endpoint doesn't exist
           }

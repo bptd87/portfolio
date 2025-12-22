@@ -2,14 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
-interface NavbarProps {
+interface MobileNavProps {
   onNavigate: (page: string) => void;
   currentPage?: string;
   breadcrumb?: string;
   transparent?: boolean;
 }
 
-export function Navbar({ onNavigate }: NavbarProps) {
+export function MobileNav({ onNavigate }: MobileNavProps) {
   const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -60,7 +60,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
       const currentScrollY = target.id === 'home-scroll-container'
         ? target.scrollTop
         : (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop);
-      
+
       // Show background after scrolling 50px
       setScrolled(currentScrollY > 50);
 
@@ -79,7 +79,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
       window.addEventListener('scroll', handleScroll, { passive: true });
       document.documentElement.addEventListener('scroll', handleScroll, { passive: true });
       document.body.addEventListener('scroll', handleScroll, { passive: true });
-      
+
       const homeContainer = document.getElementById('home-scroll-container');
       if (homeContainer) {
         homeContainer.addEventListener('scroll', handleScroll, { passive: true });
@@ -105,7 +105,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
       window.removeEventListener('scroll', handleScroll);
       document.documentElement.removeEventListener('scroll', handleScroll);
       document.body.removeEventListener('scroll', handleScroll);
-      
+
       const homeContainer = document.getElementById('home-scroll-container');
       if (homeContainer) {
         homeContainer.removeEventListener('scroll', handleScroll);
@@ -126,19 +126,17 @@ export function Navbar({ onNavigate }: NavbarProps) {
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-50 w-full flex justify-center px-4 transition-all duration-300 ${
-        scrolled ? 'py-3' : 'py-6'
-      } ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
+      className={`fixed top-0 left-0 right-0 z-50 w-full flex justify-center px-4 transition-all duration-300 ${scrolled ? 'py-3' : 'py-6'
+        } ${hidden ? '-translate-y-full' : 'translate-y-0'}`}
     >
 
       {/* Navbar Container - Rounded on both mobile and desktop */}
       <div
         ref={navRef}
-        className={`rounded-3xl w-full md:w-[90%] transition-all duration-300 border border-white/10 ${
-          scrolled || menuOpen
+        className={`rounded-3xl w-full md:w-[90%] transition-all duration-300 border border-white/10 ${scrolled || menuOpen
             ? 'backdrop-blur-xl bg-neutral-800/60 dark:bg-neutral-900/60 shadow-2xl'
             : 'backdrop-blur-xl bg-neutral-800/50 dark:bg-neutral-900/50 shadow-md'
-        }`}
+          }`}
         style={{ maxWidth: '900px' }}
       >
 

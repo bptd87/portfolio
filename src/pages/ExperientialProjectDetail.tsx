@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SEO } from '../components/SEO';
 import { LikeButton } from '../components/shared/LikeButton';
 import { ShareButton } from '../components/shared/ShareButton';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { apiCall } from '../utils/api';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { createClient } from '../utils/supabase/client';
 
 
 interface ExperientialProjectDetailProps {
@@ -51,12 +52,17 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
       images.push(...galleryImages);
     }
 
+    // If no images found, use cardImage as fallback
+    if (images.length === 0 && project.cardImage) {
+      images.push(project.cardImage);
+    }
+
     return images;
   }, [project]);
 
   const displayImages = useMemo(() => {
     if (!project) return [];
-    return allImages.length > 0 ? allImages : (project.cardImage ? [project.cardImage] : []);
+    return allImages; // allImages now includes cardImage as fallback
   }, [allImages, project]);
 
   // Carousel auto-advance
@@ -76,15 +82,7 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
   const fetchProject = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${slug}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await apiCall(`/api/projects/${slug}`);
 
       if (!response.ok) throw new Error('Failed to fetch project');
       const data = await response.json();
@@ -94,41 +92,55 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
       setViews(data.project.views || 0);
 
       // Increment view count
-      await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects/${data.project.id}/view`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
+      try {
+        const viewResponse = await apiCall(`/api/projects/${data.project.id}/view`, { method: 'POST' });
+        if (viewResponse.ok) {
+          const viewData = await viewResponse.json();
+          if (viewData.success && viewData.views !== undefined) {
+            setViews(viewData.views);
+          }
         }
-      );
+      } catch (err) {
+        console.error('Failed to increment view', err);
+      }
 
-      // Fetch adjacent projects
-      const allProjectsResponse = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects`,
-        {
-          headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json',
-          },
+      // Fetch all projects for navigation (direct from Supabase)
+      try {
+        const supabase = createClient();
+        const { data: allProjects, error: projectsError } = await supabase
+          .from('portfolio_projects')
+          .select('*')
+          .eq('published', true)
+          .order('year', { ascending: false });
+
+        if (!projectsError && allProjects) {
+          // Map database fields to frontend format
+          const mappedProjects = allProjects.map((p: any) => ({
+            ...p,
+            cardImage: p.card_image || p.cover_image,
+            coverImage: p.cover_image || p.card_image,
+          }));
+
+          // Filter for Experiential Design projects
+          const sameCategory = mappedProjects.filter((p: any) =>
+            p.category === 'Experiential Design' ||
+            (p.category && p.category?.includes('Experiential'))
+          );
+
+          const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
+
+          if (currentIndex > -1) {
+            const nextIndex = (currentIndex + 1) % sameCategory.length;
+            const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
+            setNextProject(sameCategory[nextIndex]);
+            setPrevProject(sameCategory[prevIndex]);
+          }
         }
-      );
-
-      if (allProjectsResponse.ok) {
-        const allProjectsData = await allProjectsResponse.json();
-        const allProjects = allProjectsData.success ? allProjectsData.projects : [];
-        const sameCategory = allProjects.filter((p: any) => p.category === 'Experiential Design');
-        const currentIndex = sameCategory.findIndex((p: any) => p.slug === slug);
-
-        if (currentIndex > -1) {
-          const nextIndex = (currentIndex + 1) % sameCategory.length;
-          const prevIndex = (currentIndex - 1 + sameCategory.length) % sameCategory.length;
-          setNextProject(sameCategory[nextIndex]);
-          setPrevProject(sameCategory[prevIndex]);
-        }
+      } catch (err) {
+        console.error('Failed to fetch related projects:', err);
       }
     } catch (error) {
+      console.error('Error fetching project:', error);
     } finally {
       setLoading(false);
     }

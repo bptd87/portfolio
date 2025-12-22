@@ -8,6 +8,7 @@ import { createClient } from '../utils/supabase/client';
 import heroPattern from '../assets/hero-pattern.webp';
 
 import { useSiteSettings } from '../hooks/useSiteSettings';
+import { useTheme } from '../components/ThemeProvider';
 import { Footer } from '../components/Footer';
 import { RevealText, FadeInUp, ParallaxImage } from '../components/shared/Motion';
 import { SEO } from '../components/SEO';
@@ -55,6 +56,7 @@ export function Home({ onNavigate }: HomeProps) {
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
   const [navigatingProject, setNavigatingProject] = useState<Project | null>(null);
   const { settings } = useSiteSettings();
+  const { theme } = useTheme();
 
   // Handle project navigation with transition
   const handleProjectClick = (project: Project) => {
@@ -220,7 +222,7 @@ export function Home({ onNavigate }: HomeProps) {
         ]}
       />
       {/* Frame 0: Hero with Seamless Pattern */}
-      <section className="relative h-screen w-full snap-start snap-always overflow-hidden bg-black flex-shrink-0">
+      <section data-nav="dark" className="relative h-screen w-full snap-start snap-always overflow-hidden bg-black flex-shrink-0">
         {/* Animated Seamless Background */}
         <div
           className="absolute inset-0 w-[200%] h-full animate-scroll-seamless"
@@ -278,6 +280,7 @@ export function Home({ onNavigate }: HomeProps) {
           return (
             <section
               key={`project-${project.id}`}
+              data-nav="dark"
               className={`relative h-screen w-full snap-start flex-shrink-0 cursor-pointer group overflow-hidden ${getCategoryColor(project.category)} ${navigatingProject?.id === project.id ? 'z-50' : ''
                 }`}
               onClick={() => handleProjectClick(project)}
@@ -323,7 +326,7 @@ export function Home({ onNavigate }: HomeProps) {
         // News Section
         if (latestNews.length > 0) {
           sections.push(
-            <section key="news" className="relative h-screen w-full snap-start flex-shrink-0 accent-news overflow-hidden">
+            <section key="news" data-nav="dark" className="relative h-screen w-full snap-start flex-shrink-0 accent-news overflow-hidden">
               {latestNews.map((news, newsIndex) => (
                 news.coverImage ? (
                   <button
@@ -406,7 +409,7 @@ export function Home({ onNavigate }: HomeProps) {
         // Collaborators
         if (collaborators.length > 0) {
           sections.push(
-            <section key="collaboration" className="relative h-screen w-full snap-start flex-shrink-0 bg-black flex flex-col items-center justify-center overflow-hidden">
+            <section key="collaboration" data-nav="dark" className="relative h-screen w-full snap-start flex-shrink-0 bg-black flex flex-col items-center justify-center overflow-hidden">
               <div
                 className="absolute inset-0 opacity-20 bg-dots-white-sm"
               />
@@ -463,7 +466,7 @@ export function Home({ onNavigate }: HomeProps) {
 
         // Quick Links Section
         sections.push(
-          <section key="quicklinks" className="relative h-screen w-full snap-start flex-shrink-0 flex flex-col md:flex-row">
+          <section key="quicklinks" data-nav={theme} className="relative h-screen w-full snap-start flex-shrink-0 flex flex-col md:flex-row">
             <button
               onClick={() => onNavigate?.('scenic-insights')}
               className="group relative flex-1 bg-muted dark:bg-neutral-900 flex flex-col items-center justify-center p-8 hover:bg-muted/80 dark:hover:bg-neutral-800 transition-all duration-500 overflow-hidden border-b md:border-b-0 md:border-r border-border dark:border-white/10"
@@ -521,7 +524,7 @@ export function Home({ onNavigate }: HomeProps) {
 
         // CTA Section
         sections.push(
-          <section key="cta" className="relative h-screen w-full snap-start flex-shrink-0 bg-background dark:bg-black flex flex-col md:flex-row overflow-hidden">
+          <section key="cta" data-nav={theme} className="relative h-screen w-full snap-start flex-shrink-0 bg-background dark:bg-black flex flex-col md:flex-row overflow-hidden">
             <button
               onClick={() => onNavigate?.('portfolio')}
               className="group relative flex-1 flex flex-col items-center justify-center p-8 bg-muted dark:bg-neutral-900 hover:bg-muted/80 dark:hover:bg-neutral-800 transition-all duration-500 border-b md:border-b-0 md:border-r border-border dark:border-white/10"
@@ -596,7 +599,7 @@ export function Home({ onNavigate }: HomeProps) {
       })()}
 
       {/* Footer Section */}
-      <section className="relative w-full snap-start flex-shrink-0">
+      <section data-nav={theme} className="relative w-full snap-start flex-shrink-0">
         <Footer onNavigate={onNavigate || (() => { })} />
       </section>
     </div>

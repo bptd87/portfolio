@@ -342,7 +342,8 @@ export function GalleryEditor({ label, images, captions, altTexts = [], onChange
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'X-Admin-Token': token
           },
           body: JSON.stringify({
             imageUrl: url,

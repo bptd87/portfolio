@@ -214,7 +214,8 @@ export function SquarespaceImporter({ target, onComplete, onCancel }: Squarespac
                                 const uploadRes = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/upload`, {
                                     method: 'POST',
                                     headers: {
-                                        'Authorization': `Bearer ${token}` // Use admin token
+                                        'Authorization': `Bearer ${token}`,
+                                        'X-Admin-Token': token
                                     },
                                     body: formData
                                 });
@@ -269,7 +270,8 @@ export function SquarespaceImporter({ target, onComplete, onCancel }: Squarespac
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'X-Admin-Token': token
                     },
                     body: JSON.stringify(dbData)
                 });

@@ -5,6 +5,7 @@ import portraitImage from 'figma:asset/d3b5f45814466ec04f12883840ad987a5e5d22dc.
 import { PhotoGallery } from '../components/shared/PhotoGallery';
 import { CounterAnimation } from '../components/shared/CounterAnimation';
 import { useSiteSettings } from '../hooks/useSiteSettings';
+import { useTheme } from '../components/ThemeProvider';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 
 interface AboutProps {
@@ -45,6 +46,7 @@ const personalPhotos = [
 ];
 
 export function About({ onNavigate }: AboutProps) {
+  const { theme } = useTheme();
   const [selectedPhoto, setSelectedPhoto] = React.useState<number | null>(null);
 
   // Keyboard navigation for lightbox
@@ -112,7 +114,10 @@ export function About({ onNavigate }: AboutProps) {
   const displayPhotos = galleryPhotos.length > 0 ? galleryPhotos : personalPhotos;
 
   return (
-    <div className="min-h-screen pt-16 pb-24 bg-white dark:bg-black">
+    <div
+      className="min-h-screen pt-16 pb-24 bg-white dark:bg-black"
+      data-nav={theme === 'dark' ? 'dark' : 'light'}
+    >
 
       {/* Hero Section - Cinematic */}
       <section className="py-20 px-6 lg:px-12 relative overflow-hidden">

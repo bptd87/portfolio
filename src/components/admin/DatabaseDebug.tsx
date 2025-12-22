@@ -10,25 +10,31 @@ export function DatabaseDebug() {
     setLoading(true);
     try {
       const token = sessionStorage.getItem('admin_token');
-      
-      // Fetch all data
+
+      if (!token) {
+        toast.error('Not logged in as admin');
+        setLoading(false);
+        return;
+      }
+
+      // Fetch all data with proper admin token
       const [postsRes, projectsRes, newsRes] = await Promise.all([
         fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/posts`, {
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
+            'X-Admin-Token': token,
           },
         }),
         fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/projects`, {
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
+            'X-Admin-Token': token,
           },
         }),
         fetch(`https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/news`, {
-          headers: { 
+          headers: {
             'Authorization': `Bearer ${publicAnonKey}`,
-            // Token in Authorization header
+            'X-Admin-Token': token,
           },
         }),
       ]);
@@ -43,8 +49,8 @@ export function DatabaseDebug() {
         news: news.news || [],
       });
 
-      } catch (err) {
-      } finally {
+    } catch (err) {
+    } finally {
       setLoading(false);
     }
   };
@@ -70,7 +76,7 @@ export function DatabaseDebug() {
           {loading ? 'Checking...' : 'Check Database'}
         </span>
       </button>
-      
+
       {/* Quick diagnosis */}
       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-900 text-xs">
         <p className="font-semibold mb-1">🔍 DIAGNOSTIC INFO:</p>
@@ -99,7 +105,7 @@ export function DatabaseDebug() {
               <div className="text-xs text-gray-600 space-y-1">
                 {data.projects.slice(0, 3).map((project: any) => (
                   <div key={project.id}>
-                    • {project.title} 
+                    • {project.title}
                     <span className="text-gray-400 ml-2">
                       (likes: {project.likes || 0}, views: {project.views || 0})
                     </span>

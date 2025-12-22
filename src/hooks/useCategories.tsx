@@ -30,24 +30,25 @@ export function useCategories() {
   const loadCategories = async () => {
     try {
       const token = sessionStorage.getItem('admin_token');
-      
+
       if (!token) {
         console.error('❌ No admin token found');
         setLoading(false);
         return;
       }
-      
+
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/categories`,
         {
-          headers: { 
-            'Authorization': `Bearer ${token}`,
+          headers: {
+            'Authorization': `Bearer ${publicAnonKey}`,
+            'X-Admin-Token': token,
           },
         }
       );
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setCategories(data.categories || {
           portfolio: [],
@@ -56,7 +57,7 @@ export function useCategories() {
         });
       }
     } catch (err) {
-      } finally {
+    } finally {
       setLoading(false);
     }
   };

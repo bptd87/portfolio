@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { createClient } from '../utils/supabase/client';
 import { projects as hardcodedProjects } from '../data/projects';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { SkeletonProjectCard } from '../components/ui/skeleton';
@@ -57,7 +58,7 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
           cacheProjectData(data.project);
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => clearTimeout(timeout));
   };
 
@@ -96,40 +97,45 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
           // ignore category errors for speed
         });
 
-      const projectPromise = fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/projects`,
-        {
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`,
-          },
-          signal: controller.signal,
-        }
-      )
-        .then(async (res) => {
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          const data = await res.json();
-          if (data.success && data.projects && data.projects.length > 0) {
-            const publishedProjects = data.projects
-              .filter((p: any) => p.published !== false)
-              .map((p: any) => ({
-                ...p,
-                focusPoint: p.focus_point,
-                cardImage: p.card_image || p.cardImage,
-                coverImage: p.cover_image || p.coverImage,
-              }));
-            setProjects(publishedProjects);
+      // New project fetching logic using direct Supabase query
+      const supabase = createClient();
+
+      const projectPromise = (async () => {
+        try {
+          const { data: projectsData, error } = await supabase
+            .from('portfolio_projects')
+            .select('*')
+            .eq('published', true)
+            .order('year', { ascending: false });
+
+          if (error) {
+            console.error('Error fetching projects:', error);
+            const convertedProjects = hardcodedProjects.map((p) => ({ ...p, slug: p.id }));
+            setProjects(convertedProjects);
             return;
           }
+
+          if (projectsData && projectsData.length > 0) {
+            const publishedProjects = projectsData.map((p: any) => ({
+              ...p,
+              focusPoint: p.focus_point || { x: 50, y: 50 },
+              cardImage: p.card_image || p.cover_image,
+              coverImage: p.cover_image || p.card_image,
+            }));
+            setProjects(publishedProjects);
+          } else {
+            const convertedProjects = hardcodedProjects.map((p) => ({ ...p, slug: p.id }));
+            setProjects(convertedProjects);
+          }
+        } catch (err) {
+          console.error('Portfolio fetch error:', err);
           const convertedProjects = hardcodedProjects.map((p) => ({ ...p, slug: p.id }));
           setProjects(convertedProjects);
-        })
-        .catch(() => {
-          const convertedProjects = hardcodedProjects.map((p) => ({ ...p, slug: p.id }));
-          setProjects(convertedProjects);
-        });
+        }
+      })();
 
       await Promise.allSettled([categoryPromise, projectPromise]);
-      clearTimeout(timeout);
+      clearTimeout(timeout); // Clear the controller abort timeout
       setLoading(false);
     };
 
@@ -335,7 +341,7 @@ export function Portfolio({ onNavigate, initialFilter }: PortfolioProps) {
               { id: 'all', label: 'ALL' },
               ...categories.map(cat => ({
                 id: cat.slug,
-                label: cat.name.toUpperCase(),
+                label: cat.name?.toUpperCase() || cat.slug?.toUpperCase() || 'UNKNOWN',
               }))
             ].map((cat) => {
               const isActive = selectedFilter === cat.id;

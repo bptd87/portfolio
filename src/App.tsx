@@ -2,7 +2,8 @@ import { useState, lazy, Suspense, useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from './components/ThemeProvider';
-import { NavbarV2 } from './components/NavbarV2';
+import { DesktopNav } from './components/DesktopNav';
+import { MobileNav } from './components/MobileNav';
 import { Footer } from './components/Footer';
 import { PageLoader } from './components/PageLoader';
 import { SEO } from './components/SEO';
@@ -100,16 +101,18 @@ export default function App() {
   const [portfolioFilter, setPortfolioFilter] = useState<string | undefined>(undefined);
   const [scenicInsightsCategory, setScenicInsightsCategory] = useState<string | undefined>(undefined);
   const [scenicInsightsTag, setScenicInsightsTag] = useState<string | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
-    
+
     // Log initial route parsing
     const path = window.location.pathname;
     console.log('🔵 App.tsx: Initial route check', { path, currentPage });
-    
+    console.log('--- FORCED NAVBAR REFRESH - FIXES APPLIED ---');
+
     // Parse initial route
     if (path === '/admin' || path.startsWith('/admin')) {
       console.log('🔵 App.tsx: Admin route detected on mount, setting currentPage to admin');
@@ -214,6 +217,8 @@ export default function App() {
           setCurrentPage('scenic-insights');
           if (queryParams.category) {
             setScenicInsightsCategory(queryParams.category);
+          } else if (slugOrBlogSlug) {
+            setScenicInsightsCategory(slugOrBlogSlug);
           } else {
             setScenicInsightsCategory(undefined);
           }
@@ -222,9 +227,19 @@ export default function App() {
           } else {
             setScenicInsightsTag(undefined);
           }
+        } else if (actualPage === 'search') {
+          // Handle search query
+          if (queryParams.q) {
+            setSearchQuery(queryParams.q);
+          } else if (slugOrBlogSlug) {
+            setSearchQuery(slugOrBlogSlug);
+          } else {
+            setSearchQuery(undefined);
+          }
         } else {
           setScenicInsightsCategory(undefined);
           setScenicInsightsTag(undefined);
+          setSearchQuery(undefined);
         }
       } else {
         setCurrentPage('404');
@@ -246,6 +261,14 @@ export default function App() {
     // Handle special case: Portfolio with filter arg
     else if (page === 'portfolio' && slugOrBlogSlug && !page.includes('?')) {
       targetPath = `/portfolio?filter=${slugOrBlogSlug}`;
+    }
+    // Handle special case: Articles with category arg
+    else if ((page === 'articles' || page === 'scenic-insights') && slugOrBlogSlug && !page.includes('?')) {
+      targetPath = `/articles?category=${slugOrBlogSlug}`;
+    }
+    // Handle special case: Search with query arg
+    else if (page === 'search' && slugOrBlogSlug && !page.includes('?')) {
+      targetPath = `/search?q=${encodeURIComponent(slugOrBlogSlug)}`;
     }
     // Handle standard pages (ensure leading slash)
     else {
@@ -345,8 +368,8 @@ export default function App() {
       case 'tutorial':
         if (currentTutorialSlug) return <DynamicTutorial slug={currentTutorialSlug} onNavigate={handleNavigation} />;
         return <Studio onNavigate={handleNavigation} />;
-      case 'search': return <Search onNavigate={handleNavigation} />;
-      case 'admin': 
+      case 'search': return <Search onNavigate={handleNavigation} initialQuery={searchQuery} />;
+      case 'admin':
         console.log('🔵 App.tsx: renderPage() - admin case matched, rendering Admin component');
         return <Admin onNavigate={handleNavigation} />;
       case 'faq': return <FAQ onNavigate={handleNavigation} />;
@@ -366,6 +389,14 @@ export default function App() {
   return (
     <HelmetProvider>
       <ThemeProvider>
+        <style>{`
+          .app-mobile-nav { display: block; }
+          .app-desktop-nav { display: none; }
+          @media (min-width: 1024px) {
+            .app-mobile-nav { display: none; }
+            .app-desktop-nav { display: block; }
+          }
+        `}</style>
         <Toaster richColors />
         <AnalyticsTracker
           currentPage={currentPage}
@@ -376,10 +407,23 @@ export default function App() {
         <div className={`transition-colors duration-300 w-full overflow-x-hidden ${currentPage === 'home' ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
           <SEO metadata={seoData.metadata} structuredData={seoData.structuredData} />
           {currentPage !== 'admin' && currentPage !== 'links' && (
-            <NavbarV2
-              currentPage={currentPage === 'project' ? 'portfolio' : currentPage === 'blog' ? 'articles' : currentPage === 'scenic-insights' ? 'articles' : currentPage === 'tutorial' ? 'scenic-studio' : currentPage}
-              onNavigate={handleNavigation}
-            />
+            <>
+              {/* MOBILE: Old Navbar */}
+              <div className="app-mobile-nav">
+                <MobileNav
+                  currentPage={currentPage}
+                  onNavigate={handleNavigation}
+                />
+              </div>
+
+              {/* DESKTOP: V2 Navbar */}
+              <div className="app-desktop-nav">
+                <DesktopNav
+                  currentPage={currentPage === 'project' ? 'portfolio' : currentPage === 'blog' ? 'articles' : currentPage === 'scenic-insights' ? 'articles' : currentPage === 'tutorial' ? 'scenic-studio' : currentPage}
+                  onNavigate={handleNavigation}
+                />
+              </div>
+            </>
           )}
           <main key={pageKey} className={currentPage === 'home' ? 'h-full' : ''}>
             <Suspense fallback={<PageLoader />}>

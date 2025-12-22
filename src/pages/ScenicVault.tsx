@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Download, Search, ArrowLeft, X, Filter, ChevronLeft, ChevronRight,
+import {
+  Download, Search, ArrowLeft, X, Filter, ChevronRight,
   Armchair, Theater, Building2, TreePine, Lamp, User, FolderOpen, Grid3X3,
   FileType, HardDrive, Calendar, Eye, Tag, Layers, Box, ExternalLink
 } from 'lucide-react';
@@ -185,7 +185,7 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
         { method: 'POST', headers: { Authorization: `Bearer ${publicAnonKey}` } }
       );
     } catch (error) {
-      }
+    }
     window.open(asset.vwxFileUrl, '_blank');
   };
 
@@ -197,7 +197,7 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
 
   const filteredAssets = assets.filter(asset => {
     const matchesCategory = selectedCategory === 'all' || asset.category === selectedCategory;
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       asset.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())) ||
       asset.era?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -248,6 +248,7 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
               <button
                 onClick={() => setLightboxImage(null)}
                 className="absolute top-6 right-6 text-white/60 hover:text-white"
+                aria-label="Close lightbox"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -258,7 +259,7 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
 
         {/* Spacer for navbar */}
         <div className="h-20" />
-        
+
         <div className="max-w-7xl mx-auto px-6 py-8">
           {/* Back Button */}
           <button
@@ -273,7 +274,7 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
             {/* Left Column - Images (3 cols) */}
             <div className="lg:col-span-3 space-y-4">
               {/* Main Image */}
-              <div 
+              <div
                 className="relative aspect-video bg-muted rounded-xl overflow-hidden cursor-zoom-in group"
                 onClick={() => currentImage && setLightboxImage(currentImage.url)}
               >
@@ -310,11 +311,11 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
                     <button
                       key={idx}
                       onClick={() => { setActiveImageIndex(idx); setShow3DViewer(false); }}
-                      className={`relative flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 transition-all ${
-                        activeImageIndex === idx && !show3DViewer
-                          ? 'border-foreground'
-                          : 'border-transparent hover:border-foreground/40'
-                      }`}
+                      className={`relative flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 transition-all ${activeImageIndex === idx && !show3DViewer
+                        ? 'border-foreground'
+                        : 'border-transparent hover:border-foreground/40'
+                        }`}
+                      aria-label={`View ${img.caption || 'image ' + (idx + 1)}`}
                     >
                       <ImageWithFallback
                         src={img.url}
@@ -326,11 +327,10 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
                   {selectedAsset.glbFileUrl && (
                     <button
                       onClick={() => setShow3DViewer(true)}
-                      className={`flex-shrink-0 w-20 h-14 rounded-lg border-2 transition-all flex items-center justify-center gap-1 ${
-                        show3DViewer
-                          ? 'border-foreground bg-foreground/10'
-                          : 'border-border hover:border-foreground/40 bg-muted'
-                      }`}
+                      className={`flex-shrink-0 w-20 h-14 rounded-lg border-2 transition-all flex items-center justify-center gap-1 ${show3DViewer
+                        ? 'border-foreground bg-foreground/10'
+                        : 'border-border hover:border-foreground/40 bg-muted'
+                        }`}
                     >
                       <Box className="w-4 h-4 text-muted-foreground" />
                       <span className="text-xs text-muted-foreground">3D</span>
@@ -437,9 +437,9 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
             const relatedAssets = assets
               .filter(a => a.id !== selectedAsset.id && (a.category === selectedAsset.category || a.style === selectedAsset.style))
               .slice(0, 4);
-            
+
             if (relatedAssets.length === 0) return null;
-            
+
             return (
               <div className="mt-16 pt-12 border-t border-border">
                 <div className="flex items-center justify-between mb-8">
@@ -475,12 +475,12 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
     <div className="min-h-screen bg-background">
       {/* Spacer for navbar */}
       <div className="h-20" />
-      
+
       {/* Hero Header */}
       <div className="border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
           <div className="max-w-2xl">
-            <button 
+            <button
               onClick={() => onNavigate('studio')}
               className="font-pixel text-[11px] tracking-[0.3em] text-muted-foreground hover:text-foreground uppercase mb-4 flex items-center gap-2 transition-colors"
             >
@@ -508,6 +508,7 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
                 <button
                   onClick={() => setSearchQuery('')}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -515,11 +516,10 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`font-sans px-5 py-3.5 rounded-xl transition-all flex items-center gap-2 font-medium ${
-                showFilters || selectedCategory !== 'all'
-                  ? 'bg-foreground text-background'
-                  : 'bg-muted text-foreground hover:bg-muted/80'
-              }`}
+              className={`font-sans px-5 py-3.5 rounded-xl transition-all flex items-center gap-2 font-medium ${showFilters || selectedCategory !== 'all'
+                ? 'bg-foreground text-background'
+                : 'bg-muted text-foreground hover:bg-muted/80'
+                }`}
             >
               <Filter className="w-4 h-4" />
               <span className="hidden sm:inline">Filters</span>
@@ -538,11 +538,10 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
                 <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-border">
                   <button
                     onClick={() => setSelectedCategory('all')}
-                    className={`font-sans px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                      selectedCategory === 'all'
-                        ? 'bg-foreground text-background'
-                        : 'bg-muted text-muted-foreground hover:text-foreground'
-                    }`}
+                    className={`font-sans px-4 py-2.5 rounded-full text-sm font-medium transition-all ${selectedCategory === 'all'
+                      ? 'bg-foreground text-background'
+                      : 'bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
                   >
                     All
                   </button>
@@ -553,11 +552,10 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
                       <button
                         key={cat.id}
                         onClick={() => setSelectedCategory(cat.slug)}
-                        className={`font-sans px-4 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-                          selectedCategory === cat.slug
-                            ? 'bg-foreground text-background'
-                            : 'bg-muted text-muted-foreground hover:text-foreground'
-                        }`}
+                        className={`font-sans px-4 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${selectedCategory === cat.slug
+                          ? 'bg-foreground text-background'
+                          : 'bg-muted text-muted-foreground hover:text-foreground'
+                          }`}
                       >
                         <Icon className="w-4 h-4" />
                         {cat.name}
@@ -620,12 +618,12 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
 
 // ==================== SUB-COMPONENTS ====================
 
-function AssetCard({ 
-  asset, 
-  onClick, 
-  getCategoryName 
-}: { 
-  asset: VaultAsset; 
+function AssetCard({
+  asset,
+  onClick,
+  getCategoryName
+}: {
+  asset: VaultAsset;
   onClick: () => void;
   getCategoryName: (slug: string) => string;
 }) {
@@ -651,7 +649,7 @@ function AssetCard({
             <Box className="w-12 h-12 text-muted-foreground/30" />
           </div>
         )}
-        
+
         {/* Badge */}
         <div className="absolute top-3 left-3">
           <span className="font-pixel text-[10px] tracking-[0.15em] uppercase px-2 py-1 bg-black/60 backdrop-blur-sm text-white rounded-md">
@@ -677,7 +675,7 @@ function AssetCard({
         <h3 className="font-display text-lg italic text-foreground line-clamp-1 group-hover:text-foreground/80 transition-colors">
           {asset.name}
         </h3>
-        
+
         {/* Category */}
         <p className="font-sans text-sm text-muted-foreground">
           {getCategoryName(asset.category)}

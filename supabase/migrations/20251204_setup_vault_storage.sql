@@ -32,22 +32,26 @@ ON CONFLICT (id) DO UPDATE SET
   ];
 
 -- Allow public read access to vault files
-CREATE POLICY IF NOT EXISTS "Public read access for vault"
+DROP POLICY IF EXISTS "Public read access for vault" ON storage.objects;
+CREATE POLICY "Public read access for vault"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'vault');
 
 -- Allow authenticated uploads (admin only via RLS)
-CREATE POLICY IF NOT EXISTS "Admin upload access for vault"
+DROP POLICY IF EXISTS "Admin upload access for vault" ON storage.objects;
+CREATE POLICY "Admin upload access for vault"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'vault');
 
 -- Allow authenticated updates
-CREATE POLICY IF NOT EXISTS "Admin update access for vault"
+DROP POLICY IF EXISTS "Admin update access for vault" ON storage.objects;
+CREATE POLICY "Admin update access for vault"
 ON storage.objects FOR UPDATE
 USING (bucket_id = 'vault');
 
 -- Allow authenticated deletes
-CREATE POLICY IF NOT EXISTS "Admin delete access for vault"
+DROP POLICY IF EXISTS "Admin delete access for vault" ON storage.objects;
+CREATE POLICY "Admin delete access for vault"
 ON storage.objects FOR DELETE
 USING (bucket_id = 'vault');
 

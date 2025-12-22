@@ -48,22 +48,38 @@ export const NAVIGATION: NavigationStructure = {
       ],
     },
     {
-      label: 'STUDIO',
-      page: 'scenic-studio',
+      label: 'NEWS',
+      page: 'news',
+    },
+    {
+      label: 'ABOUT',
+      page: 'about',
       submenu: [
         {
-          label: 'Scenic Studio',
-          page: 'scenic-studio',
+          label: 'Biography',
+          page: 'about',
+          slug: 'biography',
         },
         {
-          label: 'Tutorials',
-          page: 'scenic-studio',
-          slug: 'tutorials',
+          label: 'Creative Statement',
+          page: 'creative-statement',
         },
         {
-          label: 'Guides',
-          page: 'scenic-studio',
-          slug: 'guides',
+          label: 'Teaching Philosophy',
+          page: 'teaching-philosophy',
+        },
+        {
+          label: 'Collaborators',
+          page: 'collaborators',
+        },
+        {
+          label: 'CV / Resume',
+          page: 'about',
+          slug: 'cv',
+        },
+        {
+          label: 'Contact',
+          page: 'contact',
         },
       ],
     },
@@ -71,11 +87,7 @@ export const NAVIGATION: NavigationStructure = {
       label: 'ARTICLES',
       page: 'articles',
       submenu: [
-        {
-          label: 'All Articles',
-          page: 'articles',
-          slug: 'all',
-        },
+
         {
           label: 'Design Philosophy',
           page: 'articles',
@@ -99,24 +111,26 @@ export const NAVIGATION: NavigationStructure = {
       ],
     },
     {
-      label: 'ABOUT',
-      page: 'about',
+      label: 'STUDIO',
+      page: 'studio',
       submenu: [
         {
-          label: 'Biography',
-          page: 'about',
+          label: 'Tutorials',
+          page: 'scenic-studio',
         },
         {
-          label: 'Teaching Philosophy',
-          page: 'teaching-philosophy',
+          label: 'App Studio',
+          page: 'app-studio',
+          slug: 'app-studio',
         },
         {
-          label: 'Collaborators',
-          page: 'collaborators',
+          label: 'Vault',
+          page: 'scenic-vault',
         },
         {
-          label: 'CV/Resume',
-          page: 'cv',
+          label: 'Scenic Directory',
+          page: 'directory',
+          slug: 'directory',
         },
       ],
     },

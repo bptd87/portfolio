@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Navbar } from '../components/Navbar';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { TabbedGallery } from '../components/shared/TabbedGallery';
 import { SEO } from '../components/SEO';
@@ -78,7 +77,7 @@ export function CreativeStatement({ onNavigate }: CreativeStatementProps) {
                 description="Design is storytelling. Space is the narrative. A scenic designer's approach to creating environments where story and space converge."
                 keywords={['creative statement', 'scenic design philosophy', 'theatre design', 'Brandon PT Davis']}
             />
-            <Navbar onNavigate={onNavigate || (() => { })} currentPage="creative-statement" />
+
 
             {/* Hero Section */}
             <section className="min-h-screen flex items-center justify-center px-6" style={{ overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -87,9 +86,9 @@ export function CreativeStatement({ onNavigate }: CreativeStatementProps) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                     className="text-center max-w-5xl w-full"
-                    style={{ 
-                        overflowX: 'hidden', 
-                        scrollbarWidth: 'none', 
+                    style={{
+                        overflowX: 'hidden',
+                        scrollbarWidth: 'none',
                         msOverflowStyle: 'none',
                         maxWidth: '100%',
                         width: '100%',
@@ -157,12 +156,12 @@ export function CreativeStatement({ onNavigate }: CreativeStatementProps) {
                                 );
                             }}
                         </TabbedGallery>
-                        
+
                         {/* Project Info Below Tabs */}
                         {productionProjects.length > 0 && (() => {
                             const activeProject = productionProjects.find((p: any) => p.id === (activeProductionTab || productionProjects[0]?.id));
                             if (!activeProject) return null;
-                            
+
                             return (
                                 <div className="text-center max-w-3xl mx-auto mt-8">
                                     <p className="text-lg md:text-xl text-black/80 dark:text-white/80 mb-4">
@@ -277,12 +276,12 @@ export function CreativeStatement({ onNavigate }: CreativeStatementProps) {
                                 );
                             }}
                         </TabbedGallery>
-                        
+
                         {/* Project Info Below Tabs */}
                         {renderingProjects.length > 0 && (() => {
                             const activeProject = renderingProjects.find((p: any) => p.id === (activeRenderingTab || renderingProjects[0]?.id));
                             if (!activeProject) return null;
-                            
+
                             return (
                                 <div className="text-center max-w-3xl mx-auto mt-8">
                                     <p className="text-lg md:text-xl text-black/80 dark:text-white/80 mb-4">

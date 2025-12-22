@@ -141,7 +141,7 @@ export function MediaManager() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${publicAnonKey}`,
-          // Token in Authorization header
+          'X-Admin-Token': token
         },
         body: JSON.stringify({
           bucket_id: activeBucket,
@@ -356,7 +356,7 @@ export function MediaManager() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${publicAnonKey}`,
-          // Token in Authorization header
+          'X-Admin-Token': token
         },
         body: JSON.stringify({
           bucket_id: activeBucket,
@@ -456,8 +456,8 @@ export function MediaManager() {
               key={bucket.id}
               onClick={() => setActiveBucket(bucket.id)}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${activeBucket === bucket.id
-                  ? `${AdminTokens.bg.accent} ${AdminTokens.text.accent} border ${AdminTokens.border.accent}`
-                  : `${AdminTokens.text.secondary} ${AdminTokens.bg.hover} hover:text-white`
+                ? `${AdminTokens.bg.accent} ${AdminTokens.text.accent} border ${AdminTokens.border.accent}`
+                : `${AdminTokens.text.secondary} ${AdminTokens.bg.hover} hover:text-white`
                 }`}
             >
               <Folder className={`w-4 h-4 ${activeBucket === bucket.id ? 'fill-blue-500/20' : ''}`} />
@@ -541,8 +541,8 @@ export function MediaManager() {
                         <button
                           onClick={() => copyToClipboard(publicUrl, file.id)}
                           className={`p-1.5 rounded-md transition-colors ${copiedId === file.id
-                              ? `${AdminTokens.badge.success}`
-                              : `${AdminTokens.bg.tertiary} ${AdminTokens.text.secondary} ${AdminTokens.bg.hover} hover:text-white`
+                            ? `${AdminTokens.badge.success}`
+                            : `${AdminTokens.bg.tertiary} ${AdminTokens.text.secondary} ${AdminTokens.bg.hover} hover:text-white`
                             }`}
                           title="Copy URL"
                         >

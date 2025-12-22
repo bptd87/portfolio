@@ -32,9 +32,9 @@ export function Contact() {
       const data = await response.json();
 
       if (data.success) {
-        setSubmitStatus({ 
-          type: 'success', 
-          message: 'Thanks for reaching out! I\'ll get back to you soon.' 
+        setSubmitStatus({
+          type: 'success',
+          message: 'Thanks for reaching out! I\'ll get back to you soon.'
         });
         // Clear form
         setFormData({
@@ -48,9 +48,9 @@ export function Contact() {
       }
     } catch (error) {
       console.error('Contact form error:', error);
-      setSubmitStatus({ 
-        type: 'error', 
-        message: 'Sorry, there was an error sending your message. Please try emailing me directly.' 
+      setSubmitStatus({
+        type: 'error',
+        message: 'Sorry, there was an error sending your message. Please try emailing me directly.'
       });
     } finally {
       setIsSubmitting(false);
@@ -114,8 +114,8 @@ export function Contact() {
                   transform: scale(1.02);
                 }
               `}</style>
-              <img 
-                src={contactIllustration} 
+              <img
+                src={contactIllustration}
                 alt="Brandon at work with his cat"
                 className="w-full h-auto contact-illustration"
               />
@@ -131,7 +131,7 @@ export function Contact() {
               <h2 className="text-2xl md:text-3xl mb-8 italic" style={{ fontFamily: 'Playfair Display, serif' }}>
                 Send a Message
               </h2>
-              
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Name & Email Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -188,6 +188,7 @@ export function Contact() {
                     name="projectType"
                     value={formData.projectType}
                     onChange={handleChange}
+                    title="Select project type"
                     className="dark-mode-select w-full px-4 py-3 bg-black/20 dark:bg-white/5 border border-white/10 rounded-2xl focus:border-white/30 focus:outline-none transition-colors text-black dark:text-white"
                     style={{
                       colorScheme: 'dark'
@@ -221,11 +222,10 @@ export function Contact() {
 
                 {/* Submit Status */}
                 {submitStatus && (
-                  <div className={`flex items-center gap-3 p-4 rounded-2xl ${
-                    submitStatus.type === 'success' 
-                      ? 'bg-green-500/20 border border-green-500/30 text-green-200' 
+                  <div className={`flex items-center gap-3 p-4 rounded-2xl ${submitStatus.type === 'success'
+                      ? 'bg-green-500/20 border border-green-500/30 text-green-200'
                       : 'bg-red-500/20 border border-red-500/30 text-red-200'
-                  }`}>
+                    }`}>
                     {submitStatus.type === 'success' ? (
                       <CheckCircle className="w-5 h-5 flex-shrink-0" />
                     ) : (
@@ -261,7 +261,7 @@ export function Contact() {
                   <p className="text-xs tracking-[0.2em] uppercase opacity-60 mb-2" style={{ fontFamily: 'VT323, monospace' }}>
                     Email
                   </p>
-                  <a 
+                  <a
                     href="mailto:info@brandonptdavis.com"
                     className="text-sm hover:opacity-70 transition-opacity break-all"
                   >
@@ -311,9 +311,9 @@ export function Contact() {
                     ExternalLink,
                   };
                   const Icon = iconMap[social.icon];
-                  
+
                   return (
-                    <a 
+                    <a
                       key={social.platform}
                       href={social.url}
                       target="_blank"

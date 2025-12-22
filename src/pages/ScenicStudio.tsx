@@ -4,12 +4,14 @@ import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { getAllTutorials } from '../data/tutorials';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { useTheme } from '../components/ThemeProvider';
 
 interface ScenicStudioProps {
   onNavigate: (page: string) => void;
 }
 
 export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
+  const { theme } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [tutorials, setTutorials] = useState(getAllTutorials());
@@ -43,7 +45,7 @@ export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
           }
         }
       } catch (err) {
-        }
+      }
     };
 
     fetchTutorials();
@@ -53,7 +55,7 @@ export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
   const filteredTutorials = tutorials.filter(tutorial => {
     const matchesCategory = selectedCategory === 'all' || tutorial.category === selectedCategory;
     const matchesSearch = tutorial.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         tutorial.description.toLowerCase().includes(searchQuery.toLowerCase());
+      tutorial.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -63,8 +65,11 @@ export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 relative overflow-hidden pt-32 pb-24">
-      
+    <div
+      className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 relative overflow-hidden pt-32 pb-24"
+      data-nav={theme === 'dark' ? 'dark' : 'light'}
+    >
+
       {/* Hero Section - Modern Nothing.tech style */}
       <section className="px-6 lg:px-12 pb-16">
         <div className="max-w-[1800px] mx-auto">
@@ -84,7 +89,7 @@ export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
                 Master Vectorworks, learn 3D modeling techniques, and streamline your scenic design workflow with practical, real-world examples.
               </p>
             </div>
-            
+
             {/* Stats Cards - Glass style */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-20">
               <div className="flex items-center gap-3 p-4 bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl">
@@ -149,7 +154,7 @@ export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
               const Icon = category.icon;
               const count = getCategoryCount(category.id);
               const isActive = selectedCategory === category.id;
-              
+
               return (
                 <motion.button
                   key={category.id}
@@ -157,11 +162,10 @@ export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.05 }}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center gap-2 px-5 py-3 backdrop-blur-xl border rounded-3xl transition-all whitespace-nowrap ${
-                    isActive
+                  className={`flex items-center gap-2 px-5 py-3 backdrop-blur-xl border rounded-3xl transition-all whitespace-nowrap ${isActive
                       ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
                       : 'bg-neutral-200/60 dark:bg-neutral-900/60 border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30'
-                  }`}
+                    }`}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -213,7 +217,7 @@ export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
                 >
                   {/* Glass Card Container */}
                   <div className="bg-neutral-200/60 dark:bg-neutral-900/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl overflow-hidden hover:border-black/30 dark:hover:border-white/30 transition-all">
-                    
+
                     {/* Video Thumbnail */}
                     <div className="relative aspect-[16/9] bg-black overflow-hidden">
                       <ImageWithFallback
