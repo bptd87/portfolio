@@ -151,9 +151,9 @@ const normalizeContentBlocks = (article: any): any[] => {
   if ((!blocks || blocks.length === 0)) {
     const possibleHtml = typeof article.content === 'string' ? article.content
       : typeof article.body === 'string' ? article.body
-      : typeof article.html === 'string' ? article.html
-      : typeof article.contentHtml === 'string' ? article.contentHtml
-      : '';
+        : typeof article.html === 'string' ? article.html
+          : typeof article.contentHtml === 'string' ? article.contentHtml
+            : '';
     if (possibleHtml && possibleHtml.trim().length > 0) {
       try {
         blocks = htmlToBlocks(possibleHtml);
@@ -190,7 +190,7 @@ const normalizeContentBlocks = (article: any): any[] => {
 };
 
 export function ArticleManager() {
-  
+
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -280,7 +280,7 @@ export function ArticleManager() {
         // Load articles from KV store
         const kvArticles = await getByPrefixFromKV('blog_post:');
         console.log('🔵 ArticleManager: KV articles loaded:', { count: kvArticles?.length, kvArticles });
-        
+
         // If KV store has articles, use them; otherwise fall back to static blog-posts data
         if (kvArticles && kvArticles.length > 0) {
           // Sort by date (newest first)
@@ -298,9 +298,9 @@ export function ArticleManager() {
               : '';
             const inferFromContentBlocks = Array.isArray(a.content)
               ? (() => {
-                  const imgBlock = a.content.find((blk: any) => blk?.type === 'image' && (blk?.content || blk?.url));
-                  return imgBlock ? (imgBlock.content || imgBlock.url) : '';
-                })()
+                const imgBlock = a.content.find((blk: any) => blk?.type === 'image' && (blk?.content || blk?.url));
+                return imgBlock ? (imgBlock.content || imgBlock.url) : '';
+              })()
               : '';
             const coverImage = a.coverImage || a.cover_image || a.ogImage || inferFromImagesArray || inferFromContentBlocks || '';
 
@@ -476,18 +476,18 @@ export function ArticleManager() {
 
       // Use the correct API endpoint for KV store
       const endpoint = `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/posts`;
-      
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`,
+          'X-Admin-Token': adminToken,
         },
         body: JSON.stringify(payload),
       });
 
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         toast.success(editingId === 'new' ? 'Article created successfully' : 'Article updated successfully');
         setShowForm(false);
@@ -509,7 +509,7 @@ export function ArticleManager() {
       console.error(err);
     }
   };
-  
+
   if (loading) {
     return <div className="p-8 text-center text-gray-400">Loading articles...</div>;
   }
@@ -569,12 +569,12 @@ export function ArticleManager() {
 
       {showForm ? (
         <FormProvider {...methods}>
-            <form 
-              data-article-form
-              onSubmit={methods.handleSubmit(onSubmit)} 
-              className="border border-zinc-700 bg-zinc-900 rounded-3xl flex flex-col"
-              style={{ minHeight: '600px', position: 'relative', zIndex: 1 }}
-            >
+          <form
+            data-article-form
+            onSubmit={methods.handleSubmit(onSubmit)}
+            className="border border-zinc-700 bg-zinc-900 rounded-3xl flex flex-col"
+            style={{ minHeight: '600px', position: 'relative', zIndex: 1 }}
+          >
             {/* Header */}
             <div className="sticky top-0 z-[100] flex items-center justify-between p-4 border-b border-zinc-700 bg-zinc-900/95 backdrop-blur-sm">
               <div className="flex items-center gap-4">
@@ -587,11 +587,10 @@ export function ArticleManager() {
                       key={tab.key}
                       type="button"
                       onClick={() => setActiveTab(tab.key)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
-                        activeTab === tab.key
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium ${activeTab === tab.key
                           ? 'bg-blue-600 text-white'
                           : 'text-zinc-400 hover:bg-zinc-800'
-                      }`}
+                        }`}
                     >
                       {tab.label}
                     </button>
