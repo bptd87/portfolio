@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { BookOpen, Search, X } from 'lucide-react';
 import { BlogCard } from '../components/shared/BlogCard';
+import { blogPosts as staticBlogPosts } from '../data/blog-posts';
 // apiCall removed
 import { supabase } from '../utils/supabase/client';
 import { SkeletonBlogCard } from '../components/ui/skeleton';
@@ -59,7 +60,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
 
         if (error) throw error;
 
-        if (articlesData) {
+        if (articlesData && articlesData.length > 0) {
           const mappedPosts = articlesData.map((p: any) => ({
             id: p.id,
             slug: p.slug,
@@ -74,9 +75,40 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
             content: [] // Don't need full content for list view
           }));
           setBlogPosts(mappedPosts);
+        } else {
+          // Fallback to static if no DB posts
+          console.log('⚠️ No articles in DB, using static fallback');
+          const fallback = staticBlogPosts.map(p => ({
+            id: p.id,
+            slug: p.id,
+            title: p.title,
+            category: p.category,
+            date: p.date,
+            readTime: p.readTime,
+            excerpt: p.excerpt,
+            featured: p.featured,
+            coverImage: p.coverImage,
+            tags: p.tags,
+          }));
+          setBlogPosts(fallback);
         }
+
       } catch (err) {
         console.error('❌ Error fetching articles:', err);
+        // Error fallback
+        const fallback = staticBlogPosts.map(p => ({
+          id: p.id,
+          slug: p.id,
+          title: p.title,
+          category: p.category,
+          date: p.date,
+          readTime: p.readTime,
+          excerpt: p.excerpt,
+          featured: p.featured,
+          coverImage: p.coverImage,
+          tags: p.tags,
+        }));
+        setBlogPosts(fallback);
       } finally {
         setLoading(false);
       }
