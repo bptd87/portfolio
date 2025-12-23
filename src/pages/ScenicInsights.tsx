@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { BookOpen, Search, X } from 'lucide-react';
 import { BlogCard } from '../components/shared/BlogCard';
-import { blogPosts as staticBlogPosts } from '../data/blog-posts';
+
 // apiCall removed
 import { supabase } from '../utils/supabase/client';
 import { SkeletonBlogCard } from '../components/ui/skeleton';
@@ -76,39 +76,11 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
           }));
           setBlogPosts(mappedPosts);
         } else {
-          // Fallback to static if no DB posts
-          console.log('⚠️ No articles in DB, using static fallback');
-          const fallback = staticBlogPosts.map(p => ({
-            id: p.id,
-            slug: p.id,
-            title: p.title,
-            category: p.category,
-            date: p.date,
-            readTime: p.readTime,
-            excerpt: p.excerpt,
-            featured: p.featured,
-            coverImage: p.coverImage,
-            tags: p.tags,
-          }));
-          setBlogPosts(fallback);
+          setBlogPosts([]);
         }
 
       } catch (err) {
         console.error('❌ Error fetching articles:', err);
-        // Error fallback
-        const fallback = staticBlogPosts.map(p => ({
-          id: p.id,
-          slug: p.id,
-          title: p.title,
-          category: p.category,
-          date: p.date,
-          readTime: p.readTime,
-          excerpt: p.excerpt,
-          featured: p.featured,
-          coverImage: p.coverImage,
-          tags: p.tags,
-        }));
-        setBlogPosts(fallback);
       } finally {
         setLoading(false);
       }
