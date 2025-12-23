@@ -82,8 +82,6 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
       } catch (err: any) {
         console.error('❌ Error fetching articles:', err);
         setBlogPosts([]);
-        // Temporary alert for debugging
-        alert(`Error fetching articles: ${err.message || JSON.stringify(err)}`);
       } finally {
         setLoading(false);
       }
@@ -234,9 +232,6 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
             <div className="text-center py-24">
               <BookOpen className="w-16 h-16 mx-auto mb-4 text-foreground/20" />
               <p className="text-foreground/60 text-lg mb-4">No articles found matching your criteria.</p>
-              <div className="p-4 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 text-xs font-mono rounded mb-4">
-                DEBUG: Count={blogPosts.length}, Loading={loading.toString()}, Category={activeCategory}
-              </div>
               <button
                 onClick={() => { setSearchQuery(''); setActiveCategory('all'); setActiveTag(null); }}
                 className="px-6 py-3 backdrop-blur-xl bg-foreground/10 hover:bg-foreground/20 border border-foreground/20 transition-all rounded-full font-pixel text-xs tracking-wider"

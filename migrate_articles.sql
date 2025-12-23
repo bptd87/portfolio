@@ -218,6 +218,5 @@ ON CONFLICT (slug) DO UPDATE SET
   category = EXCLUDED.category,
   published_at = EXCLUDED.published_at,
   excerpt = EXCLUDED.excerpt,
-  cover_image = EXCLUDED.cover_image,
   tags = EXCLUDED.tags,
   published = EXCLUDED.published;
