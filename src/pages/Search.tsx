@@ -49,9 +49,8 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
   const [allContent, setAllContent] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch all dynamic content on mount
   useEffect(() => {
@@ -208,7 +207,6 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
         };
       })
       .filter(item => item.score > 0) // Only show items with matches
-      .filter(item => activeFilters.length === 0 || activeFilters.includes(item.category)) // Apply category filters
       .sort((a, b) => (b.score || 0) - (a.score || 0)) // Sort by relevance
     : [];
 

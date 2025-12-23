@@ -269,6 +269,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
         onLoad={handleLoad}
         loading={lazy && !isPriority && !isInView ? 'lazy' : 'eager'}
         decoding="async"
+        // @ts-ignore
         fetchpriority={fetchPriority}
       />
     </div>

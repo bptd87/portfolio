@@ -18,6 +18,7 @@ interface Project {
   venue: string;
   location: string;
   year: number;
+  month?: number;
   description: string;
   cardImage?: string;
   renderings?: Array<{ url: string; caption?: string }>;

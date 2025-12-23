@@ -16,6 +16,24 @@ WHERE id IN (
 -- 1. Ensure Unique Constraints exist (required for ON CONFLICT)
 DO $$
 BEGIN
+    -- Check for missing published_at column (might be named 'date' in old schema)
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name = 'articles' AND column_name = 'published_at'
+    ) THEN
+        -- If 'date' exists, rename it. Otherwise add published_at
+        IF EXISTS (
+            SELECT 1 
+            FROM information_schema.columns 
+            WHERE table_name = 'articles' AND column_name = 'date'
+        ) THEN
+            ALTER TABLE articles RENAME COLUMN date TO published_at;
+        ELSE
+            ALTER TABLE articles ADD COLUMN published_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+        END IF;
+    END IF;
+
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'categories_slug_key') THEN
         ALTER TABLE categories ADD CONSTRAINT categories_slug_key UNIQUE (slug);
     END IF;

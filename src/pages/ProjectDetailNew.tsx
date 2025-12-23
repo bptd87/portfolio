@@ -89,11 +89,13 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
         throw new Error('Failed to fetch project');
       }
 
+      const projectAny = projectData as any;
+
       // Map database fields to frontend format
       const mappedProject: any = {
-        ...projectData,
-        cardImage: projectData.card_image || projectData.cover_image,
-        coverImage: projectData.cover_image || projectData.card_image,
+        ...projectAny,
+        cardImage: projectAny.card_image || projectAny.cover_image,
+        coverImage: projectAny.cover_image || projectAny.card_image,
       };
 
       // Check if category includes "Experiential"

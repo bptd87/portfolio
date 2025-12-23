@@ -4,7 +4,7 @@ import { SEO } from '../components/SEO';
 import { PAGE_METADATA } from '../utils/seo/metadata';
 import { blogPosts } from '../data/blog-posts';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
-import { ArrowRight } from '../components/shared/Icons';
+import { ArrowRight } from 'lucide-react';
 
 interface SitemapProps {
   onNavigate: (page: string, slug?: string) => void;

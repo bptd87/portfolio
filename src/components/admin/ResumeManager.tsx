@@ -6,9 +6,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Upload, Trash2, Download, ExternalLink, AlertCircle, CheckCircle, Loader, Plus, Edit2, X, Save, ChevronUp, ChevronDown } from 'lucide-react';
+import { FileText, Upload, Trash2, Download, ExternalLink, AlertCircle, CheckCircle, Loader, Plus, Save, ChevronUp, ChevronDown } from 'lucide-react';
 import { supabase } from '../../utils/supabase/client';
-import { PrimaryButton, SecondaryButton } from './AdminButtons';
+import { PrimaryButton } from './AdminButtons';
 import { AdminTokens } from '../../styles/admin-tokens';
 
 interface CVData {
@@ -58,8 +58,8 @@ export function ResumeManager() {
         .eq('key', 'site_settings')
         .single();
 
-      if (data?.value) {
-        const settings = data.value as any;
+      if (data) {
+        const settings = (data as any).value || {};
         setCVData({
           phone: settings.phone || '',
           email: settings.email || '',
@@ -106,7 +106,7 @@ export function ResumeManager() {
       const timestamp = Date.now();
       const filename = `resume_${timestamp}.pdf`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('resume')
         .upload(filename, file, {
           cacheControl: '3600',
@@ -129,7 +129,7 @@ export function ResumeManager() {
         .eq('key', 'site_settings')
         .single();
 
-      const currentSettings = currentData?.value || {};
+      const currentSettings = (currentData as any)?.value || {};
 
       // Save resume URL to settings
       const { error: saveError } = await supabase
@@ -142,7 +142,7 @@ export function ResumeManager() {
             resumeFilename: file.name,
             resumeLastUpdated: new Date().toISOString(),
           }
-        });
+        } as any);
 
       if (saveError) throw saveError;
 
@@ -172,7 +172,7 @@ export function ResumeManager() {
         .eq('key', 'site_settings')
         .single();
 
-      const currentSettings = currentData?.value || {};
+      const currentSettings = (currentData as any)?.value || {};
 
       // Update settings to remove resume references
       const { error } = await supabase
@@ -185,7 +185,7 @@ export function ResumeManager() {
             resumeFilename: null,
             resumeLastUpdated: null,
           }
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -218,7 +218,7 @@ export function ResumeManager() {
         .eq('key', 'site_settings')
         .single();
 
-      const currentSettings = currentData?.value || {};
+      const currentSettings = (currentData as any)?.value || {};
 
       const { error } = await supabase
         .from('site_configuration')
@@ -231,7 +231,7 @@ export function ResumeManager() {
             location: cvData.location,
             website: cvData.website,
           }
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -336,7 +336,7 @@ export function ResumeManager() {
         .eq('key', 'site_settings')
         .single();
 
-      const currentSettings = currentData?.value || {};
+      const currentSettings = (currentData as any)?.value || {};
 
       const { error } = await supabase
         .from('site_configuration')
@@ -348,7 +348,7 @@ export function ResumeManager() {
             recentProductions: cvData.recentProductions,
             assistantDesignProductions: cvData.assistantDesignProductions,
           }
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -432,7 +432,7 @@ export function ResumeManager() {
         .eq('key', 'site_settings')
         .single();
 
-      const currentSettings = currentData?.value || {};
+      const currentSettings = (currentData as any)?.value || {};
 
       const { error } = await supabase
         .from('site_configuration')
@@ -444,7 +444,7 @@ export function ResumeManager() {
             recentProductions,
             assistantDesignProductions
           }
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -615,6 +615,8 @@ export function ResumeManager() {
                           onClick={() => handleMoveProduction('upcoming', idx, 'up')}
                           disabled={idx === 0}
                           className={`${AdminTokens.text.accent} hover:text-blue-600 ${AdminTokens.text.disabled}`}
+                          title="Move Up"
+                          aria-label="Move Production Up"
                         >
                           <ChevronUp className="w-4 h-4" />
                         </button>
@@ -622,17 +624,19 @@ export function ResumeManager() {
                           onClick={() => handleMoveProduction('upcoming', idx, 'down')}
                           disabled={idx === (cvData.upcomingProductions?.length || 0) - 1}
                           className={`${AdminTokens.text.accent} hover:text-blue-600 ${AdminTokens.text.disabled}`}
+                          title="Move Down"
+                          aria-label="Move Production Down"
                         >
                           <ChevronDown className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
-                    <td className="p-2"><input type="text" value={prod.production} onChange={e => handleProductionChange('upcoming', idx, 'production', e.target.value)} className={AdminTokens.input.base} /></td>
-                    <td className="p-2"><input type="text" value={prod.director} onChange={e => handleProductionChange('upcoming', idx, 'director', e.target.value)} className={AdminTokens.input.base} /></td>
-                    <td className="p-2"><input type="text" value={prod.company} onChange={e => handleProductionChange('upcoming', idx, 'company', e.target.value)} className={AdminTokens.input.base} /></td>
-                    <td className="p-2"><input type="text" value={prod.year} onChange={e => handleProductionChange('upcoming', idx, 'year', e.target.value)} className={AdminTokens.input.base} /></td>
+                    <td className="p-2"><input type="text" aria-label="Production Name" value={prod.production} onChange={e => handleProductionChange('upcoming', idx, 'production', e.target.value)} className={AdminTokens.input.base} placeholder="Production Name" /></td>
+                    <td className="p-2"><input type="text" aria-label="Director Name" value={prod.director} onChange={e => handleProductionChange('upcoming', idx, 'director', e.target.value)} className={AdminTokens.input.base} placeholder="Director" /></td>
+                    <td className="p-2"><input type="text" aria-label="Company Name" value={prod.company} onChange={e => handleProductionChange('upcoming', idx, 'company', e.target.value)} className={AdminTokens.input.base} placeholder="Company" /></td>
+                    <td className="p-2"><input type="text" aria-label="Production Year" value={prod.year} onChange={e => handleProductionChange('upcoming', idx, 'year', e.target.value)} className={AdminTokens.input.base} placeholder="Year" /></td>
                     <td className="p-2">
-                      <button type="button" onClick={() => handleRemoveProduction('upcoming', idx)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                      <button type="button" onClick={() => handleRemoveProduction('upcoming', idx)} className="text-red-400 hover:text-red-600" title="Remove Production" aria-label="Remove Production"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}
@@ -662,6 +666,8 @@ export function ResumeManager() {
                           onClick={() => handleMoveProduction('recent', idx, 'up')}
                           disabled={idx === 0}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          title="Move Up"
+                          aria-label="Move Production Up"
                         >
                           <ChevronUp className="w-4 h-4" />
                         </button>
@@ -669,17 +675,19 @@ export function ResumeManager() {
                           onClick={() => handleMoveProduction('recent', idx, 'down')}
                           disabled={idx === (cvData.recentProductions?.length || 0) - 1}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          title="Move Down"
+                          aria-label="Move Production Down"
                         >
                           <ChevronDown className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
-                    <td className="p-2"><input type="text" value={prod.production} onChange={e => handleProductionChange('recent', idx, 'production', e.target.value)} className={AdminTokens.input.base} /></td>
-                    <td className="p-2"><input type="text" value={prod.director} onChange={e => handleProductionChange('recent', idx, 'director', e.target.value)} className={AdminTokens.input.base} /></td>
-                    <td className="p-2"><input type="text" value={prod.company} onChange={e => handleProductionChange('recent', idx, 'company', e.target.value)} className={AdminTokens.input.base} /></td>
-                    <td className="p-2"><input type="text" value={prod.year} onChange={e => handleProductionChange('recent', idx, 'year', e.target.value)} className={AdminTokens.input.base} /></td>
+                    <td className="p-2"><input type="text" aria-label="Production Name" value={prod.production} onChange={e => handleProductionChange('recent', idx, 'production', e.target.value)} className={AdminTokens.input.base} placeholder="Production Name" /></td>
+                    <td className="p-2"><input type="text" aria-label="Director Name" value={prod.director} onChange={e => handleProductionChange('recent', idx, 'director', e.target.value)} className={AdminTokens.input.base} placeholder="Director" /></td>
+                    <td className="p-2"><input type="text" aria-label="Company Name" value={prod.company} onChange={e => handleProductionChange('recent', idx, 'company', e.target.value)} className={AdminTokens.input.base} placeholder="Company" /></td>
+                    <td className="p-2"><input type="text" aria-label="Production Year" value={prod.year} onChange={e => handleProductionChange('recent', idx, 'year', e.target.value)} className={AdminTokens.input.base} placeholder="Year" /></td>
                     <td className="p-2">
-                      <button type="button" onClick={() => handleRemoveProduction('recent', idx)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                      <button type="button" onClick={() => handleRemoveProduction('recent', idx)} className="text-red-400 hover:text-red-600" title="Remove Production" aria-label="Remove Production"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}
@@ -710,6 +718,8 @@ export function ResumeManager() {
                           onClick={() => handleMoveProduction('assistant', idx, 'up')}
                           disabled={idx === 0}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          title="Move Up"
+                          aria-label="Move Production Up"
                         >
                           <ChevronUp className="w-4 h-4" />
                         </button>
@@ -718,17 +728,19 @@ export function ResumeManager() {
                           onClick={() => handleMoveProduction('assistant', idx, 'down')}
                           disabled={idx === (cvData.assistantDesignProductions?.length || 0) - 1}
                           className="text-blue-400 hover:text-blue-600 disabled:text-gray-600 disabled:cursor-not-allowed"
+                          title="Move Down"
+                          aria-label="Move Production Down"
                         >
                           <ChevronDown className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
-                    <td className="p-2"><input type="text" value={prod.production} onChange={e => handleProductionChange('assistant', idx, 'production', e.target.value)} className={AdminTokens.input.base} /></td>
-                    <td className="p-2"><input type="text" value={prod.designer} onChange={e => handleProductionChange('assistant', idx, 'designer', e.target.value)} className={AdminTokens.input.base} /></td>
-                    <td className="p-2"><input type="text" value={prod.company} onChange={e => handleProductionChange('assistant', idx, 'company', e.target.value)} className={AdminTokens.input.base} /></td>
-                    <td className="p-2"><input type="text" value={prod.year} onChange={e => handleProductionChange('assistant', idx, 'year', e.target.value)} className={AdminTokens.input.base} /></td>
+                    <td className="p-2"><input type="text" aria-label="Production Name" value={prod.production} onChange={e => handleProductionChange('assistant', idx, 'production', e.target.value)} className={AdminTokens.input.base} placeholder="Production Name" /></td>
+                    <td className="p-2"><input type="text" aria-label="Designer Name" value={prod.designer} onChange={e => handleProductionChange('assistant', idx, 'designer', e.target.value)} className={AdminTokens.input.base} placeholder="Designer" /></td>
+                    <td className="p-2"><input type="text" aria-label="Company Name" value={prod.company} onChange={e => handleProductionChange('assistant', idx, 'company', e.target.value)} className={AdminTokens.input.base} placeholder="Company" /></td>
+                    <td className="p-2"><input type="text" aria-label="Production Year" value={prod.year} onChange={e => handleProductionChange('assistant', idx, 'year', e.target.value)} className={AdminTokens.input.base} placeholder="Year" /></td>
                     <td className="p-2">
-                      <button type="button" onClick={() => handleRemoveProduction('assistant', idx)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                      <button type="button" onClick={() => handleRemoveProduction('assistant', idx)} className="text-red-400 hover:text-red-600" title="Remove Production" aria-label="Remove Production"><Trash2 className="w-4 h-4" /></button>
                     </td>
                   </tr>
                 ))}

@@ -538,8 +538,8 @@ export function VaultManager() {
         <button
           onClick={() => setActiveTab('assets')}
           className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === 'assets'
-              ? 'text-blue-400 border-blue-400'
-              : 'text-gray-400 border-transparent hover:text-white'
+            ? 'text-blue-400 border-blue-400'
+            : 'text-gray-400 border-transparent hover:text-white'
             }`}
         >
           Assets ({assets.length})
@@ -547,8 +547,8 @@ export function VaultManager() {
         <button
           onClick={() => setActiveTab('categories')}
           className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === 'categories'
-              ? 'text-blue-400 border-blue-400'
-              : 'text-gray-400 border-transparent hover:text-white'
+            ? 'text-blue-400 border-blue-400'
+            : 'text-gray-400 border-transparent hover:text-white'
             }`}
         >
           Categories ({categories.length})
@@ -658,7 +658,7 @@ export function VaultManager() {
                   <h3 className="text-lg font-semibold text-white">
                     {editingAsset ? 'Edit Asset' : 'Add New Asset'}
                   </h3>
-                  <button type="button" onClick={resetAssetForm} className="text-gray-400 hover:text-white">
+                  <button type="button" onClick={resetAssetForm} className="text-gray-400 hover:text-white" title="Close Form" aria-label="Close Form">
                     <X className="w-5 h-5" />
                   </button>
                 </div>

@@ -747,6 +747,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                             frameBorder="0"
                             allow="autoplay; fullscreen; picture-in-picture"
                             allowFullScreen
+                            title="Vimeo Video Player"
                           />
                         ) : <div className="w-full h-full flex items-center justify-center text-white/40">Invalid Vimeo URL</div>;
                       } else {
@@ -758,6 +759,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
+                            title="YouTube Video Player"
                           />
                         ) : <div className="w-full h-full flex items-center justify-center text-white/40">Invalid YouTube URL</div>;
                       }
@@ -790,6 +792,7 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                     value={block.metadata?.listType || 'bullet'}
                     onChange={(e) => updateBlock(block.id, { metadata: { ...block.metadata, listType: e.target.value as any } })}
                     className="w-full px-3 py-2 bg-background border border-border focus:border-accent-brand focus:outline-none"
+                    aria-label="List Style"
                   >
                     <option value="bullet">Bullet Points</option>
                     <option value="numbered">Numbered List</option>

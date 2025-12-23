@@ -93,11 +93,13 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
 
       if (error || !projectData) throw new Error('Failed to fetch project');
 
+      const projectAny = projectData as any;
+
       // Map fields (ensure compatibility with existing template logic)
       const mappedProject = {
-        ...projectData,
-        cardImage: projectData.card_image || projectData.cover_image,
-        coverImage: projectData.cover_image || projectData.card_image,
+        ...projectAny,
+        cardImage: projectAny.card_image || projectAny.cover_image,
+        coverImage: projectAny.cover_image || projectAny.card_image,
         // Add any other specific mappings if needed (e.g. galleries, camelCase props?)
         // The template uses camelCase like `experientialContent`, `keyFeatures`?
         // The DB columns are generally snake_case.
@@ -106,19 +108,19 @@ export function ExperientialProjectDetail({ slug, onNavigate }: ExperientialProj
         // I need to map snake_case DB columns to camelCase if the UI expects it.
         // Looking at line 39: `project.experientialContent`.
         // DB column likely `experiential_content`.
-        experientialContent: projectData.experiential_content || projectData.experientialContent,
-        keyFeatures: projectData.key_features || projectData.keyFeatures,
-        metrics: projectData.metrics || projectData.metrics_data,
-        videoUrls: projectData.video_urls || projectData.videoUrls,
-        team: projectData.team || projectData.team_members
+        experientialContent: projectAny.experiential_content || projectAny.experientialContent,
+        keyFeatures: projectAny.key_features || projectAny.keyFeatures,
+        metrics: projectAny.metrics || projectAny.metrics_data,
+        videoUrls: projectAny.video_urls || projectAny.videoUrls,
+        team: projectAny.team || projectAny.team_members
       };
 
       setProject(mappedProject);
-      setViews(projectData.views || 0);
+      setViews(projectAny.views || 0);
 
       // Increment view count via RPC
       try {
-        await supabase.rpc('increment_project_view', { project_id: projectData.id });
+        await supabase.rpc('increment_project_view', { project_id: projectAny.id } as any);
         // Optimistically update views
         setViews((v) => v + 1);
       } catch (err) {

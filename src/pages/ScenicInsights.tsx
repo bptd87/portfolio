@@ -1,11 +1,22 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { BookOpen, Search, X } from 'lucide-react';
-import { BlogCard } from '../components/shared/BlogCard';
+import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { Calendar, ArrowRight } from 'lucide-react';
+import { Skeleton } from '../components/ui/skeleton';
+import { useTheme } from '../components/ThemeProvider';
 
-// apiCall removed
-import { supabase } from '../utils/supabase/client';
-import { SkeletonBlogCard } from '../components/ui/skeleton';
+interface ArticleItem {
+  id: string;
+  title: string;
+  date: string;
+  category: string;
+  coverImage?: string;
+  coverImageFocalPoint?: { x: number; y: number };
+  excerpt?: string;
+  slug?: string;
+  tags?: string[];
+  readTime?: string;
+}
 
 interface ScenicInsightsProps {
   onNavigate: (page: string, slug?: string) => void;
@@ -14,74 +25,61 @@ interface ScenicInsightsProps {
 }
 
 export function ScenicInsights({ onNavigate, initialCategory, initialTag }: ScenicInsightsProps) {
-  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const { theme } = useTheme();
+  const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [activeTag, setActiveTag] = useState<string | null>(initialTag || null);
-  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
+  const [selectedTag, setSelectedTag] = useState<string>(initialTag || 'all');
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string; color?: string }>>([]);
 
-  // Set initial category from prop (URL parameter)
   useEffect(() => {
-    if (initialCategory) {
-      setActiveCategory(initialCategory);
-    }
-  }, [initialCategory]);
+    if (initialCategory) setSelectedCategory(initialCategory);
+    if (initialTag) setSelectedTag(initialTag);
+  }, [initialCategory, initialTag]);
 
-  // Set initial tag from prop
-  useEffect(() => {
-    if (initialTag) {
-      setActiveTag(initialTag);
-      setSearchQuery(initialTag); // Also search for the tag
-    }
-  }, [initialTag]);  // Fetch posts and categories from database
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        // Fetch categories
+        const categoriesResponse = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/categories/articles`,
+          {
+            headers: {
+              'Authorization': `Bearer ${publicAnonKey}`,
+            },
+          }
+        );
 
-        // Fetch categories directly
-        const { data: categoriesData } = await supabase
-          .from('categories')
-          .select('*')
-          .eq('type', 'articles')
-          .order('name');
-
-        if (categoriesData) {
-          setCategories(categoriesData);
+        if (categoriesResponse.ok) {
+          try {
+            const categoriesData = await categoriesResponse.json();
+            if (categoriesData.success && categoriesData.categories) {
+              setCategories(categoriesData.categories);
+            }
+          } catch (jsonError) {
+            console.warn('❌ Failed to parse categories response as JSON');
+          }
         }
 
-        // Fetch articles directly
-        const { data: articlesData, error } = await supabase
-          .from('articles')
-          .select('*')
-          .eq('published', true)
-          .order('published_at', { ascending: false });
+        // Fetch articles
+        const response = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/posts`,
+          {
+            headers: {
+              'Authorization': `Bearer ${publicAnonKey}`,
+            },
+          }
+        );
 
-        if (error) throw error;
-
-        if (articlesData && articlesData.length > 0) {
-          const mappedPosts = articlesData.map((p: any) => ({
-            id: p.id,
-            slug: p.slug,
-            title: p.title,
-            category: p.category || 'Article',
-            date: p.published_at,
-            readTime: '5 min read',
-            excerpt: p.excerpt,
-            coverImage: p.cover_image,
-            focusPoint: p.cover_image_focal_point,
-            tags: p.tags || [],
-            content: [] // Don't need full content for list view
-          }));
-          setBlogPosts(mappedPosts);
-        } else {
-          setBlogPosts([]);
+        if (response.ok) {
+          const data = await response.json();
+          // API returns { success: true, posts: [...] }
+          const articlesData = data.posts || data || [];
+          
+          setArticles(articlesData);
         }
-
-      } catch (err: any) {
-        console.error('❌ Error fetching articles:', err);
-        setBlogPosts([]);
+      } catch (err) {
+        console.error('Failed to load articles:', err);
       } finally {
         setLoading(false);
       }
@@ -90,190 +88,162 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
     fetchData();
   }, []);
 
-  // Filter logic
-  const filteredPosts = blogPosts.filter(post => {
-    // Category filter
-    let matchesCategory = activeCategory === 'all';
-    if (!matchesCategory) {
-      const category = categories.find(cat => cat.slug === activeCategory);
-      matchesCategory = !!(category && post.category === category.name);
-    }
+  // Build filter options
+  const categoryOptions = categories.length > 0
+    ? ['all', ...categories.map(cat => cat.name)]
+    : ['all', ...Array.from(new Set(articles.map(item => item.category)))];
 
-    // Tag filter
-    let matchesTag = !activeTag;
-    if (activeTag && post.tags) {
-      matchesTag = post.tags.some((t: string) => t.toLowerCase() === activeTag.toLowerCase());
-    }
-
-    // Search filter
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (post.excerpt && post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (post.tags && post.tags.some((t: string) => t.toLowerCase().includes(searchQuery.toLowerCase())));
-
-    return matchesCategory && matchesSearch && matchesTag;
+  const filteredArticles = articles.filter(item => {
+    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesTag = selectedTag === 'all' || (item.tags && item.tags.includes(selectedTag));
+    return matchesCategory && matchesTag;
   });
 
-  // Sort by date (newest first)
-  const sortedPosts = [...filteredPosts].sort((a, b) =>
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-
-  console.log('📊 Posts stats:', {
-    total: blogPosts.length,
-    filtered: filteredPosts.length,
-    sorted: sortedPosts.length,
-    activeCategory,
-    activeTag,
-    searchQuery
-  });
-
-  const handlePostClick = (postSlug: string) => {
-    onNavigate(`articles/${postSlug}`);
-  };
-
-
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12">
+        <div className="max-w-[1400px] mx-auto mb-12">
+          <Skeleton variant="text" width="200px" height="1rem" className="mb-4" />
+          <Skeleton variant="text" width="400px" height="2.5rem" className="mb-6" />
+        </div>
+        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {Array.from({ length: 6 }).map((_, i) => (
+             <div key={i} className="space-y-4">
+               <Skeleton variant="rectangular" width="100%" height="240px" className="rounded-2xl" />
+               <Skeleton variant="text" width="60%" height="1.5rem" />
+               <Skeleton variant="text" width="100%" height="1rem" />
+             </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section - Reduced height for better fold content */}
-      <motion.section
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        className="relative pt-32 pb-12 px-6"
-      >
-        <div className="max-w-7xl mx-auto">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="font-display text-5xl md:text-6xl lg:text-7xl mb-6 italic"
-          >
-            Articles
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-lg text-foreground/60 max-w-2xl"
-          >
-            Explorations in design philosophy, creative process, and the intersection of technology and theatrical storytelling.
-          </motion.p>
+    <div
+      className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12 overflow-x-hidden"
+      data-nav={theme === 'dark' ? 'dark' : 'light'}
+    >
+      {/* Header */}
+      <div className="max-w-[1400px] mx-auto mb-12 w-full">
+        <div className="font-pixel text-xs tracking-[0.3em] text-foreground/60 mb-4">
+          SCENIC INSIGHTS
         </div>
-      </motion.section>
+        <h1 className="font-serif italic text-5xl md:text-7xl mb-6">Journal</h1>
+        <p className="text-foreground/70 text-lg max-w-2xl">
+          Thoughts on design, technology, and the creative process in scenic design.
+        </p>
+      </div>
 
-      {/* Filter Bar - Glass transparency, sticky */}
-      <section className="sticky top-20 z-30 backdrop-blur-xl bg-background/80 border-y border-border/50 py-4">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-            {/* Category Filters */}
-            <div className="flex flex-wrap gap-2">
-              {[
-                { id: 'all', label: 'ALL' },
-                ...categories.map(cat => ({
-                  id: cat.slug,
-                  label: cat.name.toUpperCase(),
-                }))
-              ].map((cat) => {
-                const isActive = activeCategory === cat.id;
+      {/* Filters */}
+      <div className="sticky top-0 z-40 mb-12 bg-background/80 backdrop-blur-xl py-4 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-12 lg:px-12 border-y border-neutral-500/20">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="font-pixel text-[10px] tracking-[0.3em] text-foreground/60 mb-2">
+            CATEGORY
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categoryOptions.map((cat) => {
+              const isActive = selectedCategory === cat;
+              const label = cat === 'all' ? 'ALL' : cat.toUpperCase();
 
-                return (
-                  <motion.button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`px-5 py-2.5 font-pixel text-[10px] tracking-[0.3em] rounded-full transition-all ${isActive
-                      ? 'bg-foreground text-background'
-                      : 'bg-foreground/5 text-foreground/50 hover:bg-foreground/10 hover:text-foreground/80 border border-foreground/10'
-                      }`}
-                  >
-                    {cat.label}
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative lg:ml-auto w-full lg:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40" />
-              <input
-                type="text"
-                placeholder="Search articles..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-foreground/5 border border-foreground/10 pl-10 pr-10 py-2.5 text-sm placeholder:text-foreground/40 focus:outline-none focus:border-foreground/30 focus:bg-foreground/10 transition-all rounded-full"
-              />
-              {searchQuery && (
+              return (
                 <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground/80 transition-colors"
-                  aria-label="Clear search"
-                  title="Clear search"
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`font-pixel text-[10px] tracking-[0.2em] px-4 py-2 rounded-full transition-all ${isActive
+                    ? 'bg-foreground text-background'
+                    : 'bg-neutral-500/10 hover:bg-neutral-500/20 text-foreground/70 backdrop-blur-md border border-neutral-500/20'
+                    }`}
                 >
-                  <X className="w-4 h-4" />
+                  {label}
                 </button>
-              )}
-            </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 font-pixel text-[10px] tracking-wider text-foreground/40">
+            {filteredArticles.length} {filteredArticles.length === 1 ? 'ARTICLE' : 'ARTICLES'}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Content */}
-      <section className="pt-12 pb-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <SkeletonBlogCard key={index} />
-              ))}
+      {/* Grid */}
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredArticles.length === 0 ? (
+          <div className="col-span-full text-center py-24">
+             <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-12 inline-block">
+              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-40" />
+              <p className="font-pixel text-sm tracking-wider opacity-60">NO ARTICLES FOUND</p>
             </div>
-          ) : sortedPosts.length === 0 ? (
-            <div className="text-center py-24">
-              <BookOpen className="w-16 h-16 mx-auto mb-4 text-foreground/20" />
-              <p className="text-foreground/60 text-lg mb-4">No articles found matching your criteria.</p>
-              <button
-                onClick={() => { setSearchQuery(''); setActiveCategory('all'); setActiveTag(null); }}
-                className="px-6 py-3 backdrop-blur-xl bg-foreground/10 hover:bg-foreground/20 border border-foreground/20 transition-all rounded-full font-pixel text-xs tracking-wider"
-              >
-                CLEAR FILTERS
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {sortedPosts.map((post, index) => (
-                <motion.div
-                  key={post.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  style={{ aspectRatio: '2/3' }}
-                  className="w-full"
-                >
-                  <BlogCard
-                    title={post.title}
-                    excerpt={post.excerpt}
-                    date={new Date(post.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                    category={post.category}
-                    readTime={post.readTime}
-                    image={post.coverImage}
-                    focusPoint={post.focusPoint}
-                    onClick={() => handlePostClick(post.slug || post.id)}
-                    index={index}
-                    variant="nothing"
-                  />
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-    </div >
+          </div>
+        ) : (
+          filteredArticles.map((article) => (
+            <button
+              key={article.id}
+              onClick={() => onNavigate(`scenic-insights/${article.slug || article.id}`)}
+              className="group text-left"
+            >
+              <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl overflow-hidden hover:border-neutral-500/40 transition-all duration-300 h-full flex flex-col">
+                {/* Image */}
+                <div className="relative aspect-[3/2] overflow-hidden bg-neutral-500/5">
+                  {article.coverImage ? (
+                    <ImageWithFallback
+                      src={article.coverImage}
+                      alt={article.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      style={{
+                        objectPosition: article.coverImageFocalPoint
+                          ? `${article.coverImageFocalPoint.x}% ${article.coverImageFocalPoint.y}%`
+                          : 'center center'
+                      }}
+                    />
+                  ) : (
+                     <div className="w-full h-full flex items-center justify-center bg-neutral-800">
+                        <Calendar className="w-12 h-12 opacity-20" />
+                     </div>
+                  )}
+                  {/* Category Badge */}
+                  <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-md border border-neutral-500/20 rounded-full px-3 py-1">
+                    <span className="font-pixel text-[10px] tracking-wider text-foreground">
+                      {article.category?.toUpperCase() || 'ARTICLE'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="flex items-center gap-2 mb-3 text-xs text-foreground/60">
+                     <Calendar className="w-3 h-3" />
+                     <span>{new Date(article.date).toLocaleDateString()}</span>
+                     {article.readTime && (
+                       <>
+                         <span>•</span>
+                         <span>{article.readTime}</span>
+                       </>
+                     )}
+                  </div>
+                  
+                  <h3 className="font-serif text-2xl mb-3 group-hover:text-foreground/80 transition-colors">
+                    {article.title}
+                  </h3>
+                  
+                  {article.excerpt && (
+                    <p className="text-sm text-foreground/60 line-clamp-3 mb-4 flex-1">
+                      {article.excerpt}
+                    </p>
+                  )}
+
+                  <div className="mt-4 flex items-center gap-2 text-xs font-pixel tracking-[0.2em] text-foreground/70 group-hover:text-foreground group-hover:gap-3 transition-all pt-4 border-t border-white/5">
+                    <span>READ ARTICLE</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+    </div>
   );
+// ...
 }
+
+export default ScenicInsights;

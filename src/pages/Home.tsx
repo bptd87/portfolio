@@ -303,7 +303,7 @@ export function Home({ onNavigate }: HomeProps) {
                   }}
                   offset={30}
                   loading={idx === 0 ? 'eager' : 'lazy'}
-                  fetchpriority={idx === 0 ? 'high' : 'low'}
+                  fetchPriority={idx === 0 ? 'high' : 'low'}
                 />
               </div>
               <div className={`absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40 transition-opacity duration-300 ${navigatingProject?.id === project.id ? 'opacity-0' : ''

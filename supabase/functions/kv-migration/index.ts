@@ -9,26 +9,26 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Admin authentication middleware
 const verifyAdminToken = async (c: any, next: any) => {
-  const token = c.req.header('X-Admin-Token');
+  const token = c.req.header("X-Admin-Token");
   if (!token) {
-    return c.json({ error: 'Unauthorized - Admin token required' }, 401);
+    return c.json({ error: "Unauthorized - Admin token required" }, 401);
   }
   try {
     const decoded = atob(token.trim());
-    if (!decoded.startsWith('admin:')) {
-      return c.json({ error: 'Invalid admin token' }, 401);
+    if (!decoded.startsWith("admin:")) {
+      return c.json({ error: "Invalid admin token" }, 401);
     }
   } catch {
-    return c.json({ error: 'Invalid admin token' }, 401);
+    return c.json({ error: "Invalid admin token" }, 401);
   }
   await next();
 };
 
 // Health check (no auth required)
-app.get("/health", (c) => c.json({ status: "ok" }));
+app.get("/health", (c: any) => c.json({ status: "ok" }));
 
 // Migration endpoint (auth required)
-app.post("/", verifyAdminToken, async (c) => {
+app.post("/", verifyAdminToken, async (c: any) => {
   const kv = await Deno.openKv();
   const results = {
     news: { migrated: 0, errors: [] as string[] },
@@ -44,7 +44,7 @@ app.post("/", verifyAdminToken, async (c) => {
     for await (const entry of newsEntries) {
       try {
         const newsItem = entry.value as any;
-        const { error } = await supabase.from('news').upsert({
+        const { error } = await supabase.from("news").upsert({
           id: newsItem.id,
           slug: newsItem.slug,
           title: newsItem.title,
@@ -69,7 +69,7 @@ app.post("/", verifyAdminToken, async (c) => {
     for await (const entry of tutorialEntries) {
       try {
         const tutorial = entry.value as any;
-        const { error } = await supabase.from('tutorials').upsert({
+        const { error } = await supabase.from("tutorials").upsert({
           id: tutorial.id,
           slug: tutorial.slug,
           title: tutorial.title,
@@ -98,7 +98,7 @@ app.post("/", verifyAdminToken, async (c) => {
     for await (const entry of collaboratorEntries) {
       try {
         const collaborator = entry.value as any;
-        const { error } = await supabase.from('collaborators').upsert({
+        const { error } = await supabase.from("collaborators").upsert({
           id: collaborator.id,
           name: collaborator.name,
           role: collaborator.role,
@@ -110,7 +110,9 @@ app.post("/", verifyAdminToken, async (c) => {
           created_at: collaborator.created_at || new Date().toISOString(),
         });
         if (error) {
-          results.collaborators.errors.push(`${collaborator.name}: ${error.message}`);
+          results.collaborators.errors.push(
+            `${collaborator.name}: ${error.message}`,
+          );
         } else {
           results.collaborators.migrated++;
         }
@@ -125,7 +127,7 @@ app.post("/", verifyAdminToken, async (c) => {
       const links = bioLinksEntry.value as any[];
       for (const link of links) {
         try {
-          const { error } = await supabase.from('bio_links').upsert({
+          const { error } = await supabase.from("bio_links").upsert({
             id: link.id,
             title: link.title,
             url: link.url,
@@ -145,12 +147,17 @@ app.post("/", verifyAdminToken, async (c) => {
     }
 
     // Migrate Site Configuration
-    const configKeys = ["site_settings", "social_links", "bio_data", "tutorial_categories"];
+    const configKeys = [
+      "site_settings",
+      "social_links",
+      "bio_data",
+      "tutorial_categories",
+    ];
     for (const key of configKeys) {
       try {
         const entry = await kv.get([key]);
         if (entry.value) {
-          const { error } = await supabase.from('site_configuration').upsert({
+          const { error } = await supabase.from("site_configuration").upsert({
             key: key,
             value: entry.value,
           });
@@ -170,20 +177,20 @@ app.post("/", verifyAdminToken, async (c) => {
       message: "Migration completed",
       results,
       summary: {
-        totalMigrated: results.news.migrated + results.tutorials.migrated + 
-                      results.collaborators.migrated + results.bioLinks.migrated + 
-                      results.config.migrated,
-        totalErrors: results.news.errors.length + results.tutorials.errors.length + 
-                    results.collaborators.errors.length + results.bioLinks.errors.length + 
-                    results.config.errors.length,
-      }
+        totalMigrated: results.news.migrated + results.tutorials.migrated +
+          results.collaborators.migrated + results.bioLinks.migrated +
+          results.config.migrated,
+        totalErrors: results.news.errors.length +
+          results.tutorials.errors.length +
+          results.collaborators.errors.length + results.bioLinks.errors.length +
+          results.config.errors.length,
+      },
     });
-
   } catch (error: any) {
-    return c.json({ 
-      success: false, 
+    return c.json({
+      success: false,
       error: error.message,
-      results 
+      results,
     }, 500);
   } finally {
     kv.close();

@@ -42,18 +42,20 @@ export function RenderingProjectDetail({ slug, onNavigate }: RenderingProjectDet
 
       if (error || !projectData) throw new Error('Failed to fetch project');
 
+      const projectAny = projectData as any;
+
       // Map snake_case to camelCase for frontend compatibility
       const mappedProject = {
-        ...projectData,
-        cardImage: projectData.card_image || projectData.cover_image,
-        coverImage: projectData.cover_image || projectData.card_image,
-        clientName: projectData.client_name || projectData.clientName || projectData.client || '',
+        ...projectAny,
+        cardImage: projectAny.card_image || projectAny.cover_image,
+        coverImage: projectAny.cover_image || projectAny.card_image,
+        clientName: projectAny.client_name || projectAny.clientName || projectAny.client || '',
         // Note: DB probably has client_name, but template might check multiple
-        softwareUsed: projectData.software_used || projectData.softwareUsed,
-        projectOverview: projectData.project_overview || projectData.projectOverview,
-        designNotes: projectData.design_notes || projectData.designNotes,
-        videoUrls: projectData.video_urls || projectData.videoUrls,
-        fullWidth: projectData.full_width || projectData.fullWidth || false, // Fallback
+        softwareUsed: projectAny.software_used || projectAny.softwareUsed,
+        projectOverview: projectAny.project_overview || projectAny.projectOverview,
+        designNotes: projectAny.design_notes || projectAny.designNotes,
+        videoUrls: projectAny.video_urls || projectAny.videoUrls,
+        fullWidth: projectAny.full_width || projectAny.fullWidth || false, // Fallback
       };
 
       setProject(mappedProject);

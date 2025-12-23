@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Search, ExternalLink, User, Building2, Briefcase, Mail, Globe, Linkedin, Instagram, GripVertical, Image as ImageIcon, X, Sparkles, Wand2 } from 'lucide-react';
-import { Reorder } from 'motion/react';
+import { useState, useEffect } from 'react';
+import { Plus, Trash2, Search, ExternalLink, User, Building2, Briefcase, Globe, Linkedin, Instagram, Image as ImageIcon, X, Sparkles, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createClient } from '../../utils/supabase/client';
 import { PrimaryButton, SecondaryButton, SaveButton, CancelButton, IconButton, ActionButton } from './AdminButtons';
 import {
   DarkInput,
   DarkTextarea,
-  DarkSelect,
   DarkLabel,
   formContainerClasses,
-  listItemClasses,
-  badgeClasses
 } from './DarkModeStyles';
 
 const supabase = createClient();
@@ -72,7 +68,7 @@ export function CollaboratorsManager() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('collaborators')
+        .from('collaborators' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -95,14 +91,14 @@ export function CollaboratorsManager() {
     try {
       if (editingCollaborator) {
         const { error } = await supabase
-          .from('collaborators')
+          .from('collaborators' as any)
           .update(formData as any)
           .eq('id', editingCollaborator.id!);
         if (error) throw error;
         toast.success('Collaborator updated');
       } else {
         const { error } = await supabase
-          .from('collaborators')
+          .from('collaborators' as any)
           .insert(formData as any);
         if (error) throw error;
         toast.success('Collaborator added');
@@ -119,7 +115,7 @@ export function CollaboratorsManager() {
     if (!confirm('Are you sure you want to delete this collaborator?')) return;
 
     try {
-      const { error } = await supabase.from('collaborators').delete().eq('id', id);
+      const { error } = await supabase.from('collaborators' as any).delete().eq('id', id);
       if (error) throw error;
       setCollaborators(prev => prev.filter(c => c.id !== id));
       toast.success('Collaborator deleted');
@@ -209,7 +205,7 @@ export function CollaboratorsManager() {
 
   const filteredCollaborators = collaborators.filter(c =>
     c.name.toLowerCase().includes(filter.toLowerCase()) ||
-    c.role.toLowerCase().includes(filter.toLowerCase())
+    (c.role || '').toLowerCase().includes(filter.toLowerCase())
   );
 
   if (loading) {
@@ -246,7 +242,7 @@ export function CollaboratorsManager() {
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-medium text-white">Found in Credits</h3>
-              <button onClick={() => setShowScanner(false)}><X className="w-5 h-5 text-gray-400" /></button>
+              <button onClick={() => setShowScanner(false)} title="Close Scanner" aria-label="Close Scanner"><X className="w-5 h-5 text-gray-400" /></button>
             </div>
             <div className="space-y-2">
               {scanResults.length === 0 ? (
@@ -255,7 +251,7 @@ export function CollaboratorsManager() {
                 scanResults.map(name => (
                   <div key={name} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                     <span className="text-white">{name}</span>
-                    <ActionButton onClick={() => importScanned(name)} icon={User}>
+                    <ActionButton onClick={() => importScanned(name)} icon={User} title="Import Collaborator">
                       Import
                     </ActionButton>
                   </div>
@@ -302,7 +298,7 @@ export function CollaboratorsManager() {
                     <IconButton onClick={() => startEdit(collaborator)} title="Edit">
                       <ExternalLink className="w-4 h-4" />
                     </IconButton>
-                    <IconButton onClick={() => handleDelete(collaborator.id)} title="Delete" variant="danger">
+                    <IconButton onClick={() => handleDelete(collaborator.id!)} title="Delete" variant="danger">
                       <Trash2 className="w-4 h-4" />
                     </IconButton>
                   </div>
@@ -320,7 +316,7 @@ export function CollaboratorsManager() {
             <h3 className="text-xl font-medium text-white">
               {editingCollaborator ? 'Edit Collaborator' : 'New Collaborator'}
             </h3>
-            <button onClick={resetForm} className="text-gray-400 hover:text-white"><X className="w-6 h-6" /></button>
+            <button onClick={resetForm} className="text-gray-400 hover:text-white" title="Close Form" aria-label="Close Form"><X className="w-6 h-6" /></button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
