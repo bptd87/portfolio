@@ -1,7 +1,18 @@
 -- Migration script to populate articles table from static data
 -- Run this in Supabase SQL Editor
 
--- 1. Create categories if they don't exist
+-- 1. Ensure Unique Constraints exist (required for ON CONFLICT)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'categories_slug_key') THEN
+        ALTER TABLE categories ADD CONSTRAINT categories_slug_key UNIQUE (slug);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'articles_slug_key') THEN
+        ALTER TABLE articles ADD CONSTRAINT articles_slug_key UNIQUE (slug);
+    END IF;
+END $$;
+
+-- 2. Create categories if they don't exist
 INSERT INTO categories (name, slug, type) VALUES
 ('Design Philosophy & Scenic Insights', 'design-philosophy-scenic-insights', 'articles'),
 ('Scenic Design Process & Highlights', 'scenic-design-process-highlights', 'articles'),
