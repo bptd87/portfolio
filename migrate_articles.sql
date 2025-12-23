@@ -1,6 +1,18 @@
 -- Migration script to populate articles table from static data
 -- Run this in Supabase SQL Editor
 
+-- 0. Cleanup duplicates in categories table (Keep oldest)
+DELETE FROM categories
+WHERE id IN (
+    SELECT id
+    FROM (
+        SELECT id,
+        ROW_NUMBER() OVER (PARTITION BY slug ORDER BY created_at ASC) as row_num
+        FROM categories
+    ) t
+    WHERE t.row_num > 1
+);
+
 -- 1. Ensure Unique Constraints exist (required for ON CONFLICT)
 DO $$
 BEGIN
