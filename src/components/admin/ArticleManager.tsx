@@ -10,7 +10,6 @@ import { ArticleSEOTools } from './ArticleSEOTools';
 import { FocusPointPicker } from './FocusPointPicker';
 import { SquarespaceImporter } from './SquarespaceImporter';
 import { useCategories } from '../../hooks/useCategories';
-import { blogPosts } from '../../data/blog-posts';
 import { SaveButton, CancelButton } from './AdminButtons';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
@@ -284,7 +283,7 @@ export function ArticleManager() {
         const { data: sqlArticles, error } = await supabase
           .from('articles')
           .select('*')
-          .order('date', { ascending: false });
+          .order('published_at', { ascending: false });
 
         if (error) throw error;
 
@@ -297,7 +296,10 @@ export function ArticleManager() {
           coverImage: a.cover_image || a.coverImage || '',
           focusPoint: a.cover_image_focal_point || a.focusPoint || undefined,
           content: a.content || [],
-          date: a.date || a.created_at || new Date().toISOString()
+          // Map published (boolean) to status (string)
+          status: a.published ? 'published' : 'draft',
+          // Use published_at if available, otherwise created_at
+          date: a.published_at || a.created_at || new Date().toISOString()
         }));
 
         setArticles(normalized);
@@ -340,7 +342,7 @@ export function ArticleManager() {
     methods.reset({
       title: article.title || '',
       category: article.category || categories.articles[0]?.name || '',
-      date: article.date || new Date().toISOString().split('T')[0],
+      date: (article.date || new Date().toISOString()).split('T')[0],
       featured: article.featured || false,
       status: article.status || 'draft',
       tags: article.tags || [],
@@ -409,8 +411,8 @@ export function ArticleManager() {
         content: Array.isArray(data.content) ? data.content : [],
         category: data.category,
         cover_image: data.coverImage,
-        cover_image_focal_point: data.focusPoint,
-        date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
+        // cover_image_focal_point: data.focusPoint, // Column does not exist
+        published_at: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
         read_time: data.readTime || estimateReadTime(Array.isArray(data.content) ? data.content : [], data.excerpt),
         tags: data.tags || [],
         published: data.status === 'published',
@@ -438,12 +440,13 @@ export function ArticleManager() {
       setShowForm(false);
       setEditingId(null);
       // Reload articles
-      const { data: updatedData } = await supabase.from('articles').select('*').order('date', { ascending: false });
+      const { data: updatedData } = await supabase.from('articles').select('*').order('published_at', { ascending: false });
       const normalized = (updatedData || []).map((a: any) => ({
         ...a,
         id: a.id,
         coverImage: a.cover_image || a.coverImage || '',
         content: a.content || [],
+        status: a.published ? 'published' : 'draft',
         date: a.date || a.created_at || new Date().toISOString()
       }));
       setArticles(normalized);

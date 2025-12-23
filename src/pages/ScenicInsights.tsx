@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { Calendar, ArrowRight } from 'lucide-react';
+import { supabase } from '../utils/supabase/client';
+import { BlogCard } from '../components/shared/BlogCard';
+import { BookOpen } from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
 import { useTheme } from '../components/ThemeProvider';
+import { motion } from 'motion/react';
 
 interface ArticleItem {
   id: string;
@@ -40,43 +41,42 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        
         // Fetch categories
-        const categoriesResponse = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/categories/articles`,
-          {
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-          }
-        );
+        const { data: categoriesData, error: catError } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('type', 'articles')
+          .order('display_order');
 
-        if (categoriesResponse.ok) {
-          try {
-            const categoriesData = await categoriesResponse.json();
-            if (categoriesData.success && categoriesData.categories) {
-              setCategories(categoriesData.categories);
-            }
-          } catch (jsonError) {
-            console.warn('❌ Failed to parse categories response as JSON');
-          }
+        if (!catError && categoriesData) {
+          setCategories(categoriesData);
         }
 
         // Fetch articles
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/posts`,
-          {
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-          }
-        );
+        const { data: articlesData, error: _artError } = await supabase
+          .from('articles')
+          .select('*')
+          .eq('published', true)
+          .order('published_at', { ascending: false });
 
-        if (response.ok) {
-          const data = await response.json();
-          // API returns { success: true, posts: [...] }
-          const articlesData = data.posts || data || [];
+        if (articlesData) {
+          // Map database fields to frontend interface
+          const mappedArticles: ArticleItem[] = articlesData.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            date: item.published_at || item.created_at, // Prioritize published_at
+            category: item.category || 'Article',
+            coverImage: item.cover_image || item.coverImage,
+            coverImageFocalPoint: item.cover_image_focal_point,
+            excerpt: item.excerpt,
+            slug: item.slug,
+            tags: item.tags || [],
+            readTime: '5 min read', // TODO: Calculate or store read time
+          }));
           
-          setArticles(articlesData);
+          setArticles(mappedArticles);
         }
       } catch (err) {
         console.error('Failed to load articles:', err);
@@ -88,10 +88,19 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
     fetchData();
   }, []);
 
-  // Build filter options
-  const categoryOptions = categories.length > 0
-    ? ['all', ...categories.map(cat => cat.name)]
-    : ['all', ...Array.from(new Set(articles.map(item => item.category)))];
+  // Build filter options - DEDUPLICATED
+  // Combine categories from DB and unique categories found in articles
+  const availableCategories = new Set<string>();
+  
+  // Add categories from DB
+  categories.forEach(cat => availableCategories.add(cat.name));
+  
+  // Add categories used in articles (in case some aren't in the categories table)
+  articles.forEach(item => {
+    if (item.category) availableCategories.add(item.category);
+  });
+
+  const categoryOptions = ['all', ...Array.from(availableCategories).sort()];
 
   const filteredArticles = articles.filter(item => {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
@@ -106,10 +115,10 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
           <Skeleton variant="text" width="200px" height="1rem" className="mb-4" />
           <Skeleton variant="text" width="400px" height="2.5rem" className="mb-6" />
         </div>
-        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
              <div key={i} className="space-y-4">
-               <Skeleton variant="rectangular" width="100%" height="240px" className="rounded-2xl" />
+               <Skeleton variant="rectangular" width="100%" height="200px" className="rounded-2xl" />
                <Skeleton variant="text" width="60%" height="1.5rem" />
                <Skeleton variant="text" width="100%" height="1rem" />
              </div>
@@ -129,7 +138,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
         <div className="font-pixel text-xs tracking-[0.3em] text-foreground/60 mb-4">
           SCENIC INSIGHTS
         </div>
-        <h1 className="font-serif italic text-5xl md:text-7xl mb-6">Journal</h1>
+        <h1 className="font-serif italic text-5xl md:text-7xl mb-6">Articles</h1>
         <p className="text-foreground/70 text-lg max-w-2xl">
           Thoughts on design, technology, and the creative process in scenic design.
         </p>
@@ -167,83 +176,43 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
       </div>
 
       {/* Grid */}
-      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="max-w-[1400px] mx-auto">
         {filteredArticles.length === 0 ? (
-          <div className="col-span-full text-center py-24">
+          <div className="text-center py-24">
              <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl p-12 inline-block">
-              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-40" />
+              <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-40" />
               <p className="font-pixel text-sm tracking-wider opacity-60">NO ARTICLES FOUND</p>
             </div>
           </div>
         ) : (
-          filteredArticles.map((article) => (
-            <button
-              key={article.id}
-              onClick={() => onNavigate(`scenic-insights/${article.slug || article.id}`)}
-              className="group text-left"
-            >
-              <div className="bg-neutral-500/10 backdrop-blur-md border border-neutral-500/20 rounded-3xl overflow-hidden hover:border-neutral-500/40 transition-all duration-300 h-full flex flex-col">
-                {/* Image */}
-                <div className="relative aspect-[3/2] overflow-hidden bg-neutral-500/5">
-                  {article.coverImage ? (
-                    <ImageWithFallback
-                      src={article.coverImage}
-                      alt={article.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      style={{
-                        objectPosition: article.coverImageFocalPoint
-                          ? `${article.coverImageFocalPoint.x}% ${article.coverImageFocalPoint.y}%`
-                          : 'center center'
-                      }}
-                    />
-                  ) : (
-                     <div className="w-full h-full flex items-center justify-center bg-neutral-800">
-                        <Calendar className="w-12 h-12 opacity-20" />
-                     </div>
-                  )}
-                  {/* Category Badge */}
-                  <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-md border border-neutral-500/20 rounded-full px-3 py-1">
-                    <span className="font-pixel text-[10px] tracking-wider text-foreground">
-                      {article.category?.toUpperCase() || 'ARTICLE'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-6 flex-1 flex flex-col">
-                  <div className="flex items-center gap-2 mb-3 text-xs text-foreground/60">
-                     <Calendar className="w-3 h-3" />
-                     <span>{new Date(article.date).toLocaleDateString()}</span>
-                     {article.readTime && (
-                       <>
-                         <span>•</span>
-                         <span>{article.readTime}</span>
-                       </>
-                     )}
-                  </div>
-                  
-                  <h3 className="font-serif text-2xl mb-3 group-hover:text-foreground/80 transition-colors">
-                    {article.title}
-                  </h3>
-                  
-                  {article.excerpt && (
-                    <p className="text-sm text-foreground/60 line-clamp-3 mb-4 flex-1">
-                      {article.excerpt}
-                    </p>
-                  )}
-
-                  <div className="mt-4 flex items-center gap-2 text-xs font-pixel tracking-[0.2em] text-foreground/70 group-hover:text-foreground group-hover:gap-3 transition-all pt-4 border-t border-white/5">
-                    <span>READ ARTICLE</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </div>
-                </div>
-              </div>
-            </button>
-          ))
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {filteredArticles.map((article, index) => (
+              <motion.div
+                key={article.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+                className="aspect-[3/4] w-full"
+              >
+                <BlogCard
+                  title={article.title}
+                  excerpt={article.excerpt}
+                  date={new Date(article.date).toLocaleDateString()}
+                  category={article.category}
+                  readTime={article.readTime}
+                  image={article.coverImage}
+                  focusPoint={article.coverImageFocalPoint}
+                  onClick={() => onNavigate(`scenic-insights/${article.slug || article.id}`)}
+                  index={index}
+                  variant="nothing"
+                />
+              </motion.div>
+            ))}
+          </div>
         )}
       </div>
     </div>
   );
-// ...
 }
 
 export default ScenicInsights;
