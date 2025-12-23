@@ -1,7 +1,7 @@
 -- Merge duplicates: Update 'clean slug' rows with content from 'timestamp slug' rows matching by Title
 UPDATE articles
 SET content = source.content,
-    blocks = source.blocks
+    cover_image = source.cover_image
 FROM articles AS source
 WHERE articles.title = source.title
   AND articles.slug != source.slug
