@@ -487,10 +487,22 @@ app.get("/make-server-74296234/api/news", async (c: any) => {
 });
 
 app.get("/make-server-74296234/api/news/:slug", async (c: any) => {
-  const { data, error } = await supabase.from("news").select("*").eq(
-    "slug",
-    c.req.param("slug"),
-  ).single();
+  const param = c.req.param("slug");
+  const isUUID =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      param,
+    );
+
+  const query = supabase.from("news").select("*");
+
+  if (isUUID) {
+    query.eq("id", param);
+  } else {
+    query.eq("slug", param);
+  }
+
+  const { data, error } = await query.single();
+
   if (error) return c.json({ error: error.message }, 404);
   return c.json(data);
 });

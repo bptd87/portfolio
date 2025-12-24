@@ -100,11 +100,12 @@ export function BlogCard({
           {/* Full Background Image */}
           <div className="absolute inset-0">
             {image ? (
-              <ImageWithFallback
+              <img
                 src={image}
                 alt={title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                style={{ objectPosition }}
+                style={{ objectPosition, width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => console.error('BlogCard Image Error:', image, e)}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-black/40 text-white/10">
@@ -186,10 +187,12 @@ export function BlogCard({
           {/* Image */}
           <div className="relative aspect-[16/9] md:aspect-[3/2] overflow-hidden bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
             {image ? (
-              <ImageWithFallback
+              <img
                 src={image}
                 alt={title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => console.error('BlogCard Featured Image Error:', image, e)}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-black/20 dark:text-white/20">
@@ -246,10 +249,12 @@ export function BlogCard({
       {/* Image */}
       <div className="relative aspect-[3/2] overflow-hidden bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 mb-6">
         {image ? (
-          <ImageWithFallback
+          <img
             src={image}
             alt={title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={(e) => console.error('BlogCard Default Image Error:', image, e)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-black/20 dark:text-white/20">

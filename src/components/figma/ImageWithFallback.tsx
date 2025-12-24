@@ -115,6 +115,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     optimize,
     focusPoint,
     responsive = false,
+    priority, // Destructure priority so it's not in rest
     onLoad,
     ...rest
   } = props
@@ -230,7 +231,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   const imageSrc = (!lazy || isInView || hasLoadedOnce) ? (optimizedSrc || src || null) : BLUR_PLACEHOLDER
 
   // LCP Optimization: If priority is true, show immediately without transition
-  const isPriority = props.priority;
+  const isPriority = priority;
   const showTransition = !isPriority;
   const fetchPriority = isPriority ? 'high' : 'auto';
 

@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Layout, Image, FileText, Search } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 // import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { createClient } from '../../utils/supabase/client';
 import { ImageUploader, ImageGalleryManager } from './ImageUploader';
@@ -10,7 +11,7 @@ import { ArticleSEOTools } from './ArticleSEOTools';
 import { FocusPointPicker } from './FocusPointPicker';
 import { SquarespaceImporter } from './SquarespaceImporter';
 import { useCategories } from '../../hooks/useCategories';
-import { SaveButton, CancelButton } from './AdminButtons';
+import { SaveButton } from './AdminButtons';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
 import { Select } from './ui/Select';
@@ -66,14 +67,7 @@ const articleSchema = z.object({
 
 type ArticleFormData = z.infer<typeof articleSchema>;
 
-const TABS = [
-  { key: 'content', label: 'Content', icon: FileText },
-  { key: 'basic', label: 'Basic Info', icon: Layout },
-  { key: 'media', label: 'Media', icon: Image },
-  { key: 'seo', label: 'SEO & Metadata', icon: Search },
-] as const;
 
-type TabKey = typeof TABS[number]["key"];
 
 // Collect potential image URLs from a variety of legacy fields
 const collectImageCandidates = (a: any): string[] => {
@@ -195,10 +189,17 @@ export function ArticleManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabKey>('content');
+  const [activeTab, setActiveTab] = useState<'write' | 'publishing' | 'media' | 'seo'>('write');
   const { categories } = useCategories();
   const autosaveTimer = useRef<number | undefined>(undefined);
   const [lastSavedAt, setLastSavedAt] = useState<string>('');
+
+  const TABS = [
+    { id: 'write', label: 'Write', icon: null },
+    { id: 'publishing', label: 'Publishing', icon: null },
+    { id: 'media', label: 'Media', icon: null },
+    { id: 'seo', label: 'SEO', icon: null },
+  ] as const;
 
   const methods = useForm<ArticleFormData>({
     resolver: zodResolver(articleSchema),
@@ -333,7 +334,7 @@ export function ArticleManager() {
     });
     setEditingId('new');
     setShowForm(true);
-    setActiveTab('content');
+    setActiveTab('write');
   };
 
   const handleEdit = (article: any) => {
@@ -357,7 +358,8 @@ export function ArticleManager() {
     });
     setEditingId(article.id);
     setShowForm(true);
-    setActiveTab('content');
+    setActiveTab('write');
+
     // Scroll to top of form
     setTimeout(() => {
       const formElement = document.querySelector('[data-article-form]');
@@ -377,30 +379,7 @@ export function ArticleManager() {
     setEditingId(null);
   };
 
-  const contentHtml = methods.watch('contentHtml' as any) || '';
-  const contentIssues = useMemo(() => {
-    const issues = { links: [] as string[], images: [] as string[] };
-    if (typeof window === 'undefined' || !contentHtml) return issues;
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(contentHtml, 'text/html');
-      doc.querySelectorAll('a').forEach((a) => {
-        const href = a.getAttribute('href') || '';
-        const valid = href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:') || href.startsWith('#');
-        if (!valid) issues.links.push(href || '(empty link)');
-      });
-      doc.querySelectorAll('img').forEach((img) => {
-        const alt = img.getAttribute('alt') || '';
-        const caption = img.getAttribute('title') || '';
-        if (!alt && !caption) {
-          issues.images.push(img.getAttribute('src') || '(missing src)');
-        }
-      });
-    } catch (err) {
-      console.warn('Content issue scan failed', err);
-    }
-    return issues;
-  }, [contentHtml]);
+
 
   const onSubmit = async (data: ArticleFormData) => {
     try {
@@ -512,72 +491,90 @@ export function ArticleManager() {
           </div>
         </>
       )}
-
-      {showForm ? (
+      {showForm && createPortal(
         <FormProvider {...methods}>
           <form
             data-article-form
             onSubmit={methods.handleSubmit(onSubmit)}
-            className="border border-zinc-700 bg-zinc-900 rounded-3xl flex flex-col"
-            style={{ minHeight: '600px', position: 'relative', zIndex: 1 }}
+            className="flex flex-col h-full fixed inset-0 overflow-hidden admin-force-dark"
+            style={{ zIndex: 99999, backgroundColor: '#09090b' }}
           >
             {/* Header */}
-            <div className="sticky top-0 z-[100] flex items-center justify-between p-4 border-b border-zinc-700 bg-zinc-900/95 backdrop-blur-sm">
-              <div className="flex items-center gap-4">
-                <h3 className="text-white font-medium text-base">
-                  {editingId === 'new' ? 'Create New Article' : 'Edit Article'}
-                </h3>
-                <div className="flex gap-1">
-                  {TABS.map((tab) => (
-                    <button
-                      key={tab.key}
-                      type="button"
-                      onClick={() => setActiveTab(tab.key)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium ${activeTab === tab.key
-                        ? 'bg-blue-600 text-white'
-                        : 'text-zinc-400 hover:bg-zinc-800'
-                        }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
+            <div 
+              className="shrink-0 border-b border-zinc-800 relative"
+              style={{ backgroundColor: '#09090b', zIndex: 10001 }}
+            >
+              <div className="flex items-center justify-between px-6 py-4">
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    aria-label="Go back"
+                    className="p-2 -ml-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <div>
+                    <h3 className="text-white font-medium text-lg">
+                      {editingId === 'new' ? 'New Article' : 'Edit Article'}
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs text-zinc-300">
+                      <span>{methods.watch('status') === 'published' ? 'Published' : 'Draft'}</span>
+                      {lastSavedAt && <span>• Saved {lastSavedAt}</span>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <SaveButton type="submit">
+                    {methods.watch('status') === 'published' ? 'Update & Publish' : 'Save Draft'}
+                  </SaveButton>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {lastSavedAt && (
-                  <span className="text-xs text-zinc-400">Last saved {lastSavedAt}</span>
-                )}
-                <CancelButton onClick={handleCancel}>Cancel</CancelButton>
-                <SaveButton type="submit">Save Changes</SaveButton>
+
+              {/* Tabs */}
+              <div className="flex items-center gap-6 px-6 overflow-x-auto">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? 'text-white border-white'
+                        : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 bg-zinc-900" style={{ minHeight: '400px' }}>
-              <div className="max-w-4xl mx-auto space-y-6">
-                {activeTab === 'content' ? (
-                  <div className="space-y-6">
-                    <Input name="title" label="Title" required />
-                    <Input name="slug" label="Slug" />
-                    <Textarea name="excerpt" label="Excerpt" required rows={4} />
-                    <div>
-                      <label className="block text-xs font-medium text-white mb-2">
-                        Body Content <span className="text-red-500">*</span>
-                      </label>
-                      {(contentIssues.links.length > 0 || contentIssues.images.length > 0) && (
-                        <div className="mb-3 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-1">
-                          {contentIssues.links.length > 0 && (
-                            <div>
-                              <strong className="text-amber-200">Links to fix:</strong> {contentIssues.links.slice(0, 3).join(', ')}{contentIssues.links.length > 3 ? '…' : ''}
-                            </div>
-                          )}
-                          {contentIssues.images.length > 0 && (
-                            <div>
-                              <strong className="text-amber-200">Images missing alt/caption:</strong> {contentIssues.images.slice(0, 3).join(', ')}{contentIssues.images.length > 3 ? '…' : ''}
-                            </div>
-                          )}
-                        </div>
-                      )}
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto bg-[#09090b]">
+              <div className="max-w-4xl mx-auto p-8">
+                
+                {/* WRITE TAB */}
+                <div className={activeTab === 'write' ? 'block' : 'hidden'}>
+                  <div className="space-y-8">
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="Article Title"
+                        className="w-full bg-transparent text-4xl font-bold text-white placeholder-zinc-600 border-none outline-none focus:ring-0 p-0"
+                        {...methods.register('title')}
+                      />
+                      <div className="flex items-center gap-2 text-sm text-zinc-500">
+                        <span className="shrink-0">slug:</span>
+                        <input
+                          type="text"
+                          className="bg-transparent border-none outline-none focus:ring-0 text-zinc-400 w-full hover:text-zinc-300 transition-colors"
+                          {...methods.register('slug')}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="min-h-[500px]">
                       <ProArticleEditor
                         initialBlocks={(() => {
                           const content = methods.watch('content');
@@ -585,42 +582,84 @@ export function ArticleManager() {
                         })()}
                         onChange={(blocks, html) => {
                           methods.setValue('content', blocks || [], { shouldDirty: true, shouldTouch: true });
-                          // Optionally keep raw HTML for future use
                           methods.setValue('contentHtml' as any, html, { shouldDirty: true, shouldTouch: true });
-
-                          // Auto-estimate read time when content changes
+                          
+                          // Auto-estimate read time
                           const excerpt = methods.getValues('excerpt') || '';
                           const estimated = estimateReadTime(blocks || [], excerpt);
                           if (estimated && methods.getValues('readTime') !== estimated) {
                             methods.setValue('readTime', estimated, { shouldDirty: true, shouldTouch: true });
                           }
                         }}
+                        placeholder="Tell your story..."
                       />
                     </div>
                   </div>
-                ) : activeTab === 'basic' ? (
-                  <div className="space-y-6">
-                    <Input name="title" label="Title" required />
-                    <div className="grid grid-cols-2 gap-6">
-                      <Select name="category" label="Category" required>
-                        {categories.articles.map(cat => (
-                          <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
-                      </Select>
-                      <Input name="date" label="Publication Date" type="date" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <Input name="readTime" label="Read Time" />
-                      <Select name="status" label="Status">
-                        <option value="draft">Draft</option>
-                        <option value="published">Published</option>
-                      </Select>
-                    </div>
-                    <Textarea name="excerpt" label="Excerpt" required rows={4} />
-                    <Checkbox name="featured" label="Featured Article" />
-                  </div>
-                ) : activeTab === 'media' ? (
-                  <div className="space-y-6">
+                </div>
+
+                {/* PUBLISHING TAB */}
+                <div className={activeTab === 'publishing' ? 'block space-y-8' : 'hidden'}>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-4">
+                        <h4 className="text-lg font-medium text-white">Status & Date</h4>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm text-zinc-400 mb-1">Status</label>
+                            <select
+                              className="w-full bg-zinc-950 border border-zinc-700 text-white rounded-lg px-3 py-2 outline-none focus:border-zinc-500"
+                              {...methods.register('status')}
+                            >
+                              <option value="draft">Draft</option>
+                              <option value="published">Published</option>
+                            </select>
+                          </div>
+
+                          <Input name="date" type="date" label="Publish Date" className="bg-zinc-950" />
+                          
+                          <div className="pt-2">
+                             <Checkbox name="featured" label="Featured Article" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-4">
+                        <h4 className="text-lg font-medium text-white">Organization</h4>
+                        <div className="space-y-4">
+                           <Select name="category" label="Category">
+                              {categories.articles.map(cat => (
+                                <option key={cat.id} value={cat.name}>{cat.name}</option>
+                              ))}
+                            </Select>
+                            
+                            <div className="space-y-2">
+                              <label className="text-sm text-zinc-400">Tags</label>
+                              <TagInput
+                                value={methods.watch('tags') || []}
+                                onChange={(tags) => methods.setValue('tags', tags)}
+                              />
+                            </div>
+                        </div>
+                      </div>
+                   </div>
+
+                   <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-4">
+                      <h4 className="text-lg font-medium text-white">Excerpt</h4>
+                      <p className="text-sm text-zinc-400">A short summary used on title cards and SEO.</p>
+                      <Textarea 
+                         name="excerpt" 
+                         label="Excerpt"
+                         rows={4} 
+                         className="bg-zinc-950" 
+                         placeholder="Write a short summary..."
+                      />
+                   </div>
+                </div>
+
+                {/* MEDIA TAB */}
+                <div className={activeTab === 'media' ? 'block space-y-8' : 'hidden'}>
+                   <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6">
+                    <h4 className="text-lg font-medium text-white">Featured Image</h4>
                     <ImageUploader
                       label="Cover Image"
                       value={methods.watch('coverImage')}
@@ -628,53 +667,60 @@ export function ArticleManager() {
                       bucketName="blog"
                     />
                     {methods.watch('coverImage') && (
-                      <FocusPointPicker
-                        imageUrl={methods.watch('coverImage') || ''}
-                        focusPoint={methods.watch('focusPoint')}
-                        onFocusPointChange={(point) => methods.setValue('focusPoint', point)}
-                      />
+                      <div className="pt-2">
+                        <label className="block text-sm text-zinc-400 mb-2">Focal Point</label>
+                        <FocusPointPicker
+                          imageUrl={methods.watch('coverImage') || ''}
+                          focusPoint={methods.watch('focusPoint')}
+                          onFocusPointChange={(point) => methods.setValue('focusPoint', point)}
+                        />
+                      </div>
                     )}
+                   </div>
+
+                   <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6">
+                    <h4 className="text-lg font-medium text-white">Gallery</h4>
                     <ImageGalleryManager
-                      label="Additional Images"
+                      label="Gallery Images"
                       images={methods.watch('images') || []}
                       onChange={(images) => methods.setValue('images', images)}
                     />
-                  </div>
-                ) : activeTab === 'seo' ? (
-                  <div className="space-y-6">
-                    <ArticleSEOTools
-                      title={methods.watch('title') || ''}
-                      excerpt={methods.watch('excerpt') || ''}
-                      content={(() => {
-                        const content = methods.watch('content');
-                        return Array.isArray(content) ? content : [];
-                      })()}
-                      currentTags={methods.watch('tags') || []}
-                      currentDescription={methods.watch('seoDescription') || ''}
-                      currentReadTime={methods.watch('readTime') || ''}
-                      onTagsGenerated={(tags) => methods.setValue('tags', tags)}
-                      onDescriptionGenerated={(desc) => methods.setValue('seoDescription', desc)}
-                      onReadTimeGenerated={(time) => methods.setValue('readTime', time)}
-                    />
-                    <TagInput
-                      label="Tags"
-                      value={methods.watch('tags') || []}
-                      onChange={(tags) => methods.setValue('tags', tags)}
-                    />
-                    <Textarea name="seoDescription" label="SEO Meta Description" rows={4} />
-                  </div>
-                ) : (
-                  <div className="p-8 bg-red-500/20 border-2 border-red-500 rounded-lg">
-                    <p className="text-red-300 font-bold">ERROR: No tab matched!</p>
-                    <p className="text-red-200 text-sm mt-2">activeTab = "{activeTab}"</p>
-                    <p className="text-red-200 text-xs mt-1">Expected: content, basic, media, or seo</p>
-                  </div>
-                )}
+                   </div>
+                </div>
+
+                {/* SEO TAB */}
+                <div className={activeTab === 'seo' ? 'block space-y-8' : 'hidden'}>
+                   <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6">
+                      <h4 className="text-lg font-medium text-white">SEO Settings</h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Input name="seoTitle" label="Meta Title" placeholder={methods.watch('title')} />
+                        <Input name="readTime" label="Read Time" />
+                      </div>
+                      <Textarea name="seoDescription" label="Meta Description" rows={3} />
+                   </div>
+
+                   <ArticleSEOTools
+                    title={methods.watch('title') || ''}
+                    excerpt={methods.watch('excerpt') || ''}
+                    content={(() => {
+                       const content = methods.watch('content');
+                       return Array.isArray(content) ? content : [];
+                    })()}
+                    currentTags={methods.watch('tags') || []}
+                    currentDescription={methods.watch('seoDescription') || ''}
+                    currentReadTime={methods.watch('readTime') || ''}
+                    onTagsGenerated={(tags) => methods.setValue('tags', tags)}
+                    onDescriptionGenerated={(desc) => methods.setValue('seoDescription', desc)}
+                    onReadTimeGenerated={(time) => methods.setValue('readTime', time)}
+                  />
+                </div>
+
               </div>
             </div>
           </form>
         </FormProvider>
-      ) : null}
+      , document.body)}
     </div>
   );
 }

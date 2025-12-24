@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { supabase } from '../utils/supabase/client';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Calendar, ArrowRight } from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
@@ -29,55 +29,46 @@ export function News({ onNavigate }: NewsProps) {
   const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string; color?: string }>>([]);
 
   useEffect(() => {
+
+
     const fetchData = async () => {
       try {
-        // Fetch categories
-        const categoriesResponse = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/categories/news`,
-          {
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-          }
-        );
+        // Fetch categories directly from Supabase
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('type', 'news');
 
-        if (categoriesResponse.ok) {
-          try {
-            const categoriesData = await categoriesResponse.json();
-            if (categoriesData.success && categoriesData.categories) {
-              setCategories(categoriesData.categories);
-            }
-          } catch (jsonError) {
-            console.warn('❌ Failed to parse categories response as JSON');
-          }
+        if (!categoriesError && categoriesData) {
+           // Map if necessary, or just use as is if schema matches
+           // The API was returning { categories: [...] }, here we get array directly
+           setCategories(categoriesData.map((c: any) => ({
+             id: c.id, 
+             name: c.name, 
+             slug: c.slug, 
+             color: c.color 
+           })));
         }
 
-        // Fetch news items
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/news`,
-          {
-            headers: {
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-          }
-        );
+        // Fetch news items directly from Supabase
+        const { data: newsData, error: newsError } = await supabase
+          .from('news')
+          .select('*')
+          .eq('published', true)
+          .order('date', { ascending: false });
 
-        if (response.ok) {
-          const data = await response.json();
-          // API returns { success: true, news: [...] }
-          const newsData = data.news || data || [];
+        if (!newsError && newsData) {
           // Map snake_case fields to camelCase for frontend
           const mapped = newsData.map((item: any) => ({
             ...item,
-            coverImage: item.cover_image || item.coverImage,
+            coverImage: item.cover_image, // Direct access, no need for fallbacks from API
+            slug: item.slug || item.id,
+            tags: item.tags || [],
           }));
-          const sorted = mapped.sort((a: NewsItem, b: NewsItem) =>
-            new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
-          setNewsItems(sorted);
-        } else {
+          setNewsItems(mapped);
         }
       } catch (err) {
+        console.error('Error fetching news:', err);
       } finally {
         setLoading(false);
       }
@@ -155,6 +146,8 @@ export function News({ onNavigate }: NewsProps) {
     >
       {/* Header */}
       <div className="max-w-[1400px] mx-auto mb-12 w-full">
+
+
         <div className="font-pixel text-xs tracking-[0.3em] text-foreground/60 mb-4">
           NEWS & UPDATES
         </div>
@@ -295,7 +288,7 @@ export function News({ onNavigate }: NewsProps) {
                             {/* Image */}
                             {article.coverImage ? (
                               <div className="relative aspect-[16/10] overflow-hidden bg-neutral-500/5">
-                                <ImageWithFallback
+                                <img
                                   src={article.coverImage}
                                   alt={article.title}
                                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -304,6 +297,7 @@ export function News({ onNavigate }: NewsProps) {
                                       ? `${article.coverImageFocalPoint.x}% ${article.coverImageFocalPoint.y}%`
                                       : 'center center'
                                   }}
+                                  onError={(e) => console.error('News Timeline Image Error:', article.coverImage, e)}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/0 to-background/0" />
 

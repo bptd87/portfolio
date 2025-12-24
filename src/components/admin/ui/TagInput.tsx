@@ -42,21 +42,21 @@ export function TagInput({
     return (
         <div className={className}>
             {label && (
-                <label className="block text-sm font-medium text-gray-200 mb-2">
+                <label className="block text-sm font-medium text-zinc-400 mb-2">
                     {label}
                 </label>
             )}
-            <div className="flex flex-wrap gap-2 p-2 bg-secondary/30 border border-input rounded-lg focus-within:ring-1 focus-within:ring-ring focus-within:border-accent-brand">
+            <div className="flex flex-wrap gap-2 p-2 bg-zinc-900 border border-zinc-700 rounded-lg focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
                 {value.map((tag, index) => (
                     <span
                         key={index}
-                        className="flex items-center gap-1 px-2 py-1 bg-accent-brand/20 text-accent-brand text-xs font-medium rounded-full border border-accent-brand/30"
+                        className="flex items-center gap-1 px-2 py-1 bg-zinc-800 text-zinc-100 text-xs font-medium rounded-full border border-zinc-600"
                     >
                         {tag}
                         <button
                             type="button"
                             onClick={() => removeTag(index)}
-                            className="hover:text-white transition-colors focus:outline-none"
+                            className="hover:text-white text-zinc-400 transition-colors focus:outline-none"
                             title="Remove tag"
                             aria-label="Remove tag"
                         >
@@ -72,11 +72,11 @@ export function TagInput({
                         onKeyDown={handleKeyDown}
                         onBlur={addTag}
                         placeholder={value.length === 0 ? placeholder : ""}
-                        className="w-full bg-transparent border-none focus:outline-none text-sm p-0 placeholder:text-muted-foreground"
+                        className="w-full bg-transparent border-none focus:outline-none text-sm p-0 placeholder:text-zinc-500 text-zinc-100"
                     />
                 </div>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">
+            <p className="text-[10px] text-zinc-500 mt-1.5 ml-1">
                 Press Enter or comma to add. Backspace to remove.
             </p>
         </div>

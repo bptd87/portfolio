@@ -417,8 +417,11 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
   };
 
   return (
-    <div className="flex flex-col space-y-3 w-full">
-      <div className="sticky top-0 z-10 bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex flex-wrap gap-2">
+    <div className="flex flex-col space-y-3 w-full text-zinc-100">
+      <div 
+        className="sticky top-0 z-50 bg-[#09090b] opacity-100 isolate border border-zinc-700 rounded-xl p-3 flex flex-wrap gap-2 shadow-lg"
+        style={{ position: 'sticky', top: 0, backgroundColor: '#09090b' }}
+      >
         {toolbarButton('', () => editor.chain().focus(false).undo().run(), <Undo2 className="w-4 h-4" />)}
         {toolbarButton('', () => editor.chain().focus(false).redo().run(), <Redo2 className="w-4 h-4" />)}
         {toolbarButton('', () => editor.chain().focus(false).toggleHeading({ level: 2 }).run(), <Heading2 className="w-4 h-4" />, editor.isActive('heading', { level: 2 }))}
@@ -448,7 +451,7 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
 
       <div
         ref={editorContainerRef}
-        className="max-h-[70vh] min-h-[60vh] overflow-y-auto bg-zinc-900 border border-zinc-700 rounded-xl flex flex-col"
+        className="min-h-[500px] bg-zinc-900 border border-zinc-700 rounded-xl flex flex-col prose prose-invert prose-zinc max-w-none text-zinc-100"
         onDragOver={(e) => {
           if (e.dataTransfer?.files?.length) e.preventDefault();
         }}
@@ -463,7 +466,7 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
           }
         }}
       >
-        <EditorContent editor={editor} className="p-4 tiptap-editor flex-1 h-full" />
+        <EditorContent editor={editor} className="p-4 tiptap-editor flex-1 text-white [&_.ProseMirror]:text-zinc-100 [&_.ProseMirror_p]:text-zinc-100 [&_.ProseMirror_h1]:text-white [&_.ProseMirror_h2]:text-white [&_.ProseMirror_h3]:text-white" />
       </div>
 
       <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2">
@@ -614,19 +617,10 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
         .tiptap-editor {
           min-height: 480px;
           color: white;
-          scroll-behavior: auto;
-        }
-        .tiptap-editor {
-          display: flex;
-          flex-direction: column;
-          height: 100%;
         }
         .tiptap-editor .ProseMirror {
           outline: none;
-          flex: 1;
-          min-height: 100%;
-          max-height: 100%;
-          overflow-y: auto;
+          min-height: 480px;
         }
         .tiptap-editor h2 {
           font-size: 1.875rem;
