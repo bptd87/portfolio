@@ -157,12 +157,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/alls-well-that-ends-well</loc>
-    <lastmod>2025-12-14T11:00:05.322Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://brandonptdavis.com/project/guys-on-ice</loc>
     <lastmod>2025-12-14T11:00:04.765Z</lastmod>
     <changefreq>monthly</changefreq>
@@ -175,20 +169,38 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/romero</loc>
-    <lastmod>2025-12-14T11:00:04.972Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://brandonptdavis.com/project/bell-book-and-candle</loc>
     <lastmod>2025-12-14T11:00:05.476Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://brandonptdavis.com/project/romero</loc>
+    <lastmod>2025-12-14T11:00:04.972Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://brandonptdavis.com/project/alls-well-that-ends-well</loc>
+    <lastmod>2025-12-14T11:00:05.322Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://brandonptdavis.com/project/new-swan-venue-file</loc>
+    <lastmod>2025-12-14T11:02:00.269Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://brandonptdavis.com/project/freaky-friday</loc>
     <lastmod>2025-12-14T11:00:04.197Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://brandonptdavis.com/project/scenic-models</loc>
+    <lastmod>2025-12-14T11:00:04.677Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -205,20 +217,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/scenic-models</loc>
-    <lastmod>2025-12-14T11:00:04.677Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://brandonptdavis.com/project/barefoot-in-the-park</loc>
     <lastmod>2025-12-14T11:00:04.892Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://brandonptdavis.com/project/new-swan-venue-file</loc>
-    <lastmod>2025-12-14T11:02:00.269Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -229,14 +229,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/the-merry-wives-of-windsor</loc>
-    <lastmod>2025-12-14T11:00:04.329Z</lastmod>
+    <loc>https://brandonptdavis.com/project/a-funny-thing-happened</loc>
+    <lastmod>2025-12-14T11:00:04.549Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/a-funny-thing-happened</loc>
-    <lastmod>2025-12-14T11:00:04.549Z</lastmod>
+    <loc>https://brandonptdavis.com/project/the-merry-wives-of-windsor</loc>
+    <lastmod>2025-12-14T11:00:04.329Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -247,14 +247,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/an-inspector-calls</loc>
-    <lastmod>2025-12-14T11:00:05.242Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://brandonptdavis.com/project/park-and-shop</loc>
-    <lastmod>2025-12-14T11:00:04.150Z</lastmod>
+    <loc>https://brandonptdavis.com/project/tomas-and-the-library-lady</loc>
+    <lastmod>2025-12-14T11:00:05.024Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -265,20 +259,20 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/tomas-and-the-library-lady</loc>
-    <lastmod>2025-12-14T11:00:05.024Z</lastmod>
+    <loc>https://brandonptdavis.com/project/park-and-shop</loc>
+    <lastmod>2025-12-14T11:00:04.150Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://brandonptdavis.com/project/an-inspector-calls</loc>
+    <lastmod>2025-12-14T11:00:05.242Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://brandonptdavis.com/project/ashes-of-the-underworld</loc>
     <lastmod>2025-12-14T11:02:00.143Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://brandonptdavis.com/project/the-penelopiad</loc>
-    <lastmod>2025-12-14T11:00:04.454Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -295,14 +289,20 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/company</loc>
-    <lastmod>2025-12-14T11:00:05.362Z</lastmod>
+    <loc>https://brandonptdavis.com/project/the-penelopiad</loc>
+    <lastmod>2025-12-14T11:00:04.454Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/parliament-square</loc>
-    <lastmod>2025-12-14T11:00:05.402Z</lastmod>
+    <loc>https://brandonptdavis.com/project/red-line-caf</loc>
+    <lastmod>2025-12-14T11:00:05.151Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://brandonptdavis.com/project/company</loc>
+    <lastmod>2025-12-14T11:00:05.362Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -313,8 +313,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://brandonptdavis.com/project/red-line-caf</loc>
-    <lastmod>2025-12-14T11:00:05.151Z</lastmod>
+    <loc>https://brandonptdavis.com/project/parliament-square</loc>
+    <lastmod>2025-12-14T11:00:05.402Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

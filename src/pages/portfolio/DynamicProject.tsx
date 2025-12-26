@@ -8,6 +8,7 @@ import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { ExperientialTemplate } from './ExperientialTemplate';
 import { RenderingTemplate } from './RenderingTemplate';
 import { PageLoader } from '../../components/PageLoader';
+import { SEO } from '../../components/shared/SEO';
 
 interface Project {
   id: string;
@@ -24,6 +25,7 @@ interface Project {
   renderings?: Array<{ url: string; caption?: string }>;
   productionPhotos?: Array<{ url: string; caption?: string }>;
   credits: Array<{ role: string; name: string }>;
+  designNotes?: string[];
   views?: number;
   likes?: number;
 }
@@ -380,6 +382,22 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
         {/* SCENIC DESIGN / OTHER TEMPLATES */}
         {project.category !== 'Experiential Design' && project.category !== 'Rendering & Visualization' && project.category !== 'Rendering' && (
           <>
+            {/* Design Notes Section */}
+            {project.designNotes && project.designNotes.length > 0 && (
+              <section className="mb-20 md:mb-24">
+                <div className="mb-10">
+                  <h2 className="text-sm tracking-wider text-black/40 dark:text-white/40 mb-4 uppercase">Project Notes</h2>
+                  <div className="space-y-6 max-w-3xl">
+                    {project.designNotes.map((note, index) => (
+                      <p key={index} className="text-lg text-black/80 dark:text-white/80 leading-relaxed">
+                        {note}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )} 
+            
             {/* Credits Section */}
             {project.credits && project.credits.length > 0 && (
               <section className="mb-20 md:mb-24">

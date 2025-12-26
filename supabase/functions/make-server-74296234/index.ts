@@ -107,6 +107,7 @@ app.get("/make-server-74296234/api/projects", async (c: any) => {
     ...item,
     coverImage: item.cover_image || item.coverImage,
     cardImage: item.card_image || item.cardImage,
+    designNotes: item.design_notes || item.designNotes,
   }));
 
   return c.json({ success: true, projects: mapped });
@@ -121,6 +122,7 @@ app.get("/make-server-74296234/api/projects/:slug", async (c: any) => {
     ...data,
     coverImage: data.cover_image || data.coverImage,
     cardImage: data.card_image || data.cardImage,
+    designNotes: data.design_notes || data.designNotes,
   };
 
   return c.json({ success: true, project: mapped });
