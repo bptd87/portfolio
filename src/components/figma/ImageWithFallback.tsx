@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useImageMetadata } from '../../hooks/useImageMetadata';
+import { generateResponsiveSrcset } from '../../utils/supabase-image-optimizer';
 
 const ERROR_IMG_SRC =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg=='
@@ -216,12 +217,10 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
 
   // Image optimization is temporarily disabled - using original src directly
 
-  // TEMPORARILY DISABLED: Responsive srcset
-  // const { srcset, sizes } = responsive && isSupabaseStorageUrl(src || '')
-  //   ? generateResponsiveSrcset(src, [400, 800, 1200, 1600], { quality: 85, format: 'webp', focus: focusPoint })
-  //   : { srcset: undefined, sizes: undefined };
-  const srcset = undefined;
-  const sizes = undefined;
+  // Responsive srcset generation
+  const { srcset, sizes } = responsive && isSupabaseStorageUrl(src || '')
+    ? generateResponsiveSrcset(src!, [400, 800, 1200, 1600], { quality: 80, format: 'webp', focus: focusPoint })
+    : { srcset: undefined, sizes: undefined };
 
   const optimizedSrc = src ? buildOptimizedSupabaseUrl(src, optimize) : null
 

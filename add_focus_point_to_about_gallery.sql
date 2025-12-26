@@ -1,0 +1,3 @@
+ALTER TABLE about_gallery 
+ADD COLUMN IF NOT EXISTS focus_x integer DEFAULT 50,
+ADD COLUMN IF NOT EXISTS focus_y integer DEFAULT 50;

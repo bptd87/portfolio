@@ -4,7 +4,6 @@ import { ArticleAuthor } from '../../components/shared/ArticleAuthor';
 import { BlockRenderer, ContentBlock } from '../../components/shared/BlockRenderer';
 import { BlogCard } from '../../components/shared/BlogCard';
 import { supabase } from '../../utils/supabase/client';
-import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { LikeButton } from '../../components/shared/LikeButton';
 import { ShareButton } from '../../components/shared/ShareButton';
 import { Eye } from 'lucide-react';
@@ -502,16 +501,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
               crossOrigin="anonymous"
             />
 
-            {/* Back Button - Top Left */}
-            <div className="absolute top-6 left-6 z-50">
-              <button
-                onClick={() => onNavigate('scenic-insights')}
-                className="group flex items-center gap-3 px-6 py-3 backdrop-blur-xl bg-black/40 hover:bg-black/60 border border-white/10 rounded-full transition-all text-white cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="font-pixel text-[10px] tracking-[0.2em]">BACK</span>
-              </button>
-            </div>
+
           </section>
 
           {/* Article Header - Below Image */}
@@ -580,15 +570,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
         <>
           {/* Article Header - No Image Version */}
           <div className="max-w-4xl mx-auto px-6 md:px-12 pt-24 pb-8">
-            {/* Back Button */}
-            <button
-              type="button"
-              onClick={() => onNavigate('articles')}
-              className="group flex items-center gap-3 px-6 py-3 mb-8 bg-black dark:bg-white text-white dark:text-black rounded-full transition-all cursor-pointer hover:gap-4"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-pixel text-[10px] tracking-[0.2em]">BACK</span>
-            </button>
+
 
             {/* Meta row with share buttons */}
             <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
@@ -633,7 +615,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       {/* Article Content */}
       <article className={`max-w-4xl mx-auto px-6 md:px-12 ${article.coverImage && article.coverImage.trim() !== '' ? 'pt-12 pb-16' : 'py-16 md:py-24'}`}>
         {/* Article Content - Clean magazine layout */}
-        <div className="prose-custom-wrapper">
+        <div className="prose-custom-wrapper text-justify">
           <BlockRenderer blocks={article.content || []} accentColor={article.categoryColor} />
         </div>
 

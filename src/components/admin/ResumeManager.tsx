@@ -52,7 +52,7 @@ export function ResumeManager() {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('site_configuration')
         .select('value')
         .eq('key', 'site_settings')
@@ -844,15 +844,17 @@ export function ResumeManager() {
 
             <div className="space-y-4">
               <div>
-                <label className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
+                <label htmlFor="resume-pdf-upload" className={`block text-xs tracking-wider uppercase ${AdminTokens.text.secondary} mb-2`}>
                   Resume File (PDF only, max 10MB)
                 </label>
                 <input
+                  id="resume-pdf-upload"
                   type="file"
                   accept=".pdf"
                   onChange={handleFileUpload}
                   disabled={uploading}
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-2xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:tracking-wider file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:transition-colors disabled:opacity-50"
+                  aria-label="Upload Resume PDF"
                 />
               </div>
 

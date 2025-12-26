@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Calendar, ArrowRight } from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
 import { useTheme } from '../components/ThemeProvider';
@@ -90,15 +89,7 @@ export function News({ onNavigate }: NewsProps) {
     return matchesCategory && matchesYear;
   });
 
-  // Format date helper
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+
 
   if (loading) {
     return (
@@ -337,7 +328,7 @@ export function News({ onNavigate }: NewsProps) {
 
                               {/* Excerpt */}
                               {article.excerpt && (
-                                <p className="text-sm text-foreground/60 line-clamp-3 mb-4">
+                                <p className="text-sm text-foreground/60 line-clamp-3 mb-4 text-justify">
                                   {article.excerpt}
                                 </p>
                               )}

@@ -8,11 +8,155 @@
  * deno run --allow-net --allow-env migrate-kv-to-sql.ts
  */
 
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+interface NewsItem {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  date?: string; // or Date
+  published?: boolean;
+  category?: string;
+  coverImage?: string;
+  cover_image?: string;
+  location?: string;
+  link?: string;
+  tags?: string[];
+  blocks?: any[]; // Keep any for blocks as structure varies
+  images?: string[];
+  created_at?: string;
+}
+
+interface Tutorial {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  category?: string;
+  cover_image?: string;
+  publish_date?: string;
+  duration?: string;
+  difficulty?: string;
+  tags?: string[];
+  created_at?: string;
+}
+
+interface Collaborator {
+  id: string;
+  name: string;
+  role?: string;
+  bio?: string;
+  image?: string;
+  website?: string;
+  social_links?: Record<string, string>;
+  featured?: boolean;
+  created_at?: string;
+}
+
+interface BioLink {
+  id: string;
+  title: string;
+  url: string;
+  icon?: string;
+  order?: number;
+  active?: boolean;
+}
+
+interface DirectoryCategory {
+  id?: string;
+  slug?: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  order?: number;
+}
+
+interface DirectoryLink {
+  id?: string;
+  title: string;
+  url: string;
+  description?: string;
+  category: string;
+  enabled?: boolean;
+  order?: number;
+}
+
+interface Project {
+  id: string;
+  slug: string;
+  title: string;
+  category?: string;
+  type?: string;
+  year?: string;
+  venue?: string;
+  client?: string;
+  clientName?: string;
+  coverImage?: string;
+  cover_image?: string;
+  cardImage?: string;
+  card_image?: string;
+  description?: string;
+  projectOverview?: string;
+  project_overview?: string;
+  designNotes?: string;
+  design_notes?: string;
+  softwareUsed?: string[];
+  software_used?: string[];
+  videoUrls?: string[];
+  video_urls?: string[];
+  published?: boolean;
+  created_at?: string;
+}
+
+interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  category?: string;
+  coverImage?: string;
+  cover_image?: string;
+  date?: string;
+  publish_date?: string;
+  tags?: string[];
+  published?: boolean;
+  created_at?: string;
+}
+
+interface VaultCategory {
+  id: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  created_at?: string;
+}
+
+interface VaultAsset {
+  id: string;
+  name: string;
+  description?: string;
+  categoryId?: string;
+  category_id?: string;
+  assetType?: string;
+  asset_type?: string;
+  thumbnailUrl?: string;
+  thumbnail_url?: string;
+  fileUrl?: string;
+  file_url?: string;
+  fileSize?: number;
+  file_size?: number;
+  downloads?: number;
+  enabled?: boolean;
+  created_at?: string;
+}
 
 async function migrateKVToSQL() {
   console.log("🚀 Starting KV to SQL migration...\n");
@@ -25,7 +169,7 @@ async function migrateKVToSQL() {
     const newsEntries = kv.list({ prefix: ["news"] });
     let newsCount = 0;
     for await (const entry of newsEntries) {
-      const newsItem = entry.value as any;
+      const newsItem = entry.value as NewsItem;
       const { error } = await supabase.from("news").upsert({
         id: newsItem.id,
         slug: newsItem.slug,
@@ -60,7 +204,7 @@ async function migrateKVToSQL() {
     const tutorialEntries = kv.list({ prefix: ["tutorials"] });
     let tutorialCount = 0;
     for await (const entry of tutorialEntries) {
-      const tutorial = entry.value as any;
+      const tutorial = entry.value as Tutorial;
       const { error } = await supabase.from("tutorials").upsert({
         id: tutorial.id,
         slug: tutorial.slug,
@@ -92,7 +236,7 @@ async function migrateKVToSQL() {
     const collaboratorEntries = kv.list({ prefix: ["collaborators"] });
     let collaboratorCount = 0;
     for await (const entry of collaboratorEntries) {
-      const collaborator = entry.value as any;
+      const collaborator = entry.value as Collaborator;
       const { error } = await supabase.from("collaborators").upsert({
         id: collaborator.id,
         name: collaborator.name,
@@ -120,7 +264,7 @@ async function migrateKVToSQL() {
     console.log("🔗 Migrating Bio Links...");
     const bioLinksEntry = await kv.get(["bio_links"]);
     if (bioLinksEntry.value) {
-      const links = bioLinksEntry.value as any[];
+      const links = bioLinksEntry.value as BioLink[];
       let linkCount = 0;
       for (const link of links) {
         const { error } = await supabase.from("bio_links").upsert({
@@ -177,7 +321,7 @@ async function migrateKVToSQL() {
     const categoryEntries = kv.list({ prefix: ["directory_categories"] });
     let dirCatCount = 0;
     for await (const entry of categoryEntries) {
-      const cat = entry.value as any;
+      const cat = entry.value as DirectoryCategory;
       const { error } = await supabase.from("directory_categories").upsert({
         // id: cat.id, // Let SQL generate UUID if not present, or preserve if exists
         slug: cat.slug || cat.id, // Fallback if slug missing
@@ -201,7 +345,7 @@ async function migrateKVToSQL() {
     const linkEntries = kv.list({ prefix: ["directory_links"] });
     let dirLinkCount = 0;
     for await (const entry of linkEntries) {
-      const link = entry.value as any;
+      const link = entry.value as DirectoryLink;
       const { error } = await supabase.from("directory_links").upsert({
         // id: link.id,
         title: link.title,
@@ -229,7 +373,7 @@ async function migrateKVToSQL() {
     const projectEntries = kv.list({ prefix: ["projects"] });
     let projectCount = 0;
     for await (const entry of projectEntries) {
-      const p = entry.value as any;
+      const p = entry.value as Project;
       const { error } = await supabase.from("portfolio_projects").upsert({
         id: p.id,
         slug: p.slug,
@@ -267,7 +411,7 @@ async function migrateKVToSQL() {
     const postEntries = kv.list({ prefix: ["posts"] });
     let postCount = 0;
     for await (const entry of postEntries) {
-      const p = entry.value as any;
+      const p = entry.value as Article;
       const { error } = await supabase.from("articles").upsert({
         id: p.id,
         slug: p.slug,
@@ -299,7 +443,7 @@ async function migrateKVToSQL() {
     const vaultCatEntries = kv.list({ prefix: ["vault_categories"] });
     let vaultCatCount = 0;
     for await (const entry of vaultCatEntries) {
-      const c = entry.value as any;
+      const c = entry.value as VaultCategory;
       const { error } = await supabase.from("vault_categories").upsert({
         id: c.id,
         name: c.name,
@@ -322,7 +466,7 @@ async function migrateKVToSQL() {
     const vaultAssetEntries = kv.list({ prefix: ["vault_assets"] });
     let vaultAssetCount = 0;
     for await (const entry of vaultAssetEntries) {
-      const a = entry.value as any;
+      const a = entry.value as VaultAsset;
       const { error } = await supabase.from("vault_assets").upsert({
         id: a.id,
         name: a.name,

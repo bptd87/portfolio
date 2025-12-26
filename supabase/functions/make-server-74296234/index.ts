@@ -1,6 +1,6 @@
-import { Hono } from "npm:hono@3";
-import { cors } from "npm:hono@3/cors";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { Context, Hono, Next } from "hono";
+import { cors } from "hono/cors";
+import { createClient } from "@supabase/supabase-js";
 
 const app = new Hono();
 
@@ -20,8 +20,79 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Data Mappers
+interface ProjectInput {
+  coverImage?: string;
+  cover_image?: string;
+  cardImage?: string;
+  card_image?: string;
+  clientName?: string;
+  client_name?: string;
+  projectOverview?: string;
+  project_overview?: string;
+  designNotes?: string;
+  design_notes?: string;
+  softwareUsed?: string[];
+  software_used?: string[];
+  videoUrls?: string[];
+  video_urls?: string[];
+  productionPhotos?: string[];
+  production_photos?: string[];
+  [key: string]: unknown;
+}
+
+const mapProjectToDb = (p: ProjectInput) => ({
+  ...p,
+  cover_image: p.coverImage || p.cover_image,
+  card_image: p.cardImage || p.card_image,
+  client_name: p.clientName || p.client_name,
+  project_overview: p.projectOverview || p.project_overview,
+  design_notes: p.designNotes || p.design_notes,
+  software_used: p.softwareUsed || p.software_used,
+  video_urls: p.videoUrls || p.video_urls,
+  production_photos: p.productionPhotos || p.production_photos,
+  // Remove camelCase keys to avoid confusion/bloat if passed to DB
+  coverImage: undefined,
+  cardImage: undefined,
+  clientName: undefined,
+  projectOverview: undefined,
+  designNotes: undefined,
+  softwareUsed: undefined,
+  videoUrls: undefined,
+  productionPhotos: undefined,
+});
+
+interface PostInput {
+  coverImage?: string;
+  cover_image?: string;
+  date?: string;
+  publishDate?: string;
+  publish_date?: string;
+  [key: string]: unknown;
+}
+
+const mapPostToDb = (p: PostInput) => ({
+  ...p,
+  cover_image: p.coverImage || p.cover_image,
+  publish_date: p.date || p.publishDate || p.publish_date,
+  coverImage: undefined,
+  publishDate: undefined,
+});
+
+interface NewsInput {
+  coverImage?: string;
+  cover_image?: string;
+  [key: string]: unknown;
+}
+
+const mapNewsToDb = (n: NewsInput) => ({
+  ...n,
+  cover_image: n.coverImage || n.cover_image,
+  coverImage: undefined,
+});
+
 // Admin Middleware
-const verifyAdminToken = async (c: any, next: any) => {
+const verifyAdminToken = async (c: Context, next: Next) => {
   const token = c.req.header("X-Admin-Token");
   console.log("🔐 Admin token check:", token ? "Token present" : "No token");
 
@@ -51,11 +122,11 @@ const verifyAdminToken = async (c: any, next: any) => {
 // Health Check
 app.get(
   "/make-server-74296234/health",
-  (c: any) => c.json({ status: "ok", timestamp: Date.now() }),
+  (c: Context) => c.json({ status: "ok", timestamp: Date.now() }),
 );
 
 // Admin Login
-app.post("/make-server-74296234/api/admin/login", async (c: any) => {
+app.post("/make-server-74296234/api/admin/login", async (c: Context) => {
   const { password } = await c.req.json();
   const adminPassword = Deno.env.get("ADMIN_PASSWORD");
   if (password === adminPassword) {
@@ -68,7 +139,7 @@ app.post("/make-server-74296234/api/admin/login", async (c: any) => {
 app.get(
   "/make-server-74296234/api/admin/stats",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     try {
       const [p, a, n, t, c_res] = await Promise.all([
         supabase.from("portfolio_projects").select("*", {
@@ -90,30 +161,31 @@ app.get(
         tutorials: t.count || 0,
         collaborators: c_res.count || 0,
       });
-    } catch (err: any) {
-      return c.json({ error: err.message }, 500);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return c.json({ error: message }, 500);
     }
   },
 );
 
 // ===== PROJECTS =====
-app.get("/make-server-74296234/api/projects", async (c: any) => {
+app.get("/make-server-74296234/api/projects", async (c: Context) => {
   const { data, error } = await supabase.from("portfolio_projects").select("*")
     .eq("published", true).order("year", { ascending: false });
   if (error) return c.json({ error: error.message }, 500);
 
   // Map snake_case to camelCase for frontend
-  const mapped = data?.map((item: any) => ({
+  const mapped = data?.map((item) => ({
     ...item,
-    coverImage: item.cover_image || item.coverImage,
-    cardImage: item.card_image || item.cardImage,
-    designNotes: item.design_notes || item.designNotes,
+    coverImage: item.cover_image,
+    cardImage: item.card_image,
+    designNotes: item.design_notes,
   }));
 
   return c.json({ success: true, projects: mapped });
 });
 
-app.get("/make-server-74296234/api/projects/:slug", async (c: any) => {
+app.get("/make-server-74296234/api/projects/:slug", async (c: Context) => {
   const { data, error } = await supabase.from("portfolio_projects").select("*")
     .eq("slug", c.req.param("slug")).single();
   if (error) return c.json({ error: error.message }, 404);
@@ -128,7 +200,7 @@ app.get("/make-server-74296234/api/projects/:slug", async (c: any) => {
   return c.json({ success: true, project: mapped });
 });
 
-app.post("/make-server-74296234/api/projects/:id/view", async (c: any) => {
+app.post("/make-server-74296234/api/projects/:id/view", async (c: Context) => {
   await supabase.rpc("increment_project_view", {
     project_id: c.req.param("id"),
   });
@@ -142,7 +214,7 @@ app.post("/make-server-74296234/api/projects/:id/view", async (c: any) => {
   });
 });
 
-app.post("/make-server-74296234/api/projects/:id/like", async (c: any) => {
+app.post("/make-server-74296234/api/projects/:id/like", async (c: Context) => {
   await supabase.rpc("increment_project_like", {
     project_id: c.req.param("id"),
   });
@@ -157,7 +229,7 @@ app.post("/make-server-74296234/api/projects/:id/like", async (c: any) => {
 });
 
 // ===== ARTICLES =====
-app.get("/make-server-74296234/api/posts", async (c: any) => {
+app.get("/make-server-74296234/api/posts", async (c: Context) => {
   const { data, error } = await supabase.from("articles").select("*").eq(
     "published",
     true,
@@ -165,15 +237,15 @@ app.get("/make-server-74296234/api/posts", async (c: any) => {
   if (error) return c.json({ error: error.message }, 500);
 
   // Map database fields to frontend format
-  const mappedPosts = data?.map((post: any) => ({
+  const mappedPosts = data?.map((post) => ({
     ...post,
-    coverImage: post.cover_image || post.coverImage,
+    coverImage: post.cover_image,
   }));
 
   return c.json({ success: true, posts: mappedPosts });
 });
 
-app.get("/make-server-74296234/api/posts/:slug", async (c: any) => {
+app.get("/make-server-74296234/api/posts/:slug", async (c: Context) => {
   const { data, error } = await supabase.from("articles").select("*").eq(
     "slug",
     c.req.param("slug"),
@@ -189,7 +261,7 @@ app.get("/make-server-74296234/api/posts/:slug", async (c: any) => {
   return c.json({ success: true, post: mappedPost });
 });
 
-app.post("/make-server-74296234/api/posts/:id/view", async (c: any) => {
+app.post("/make-server-74296234/api/posts/:id/view", async (c: Context) => {
   await supabase.rpc("increment_article_view", {
     article_id: c.req.param("id"),
   });
@@ -204,7 +276,7 @@ app.post("/make-server-74296234/api/posts/:id/view", async (c: any) => {
   });
 });
 
-app.post("/make-server-74296234/api/posts/:id/like", async (c: any) => {
+app.post("/make-server-74296234/api/posts/:id/like", async (c: Context) => {
   await supabase.rpc("increment_article_like", {
     article_id: c.req.param("id"),
   });
@@ -220,34 +292,47 @@ app.post("/make-server-74296234/api/posts/:id/like", async (c: any) => {
 });
 
 // Get related posts
-app.post("/make-server-74296234/api/posts/related", async (c: any) => {
+app.post("/make-server-74296234/api/posts/related", async (c: Context) => {
   try {
     const { category, tags, excludeId } = await c.req.json();
 
     // Get articles with same category or matching tags
-    const { data, error } = await supabase
+    let query = supabase
       .from("articles")
       .select("*")
       .eq("published", true)
-      .neq("id", excludeId)
-      .limit(3);
+      .neq("id", excludeId);
+
+    if (category) {
+      query = query.eq("category", category);
+    }
+
+    if (tags && Array.isArray(tags) && tags.length > 0) {
+      query = query.overlaps("tags", tags);
+    }
+
+    // Sort by date desc
+    query = query.order("date", { ascending: false }).limit(3);
+
+    const { data, error } = await query;
 
     if (error) return c.json({ error: error.message }, 500);
 
     // Map fields
-    const mapped = data?.map((post: any) => ({
+    const mapped = data?.map((post) => ({
       ...post,
-      coverImage: post.cover_image || post.coverImage,
+      coverImage: post.cover_image,
     }));
 
     return c.json({ success: true, posts: mapped || [] });
-  } catch (err: any) {
-    return c.json({ error: err.message }, 500);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return c.json({ error: message }, 500);
   }
 });
 
 // ===== CATEGORIES =====
-app.get("/make-server-74296234/api/categories/:type", async (c: any) => {
+app.get("/make-server-74296234/api/categories/:type", async (c: Context) => {
   const type = c.req.param("type");
   const { data, error } = await supabase.from("categories").select("*").eq(
     "type",
@@ -260,7 +345,7 @@ app.get("/make-server-74296234/api/categories/:type", async (c: any) => {
 app.get(
   "/make-server-74296234/api/admin/categories",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const { data, error } = await supabase.from("categories").select("*").order(
       "type, name",
     );
@@ -280,7 +365,7 @@ app.get(
 app.post(
   "/make-server-74296234/api/admin/categories/:type",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const type = c.req.param("type");
     const category = await c.req.json();
 
@@ -296,7 +381,7 @@ app.post(
 app.put(
   "/make-server-74296234/api/admin/categories/:type",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const category = await c.req.json();
     const { error } = await supabase.from("categories").update(category).eq(
       "id",
@@ -310,7 +395,7 @@ app.put(
 app.delete(
   "/make-server-74296234/api/admin/categories/:type/:id",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const { error } = await supabase.from("categories").delete().eq(
       "id",
       c.req.param("id"),
@@ -325,7 +410,7 @@ app.delete(
 app.get(
   "/make-server-74296234/api/admin/projects",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const { data, error } = await supabase.from("portfolio_projects").select(
       "*",
     ).order("created_at", { ascending: false });
@@ -337,10 +422,11 @@ app.get(
 app.post(
   "/make-server-74296234/api/admin/projects",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const project = await c.req.json();
+    const dbProject = mapProjectToDb(project);
     const { data, error } = await supabase.from("portfolio_projects").insert(
-      project,
+      dbProject,
     ).select().single();
     if (error) return c.json({ error: error.message }, 500);
     return c.json({ success: true, projectId: data.id });
@@ -350,9 +436,12 @@ app.post(
 app.put(
   "/make-server-74296234/api/admin/projects/:id",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const updates = await c.req.json();
-    const { error } = await supabase.from("portfolio_projects").update(updates)
+    const dbUpdates = mapProjectToDb(updates);
+    const { error } = await supabase.from("portfolio_projects").update(
+      dbUpdates,
+    )
       .eq("id", c.req.param("id"));
     if (error) return c.json({ error: error.message }, 500);
     return c.json({ success: true });
@@ -362,7 +451,7 @@ app.put(
 app.delete(
   "/make-server-74296234/api/admin/projects/:id",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const { error } = await supabase.from("portfolio_projects").delete().eq(
       "id",
       c.req.param("id"),
@@ -376,7 +465,7 @@ app.delete(
 app.get(
   "/make-server-74296234/api/admin/posts",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const { data, error } = await supabase.from("articles").select("*").order(
       "created_at",
       { ascending: false },
@@ -389,9 +478,10 @@ app.get(
 app.post(
   "/make-server-74296234/api/admin/posts",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const post = await c.req.json();
-    const { data, error } = await supabase.from("articles").insert(post)
+    const dbPost = mapPostToDb(post);
+    const { data, error } = await supabase.from("articles").insert(dbPost)
       .select().single();
     if (error) return c.json({ error: error.message }, 500);
     return c.json({ success: true, postId: data.id });
@@ -401,9 +491,10 @@ app.post(
 app.put(
   "/make-server-74296234/api/admin/posts/:id",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const updates = await c.req.json();
-    const { error } = await supabase.from("articles").update(updates).eq(
+    const dbUpdates = mapPostToDb(updates);
+    const { error } = await supabase.from("articles").update(dbUpdates).eq(
       "id",
       c.req.param("id"),
     );
@@ -415,7 +506,7 @@ app.put(
 app.delete(
   "/make-server-74296234/api/admin/posts/:id",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const { error } = await supabase.from("articles").delete().eq(
       "id",
       c.req.param("id"),
@@ -429,7 +520,7 @@ app.delete(
 app.get(
   "/make-server-74296234/api/admin/news",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const { data, error } = await supabase.from("news").select("*").order(
       "created_at",
       { ascending: false },
@@ -442,9 +533,10 @@ app.get(
 app.post(
   "/make-server-74296234/api/admin/news",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const newsItem = await c.req.json();
-    const { data, error } = await supabase.from("news").insert(newsItem)
+    const dbNews = mapNewsToDb(newsItem);
+    const { data, error } = await supabase.from("news").insert(dbNews)
       .select().single();
     if (error) return c.json({ error: error.message }, 500);
     return c.json({ success: true, newsId: data.id });
@@ -454,9 +546,10 @@ app.post(
 app.put(
   "/make-server-74296234/api/admin/news/:id",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const updates = await c.req.json();
-    const { error } = await supabase.from("news").update(updates).eq(
+    const dbUpdates = mapNewsToDb(updates);
+    const { error } = await supabase.from("news").update(dbUpdates).eq(
       "id",
       c.req.param("id"),
     );
@@ -468,7 +561,7 @@ app.put(
 app.delete(
   "/make-server-74296234/api/admin/news/:id",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const { error } = await supabase.from("news").delete().eq(
       "id",
       c.req.param("id"),
@@ -479,7 +572,7 @@ app.delete(
 );
 
 // ===== NEWS =====
-app.get("/make-server-74296234/api/news", async (c: any) => {
+app.get("/make-server-74296234/api/news", async (c: Context) => {
   const { data, error } = await supabase.from("news").select("*").eq(
     "published",
     true,
@@ -488,7 +581,7 @@ app.get("/make-server-74296234/api/news", async (c: any) => {
   return c.json({ success: true, news: data });
 });
 
-app.get("/make-server-74296234/api/news/:slug", async (c: any) => {
+app.get("/make-server-74296234/api/news/:slug", async (c: Context) => {
   const param = c.req.param("slug");
   const isUUID =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -510,7 +603,7 @@ app.get("/make-server-74296234/api/news/:slug", async (c: any) => {
 });
 
 // ===== COLLABORATORS =====
-app.get("/make-server-74296234/api/collaborators", async (c: any) => {
+app.get("/make-server-74296234/api/collaborators", async (c: Context) => {
   const { data, error } = await supabase.from("collaborators").select("*");
   if (error) return c.json({ error: error.message }, 500);
   return c.json({ success: true, collaborators: data });
@@ -519,7 +612,7 @@ app.get("/make-server-74296234/api/collaborators", async (c: any) => {
 app.post(
   "/make-server-74296234/api/collaborators",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const collaborator = await c.req.json();
     const { data, error } = await supabase.from("collaborators").insert(
       collaborator,
@@ -532,7 +625,7 @@ app.post(
 app.put(
   "/make-server-74296234/api/collaborators/:id",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const updates = await c.req.json();
     const { error } = await supabase.from("collaborators").update(updates).eq(
       "id",
@@ -546,7 +639,7 @@ app.put(
 app.delete(
   "/make-server-74296234/api/collaborators/:id",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const { error } = await supabase.from("collaborators").delete().eq(
       "id",
       c.req.param("id"),
@@ -557,7 +650,7 @@ app.delete(
 );
 
 // ===== SETTINGS =====
-app.get("/make-server-74296234/api/settings", async (c: any) => {
+app.get("/make-server-74296234/api/settings", async (c: Context) => {
   const { data } = await supabase.from("site_configuration").select("value").eq(
     "key",
     "site_settings",
@@ -568,7 +661,7 @@ app.get("/make-server-74296234/api/settings", async (c: any) => {
 app.post(
   "/make-server-74296234/api/admin/settings",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     const settings = await c.req.json();
     const { error } = await supabase.from("site_configuration").upsert({
       key: "site_settings",
@@ -583,7 +676,7 @@ app.post(
 app.post(
   "/make-server-74296234/api/admin/ai/generate",
   verifyAdminToken,
-  async (c: any) => {
+  async (c: Context) => {
     try {
       const { prompt } = await c.req.json();
       const apiKey = Deno.env.get("OPENAI_API_KEY");
@@ -622,13 +715,14 @@ app.post(
         success: true,
         result: data.choices[0].message.content.trim(),
       });
-    } catch (err: any) {
+    } catch (err) {
       console.error("AI Error:", err);
-      return c.json({ error: err.message }, 500);
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return c.json({ error: message }, 500);
     }
   },
 );
 
-app.notFound((c: any) => c.json({ error: "Endpoint not found" }, 404));
+app.notFound((c: Context) => c.json({ error: "Endpoint not found" }, 404));
 
 export default app;

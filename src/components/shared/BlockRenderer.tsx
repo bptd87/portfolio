@@ -222,7 +222,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 return (
                   <div
                     key={block.id}
-                    className={`leading-[1.8] mb-6 text-foreground/90 text-[19px] md:text-[21px] font-serif rich-content ${dropCapClass}`}
+                    className={`leading-[1.8] mb-6 text-foreground/90 text-[19px] md:text-[21px] font-serif hover:text-justify rich-content text-justify ${dropCapClass}`}
                     style={{ '--accent-color': accent } as React.CSSProperties}
                     dangerouslySetInnerHTML={{ __html: injectIdsIntoHeaders(block.content) }}
                   />
@@ -231,7 +231,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 return (
                   <p
                     key={block.id}
-                    className={`leading-[1.8] mb-6 text-foreground/90 text-[19px] md:text-[21px] font-serif ${dropCapClass}`}
+                    className={`leading-[1.8] mb-6 text-foreground/90 text-[19px] md:text-[21px] font-serif text-justify ${dropCapClass}`}
                     style={isFirstParagraph ? { '--drop-cap-color': accent } as React.CSSProperties : undefined}
                   >
                     {parseFormattedText(block.content)}

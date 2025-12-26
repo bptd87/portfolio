@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase/client';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
-import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { useImageColors } from '../../hooks/useImageColors';
 import { BlogCard } from '../../components/shared/BlogCard';
 
@@ -157,7 +156,7 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
       case 'text':
         return (
           <div key={index} className="prose prose-lg max-w-none mb-8">
-            <div className="text-white/80 leading-relaxed whitespace-pre-wrap">
+            <div className="text-white/80 leading-relaxed whitespace-pre-wrap text-justify">
               {block.content}
             </div>
           </div>
@@ -379,15 +378,7 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80 pointer-events-none" style={{ zIndex: 1 }} />
             
             {/* Back Button within Hero */}
-            <div className="absolute top-24 left-6 md:left-12 z-50">
-              <button
-                onClick={() => onNavigate('news')}
-                className="group flex items-center gap-3 px-6 py-3 backdrop-blur-xl bg-black/40 hover:bg-black/60 border border-white/10 rounded-full transition-all text-white cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="font-pixel text-[10px] tracking-[0.2em]">BACK TO NEWS</span>
-              </button>
-            </div>
+
         </section>
 
         {/* Content Container */}
@@ -446,11 +437,11 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
                 {article.blocks.map((block, index) => renderBlock(block, index))}
               </div>
             ) : (typeof article.content === 'string') ? (
-              <div className="text-white/80 leading-relaxed whitespace-pre-wrap mb-12 text-lg">
+              <div className="text-white/80 leading-relaxed whitespace-pre-wrap mb-12 text-lg text-justify">
                 {article.content}
               </div>
             ) : (article.content) ? (
-               <div className="text-white/80 leading-relaxed whitespace-pre-wrap mb-12 text-lg">
+               <div className="text-white/80 leading-relaxed whitespace-pre-wrap mb-12 text-lg text-justify">
                  {/* Fallback for Rich Text / JSON content if proper renderer is missing */}
                  {/* Try to extract text if it has a simple structure, otherwise stringify (or handle better later) */}
                   {(article.content as any).text || (article.content as any).content?.[0]?.text || typeof article.content === 'object' ? JSON.stringify(article.content) : ''}
@@ -515,7 +506,7 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
                 {/* Always render grid, but show message if empty */}
                 {allNews.filter(n => n.id !== article.id).length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {allNews.filter(n => n.id !== article.id).slice(0, 3).map((item, idx) => (
+                    {allNews.filter(n => n.id !== article.id).slice(0, 3).map((item, _) => (
                        <div key={item.id} className="h-full">
                          <BlogCard
                             title={item.title}

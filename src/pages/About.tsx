@@ -86,17 +86,13 @@ export function About({ onNavigate }: AboutProps) {
 
         if (error) throw error;
 
-        if (data && data.length > 0) {
+        if (data) {
           console.log('✅ Using database photos:', data);
           setGalleryPhotos(data.map((photo: any) => ({
             src: photo.image_url,
             alt: photo.alt_text,
             caption: photo.caption
           })));
-        } else {
-          console.log('⚠️ No photos in database, using fallback');
-          // Fallback to hardcoded photos if no data
-          setGalleryPhotos(personalPhotos);
         }
       } catch (error) {
         console.error('❌ Error fetching gallery photos:', error);
@@ -109,7 +105,7 @@ export function About({ onNavigate }: AboutProps) {
     fetchGalleryPhotos();
   }, []);
 
-  const displayPhotos = galleryPhotos.length > 0 ? galleryPhotos : personalPhotos;
+  const displayPhotos = galleryPhotos;
 
   return (
     <div
@@ -297,20 +293,11 @@ export function About({ onNavigate }: AboutProps) {
               transition={{ duration: 0.8 }}
               className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-900 dark:to-neutral-800 border border-black/10 dark:border-white/10"
             >
-              {/* Background Image */}
-              {displayPhotos[0] && (
-                <div className="absolute inset-0 opacity-10 dark:opacity-5">
-                  <img
-                    src={displayPhotos[0].src}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-
+              {/* Background Image - Removed per user request */}
+              
               {/* Content */}
-              <div className="relative z-10 p-8 md:p-12 lg:p-16">
-                <div className="max-w-4xl">
+              <div className="relative z-10 p-8 md:p-12 lg:p-16 flex flex-col items-center text-center">
+                <div className="max-w-3xl mx-auto">
                   <h2 className="font-pixel text-[10px] text-black/40 dark:text-white/40 tracking-[0.3em] mb-8">
                     CREATIVE STATEMENT
                   </h2>
@@ -322,7 +309,7 @@ export function About({ onNavigate }: AboutProps) {
                   </div>
 
                   {/* Signature */}
-                  <div className="mt-12 pt-8 border-t border-black/10 dark:border-white/10">
+                  <div className="mt-12 pt-8 border-t border-black/10 dark:border-white/10 inline-block px-12">
                     <p className="text-black dark:text-white font-display text-xl">Brandon PT Davis</p>
                     <p className="text-black/60 dark:text-white/60 text-sm mt-1">Scenic Designer</p>
                   </div>

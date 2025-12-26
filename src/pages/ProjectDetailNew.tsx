@@ -21,6 +21,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
   const [project, setProject] = useState<any>(null);
   const [nextProject, setNextProject] = useState<any>(null);
   const [prevProject, setPrevProject] = useState<any>(null);
+  const [relatedProjects, setRelatedProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['photos', 'team'])); // Default to photos and team open
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -96,6 +97,11 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
         ...projectAny,
         cardImage: projectAny.card_image || projectAny.cover_image,
         coverImage: projectAny.cover_image || projectAny.card_image,
+        designNotes: projectAny.design_notes || projectAny.designNotes,
+        projectOverview: projectAny.project_overview || projectAny.projectOverview,
+        softwareUsed: projectAny.software_used || projectAny.softwareUsed,
+        videoUrls: projectAny.video_urls || projectAny.videoUrls,
+        productionPhotos: projectAny.production_photos || projectAny.productionPhotos,
       };
 
       // Check if category includes "Experiential"
@@ -119,7 +125,9 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
           .from('portfolio_projects')
           .select('*')
           .eq('published', true)
-          .order('year', { ascending: false });
+          .order('year', { ascending: false })
+          .order('month', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false });
 
         if (!projectsError && allProjects) {
           // Map database fields to frontend format
@@ -127,6 +135,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
             ...p,
             cardImage: p.card_image || p.cover_image,
             coverImage: p.cover_image || p.card_image,
+            designNotes: p.design_notes || p.designNotes,
           }));
 
           const sameCategory = mappedProjects.filter((p: any) => p.category === mappedProject.category);
@@ -138,6 +147,23 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
 
             setNextProject(sameCategory[nextIndex]);
             setPrevProject(sameCategory[prevIndex]);
+
+            // Select 3 related projects (next 3 in line)
+            const related: any[] = [];
+            if (sameCategory.length > 1) {
+              for (let i = 1; i <= 3; i++) {
+                const idx = (currentIndex + i) % sameCategory.length;
+                if (sameCategory[idx].slug !== slug) {
+                  related.push(sameCategory[idx]);
+                }
+              }
+              // Deduplicate and limit to 3
+              const uniqueRelated = Array.from(new Set(related.map(p => p.id)))
+                .map(id => related.find(p => p.id === id))
+                .slice(0, 3);
+              
+              setRelatedProjects(uniqueRelated);
+            }
           }
         }
       } catch (err) {
@@ -557,9 +583,9 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                     exit={{ opacity: 0, height: 0 }}
                     className="backdrop-blur-xl bg-neutral-800/60 dark:bg-neutral-900/60 rounded-3xl border border-white/10 p-6 mt-2"
                   >
-                    <div className="space-y-4 text-white/80 leading-relaxed">
+                    <div className="space-y-4 text-white/80 leading-relaxed text-justify">
                       {project.designNotes.map((note: string, index: number) => (
-                        <p key={index}>{note}</p>
+                        <p key={index} className="text-justify">{note}</p>
                       ))}
                     </div>
                   </motion.div>
@@ -828,7 +854,7 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
           )}
 
           {/* Bottom Navigation Panel - Scenic Design Projects */}
-          {(prevProject || nextProject) && (
+          {relatedProjects.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -862,48 +888,42 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
               </div>
 
               {/* Project cards grid */}
-              <motion.div layout className="grid grid-cols-2 md:grid-cols-3 gap-4 md:auto-rows-[320px]">
-                {prevProject && (
+              <motion.div layout className="grid grid-cols-1 md:grid-cols-3 gap-4 md:auto-rows-[320px]">
+                {relatedProjects.map((p) => (
                   <motion.div
+                    key={p.id}
                     layout
-                    onClick={() => onNavigate(`project/${prevProject.slug}`)}
-                    className="group relative overflow-hidden rounded-2xl bg-neutral-900 cursor-pointer"
+                    onClick={() => onNavigate(`project/${p.slug}`)}
+                    className="group relative overflow-hidden rounded-2xl bg-neutral-900 cursor-pointer h-[240px] md:h-full"
                   >
                     <motion.div
-                      layoutId={`project-image-prev-${prevProject.id}`}
+                      layoutId={`project-image-related-${p.id}`}
                       className="w-full h-full"
                     >
                       <ImageWithFallback
-                        src={prevProject.cardImage || prevProject.coverImage || ''}
-                        alt={prevProject.title}
+                        src={p.cardImage || p.coverImage || ''}
+                        alt={p.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                     </motion.div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                    
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                    
+                    {/* Border */}
                     <div className="absolute inset-0 border border-white/10 group-hover:border-white/40 transition-all rounded-2xl pointer-events-none" />
-                  </motion.div>
-                )}
 
-                {nextProject && (
-                  <motion.div
-                    layout
-                    onClick={() => onNavigate(`project/${nextProject.slug}`)}
-                    className="group relative overflow-hidden rounded-2xl bg-neutral-900 cursor-pointer"
-                  >
-                    <motion.div
-                      layoutId={`project-image-next-${nextProject.id}`}
-                      className="w-full h-full"
-                    >
-                      <ImageWithFallback
-                        src={nextProject.cardImage || nextProject.coverImage || ''}
-                        alt={nextProject.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                    </motion.div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                    <div className="absolute inset-0 border border-white/10 group-hover:border-white/40 transition-all rounded-2xl pointer-events-none" />
+                    {/* Content Overlay */}
+                    <div className="absolute inset-x-0 bottom-0 p-6 flex flex-col justify-end">
+                      <p className="font-pixel text-[10px] tracking-[0.2em] text-white/60 mb-2 uppercase transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                         {p.category || 'PROJECT'}
+                      </p>
+                      <h4 className="font-display text-xl md:text-2xl text-white italic leading-tight">
+                        {p.title}
+                      </h4>
+                    </div>
                   </motion.div>
-                )}
+                ))}
               </motion.div>
             </motion.div>
           )}

@@ -30,6 +30,8 @@ interface GalleryPhoto {
   caption: string;
   alt_text: string;
   display_order: number;
+  focus_x?: number;
+  focus_y?: number;
 }
 
 const defaultContent: AboutContent = {
@@ -148,7 +150,9 @@ export function AboutManager() {
             image_url: p.image_url,
             caption: p.caption,
             alt_text: p.alt_text,
-            display_order: existingPhotos.length + index + 1
+            display_order: existingPhotos.length + index + 1,
+            focus_x: p.focus_x || 50,
+            focus_y: p.focus_y || 50
           }));
 
           const { error: insertError } = await supabase
@@ -173,7 +177,9 @@ export function AboutManager() {
                 image_url: p.image_url,
                 caption: p.caption,
                 alt_text: p.alt_text,
-                display_order: i + 1
+                display_order: i + 1,
+                focus_x: p.focus_x || 50,
+                focus_y: p.focus_y || 50
               })
               .eq('id', p.id);
 
@@ -383,11 +389,42 @@ export function AboutManager() {
                   <div className="aspect-video bg-gray-800 rounded-lg overflow-hidden relative group">
                     {photo?.image_url ? (
                       <>
-                        <img
-                          src={photo.image_url}
-                          alt={photo.alt_text}
-                          className="w-full h-full object-cover"
-                        />
+                        <div 
+                          className="w-full h-full relative cursor-crosshair"
+                          onClick={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const x = ((e.clientX - rect.left) / rect.width) * 100;
+                            const y = ((e.clientY - rect.top) / rect.height) * 100;
+                            
+                            const newPhotos = [...galleryPhotos];
+                            newPhotos[index].focus_x = Math.round(x);
+                            newPhotos[index].focus_y = Math.round(y);
+                            setGalleryPhotos(newPhotos);
+                            setHasUnsavedChanges(true);
+                          }}
+                        >
+                          <img
+                            src={photo.image_url}
+                            alt={photo.alt_text}
+                            className="w-full h-full object-cover"
+                          />
+                          
+                          {/* Focus Point Marker */}
+                          <div 
+                            className="absolute w-4 h-4 -ml-2 -mt-2 border-2 border-white rounded-full bg-black/20 shadow-sm pointer-events-none transition-all duration-200"
+                            style={{ 
+                              left: `${photo.focus_x || 50}%`, 
+                              top: `${photo.focus_y || 50}%` 
+                            }}
+                          >
+                            <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2" />
+                          </div>
+
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                            <span className="text-[10px] text-white font-medium bg-black/50 px-2 py-1 rounded">Click to set focus</span>
+                          </div>
+                        </div>
+
                         <button
                           onClick={() => {
                             const newPhotos = [...galleryPhotos];
@@ -395,7 +432,7 @@ export function AboutManager() {
                             setGalleryPhotos(newPhotos);
                             setHasUnsavedChanges(true);
                           }}
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
                         >
                           ✕
                         </button>
@@ -407,26 +444,28 @@ export function AboutManager() {
                     )}
                   </div>
 
-                  <ImageUploader
-                    value={photo?.image_url || ''}
-                    onChange={(url: string) => {
-                      const newPhotos = [...galleryPhotos];
-                      if (newPhotos[index]) {
-                        newPhotos[index].image_url = url;
-                      } else {
-                        // For new photos, don't set ID initially, let DB generate it on save (or if we save it here, undefined ID)
-                        newPhotos[index] = {
-                          image_url: url,
-                          caption: '',
-                          alt_text: `Gallery photo ${index + 1}`,
-                          display_order: index + 1
-                        };
-                      }
-                      setGalleryPhotos(newPhotos);
-                      setHasUnsavedChanges(true);
-                    }}
-                    label={`Photo ${index + 1}`}
-                  />
+                  {!photo?.image_url && (
+                    <ImageUploader
+                      value={photo?.image_url || ''}
+                      onChange={(url: string) => {
+                        const newPhotos = [...galleryPhotos];
+                        if (newPhotos[index]) {
+                          newPhotos[index].image_url = url;
+                        } else {
+                          newPhotos[index] = {
+                            image_url: url,
+                            caption: '',
+                            alt_text: `Gallery photo ${index + 1}`,
+                            display_order: index + 1
+                          };
+                        }
+                        setGalleryPhotos(newPhotos);
+                        setHasUnsavedChanges(true);
+                      }}
+                      label={`Photo ${index + 1}`}
+                    />
+                  )}
+
 
                   {photo && (
                     <>
@@ -454,6 +493,11 @@ export function AboutManager() {
                         className={AdminTokens.input.base}
                         placeholder="Alt text (for accessibility)"
                       />
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="text-[10px] text-gray-400">
+                          Focus: {photo.focus_x || 50}% / {photo.focus_y || 50}%
+                        </div>
+                      </div>
                     </>
                   )}
                 </div>
