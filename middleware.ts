@@ -81,13 +81,13 @@ export default async function middleware(req: Request) {
     console.error("[Middleware] Error:", e);
   }
 
-  const ogImageUrl = new URL("https://brandonptdavis.com/api/og");
-  ogImageUrl.searchParams.set("title", title);
-  ogImageUrl.searchParams.set("description", description.substring(0, 100));
-  if (image && image.startsWith("http")) {
-    ogImageUrl.searchParams.set("image", image);
+  // Logic: If we found a specific project image, use it directly (Raw).
+  // If not, use the static default.
+  // We avoid wrapping it in api/og to prevent double-text overlay or loading issues.
+  let finalImageUrl = image;
+  if (!finalImageUrl) {
+    finalImageUrl = "https://brandonptdavis.com/og-default.jpg";
   }
-  const finalImageUrl = ogImageUrl.toString();
 
   const html = `
   <!DOCTYPE html>
