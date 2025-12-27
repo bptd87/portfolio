@@ -1,6 +1,12 @@
 {
 
 
+  "rewrites": [
+    {
+      "source": "/((?!api/|_vercel/|assets/|favicon.ico|sw.js).*)",
+      "destination": "/index.html"
+    }
+  ],
   "redirects": [
     {
       "source": "/feed/:slug",
@@ -25,11 +31,6 @@
     {
       "source": "/resources/all",
       "destination": "/scenic-insights",
-      "permanent": true
-    },
-    {
-      "source": "/news/:slug",
-      "destination": "/news/:slug",
       "permanent": true
     }
   ],
