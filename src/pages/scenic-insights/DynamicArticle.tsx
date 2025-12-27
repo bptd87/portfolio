@@ -8,6 +8,8 @@ import { LikeButton } from '../../components/shared/LikeButton';
 import { ShareButton } from '../../components/shared/ShareButton';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { Eye } from 'lucide-react';
+import { SEO } from '../../components/SEO';
+import { generateArticleMetadata } from '../../utils/seo/metadata';
 
 interface Article {
   id: string;
@@ -490,6 +492,19 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
+      {article && (
+        <SEO 
+          metadata={generateArticleMetadata({
+            title: article.title,
+            excerpt: article.excerpt,
+            coverImage: article.coverImage,
+            category: article.category,
+            date: article.date,
+            id: article.id, // Note: metadata util uses ID for canonical, consider changing to slug if needed
+            tags: article.tags
+          })} 
+        />
+      )}
       {/* Hero Section with Cover Image - Image separate from text */}
       {article.coverImage && article.coverImage.trim() !== '' ? (
         <>
