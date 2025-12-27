@@ -1,45 +1,27 @@
-// Vercel Edge Middleware for Social Crawler Detection
-// Routes social media crawlers to the OG Edge Function for proper meta tags
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export const config = {
-  matcher: ['/project/:path*', '/news/:path*'],
+  matcher: [
+    "/project/:path*",
+    "/scenic-insights/:path*",
+    "/about",
+    "/portfolio",
+  ],
 };
 
-// Social media crawler user agents
-const SOCIAL_CRAWLERS = [
-  'LinkedInBot',
-  'facebookexternalhit',
-  'Facebot',
-  'Twitterbot',
-  'Slackbot',
-  'Discord',
-  'WhatsApp',
-  'TelegramBot',
-  'Pinterest',
-  'Applebot',
-];
+export default function middleware(req: NextRequest) {
+  const userAgent = req.headers.get("user-agent") || "";
+  const isBot =
+    /bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|linkedinbot|twitterbot|slackbot|whatsapp|telegram/i
+      .test(userAgent);
 
-function isSocialCrawler(userAgent: string): boolean {
-  return SOCIAL_CRAWLERS.some(crawler => 
-    userAgent.toLowerCase().includes(crawler.toLowerCase())
-  );
-}
-
-export default function middleware(request: Request): Response | undefined {
-  const userAgent = request.headers.get('user-agent') || '';
-  
-  // Only intercept for social crawlers
-  if (!isSocialCrawler(userAgent)) {
-    return undefined; // Continue to SPA
+  if (isBot) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/api/social-card";
+    url.searchParams.set("path", req.nextUrl.pathname);
+    return NextResponse.rewrite(url);
   }
 
-  const url = new URL(request.url);
-  const pathname = url.pathname;
-  
-  // Rewrite to OG Edge Function
-  // /project/slug -> /api/og/project/slug
-  // /news/id -> /api/og/news/id
-  const ogUrl = new URL(`/api/og${pathname}`, url.origin);
-  
-  return Response.redirect(ogUrl.toString(), 302);
+  return NextResponse.next();
 }
