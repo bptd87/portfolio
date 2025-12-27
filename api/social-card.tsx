@@ -77,10 +77,10 @@ export default async function handler(req: Request) {
     ogImageUrl.searchParams.set('image', image);
   }
 
-  // Return static HTML
+  // Return static HTML with strict OpenGraph compliance
   return new Response(`
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="en" prefix="og: https://ogp.me/ns#">
     <head>
       <meta charset="UTF-8">
       <title>${title}</title>
@@ -92,23 +92,31 @@ export default async function handler(req: Request) {
       <meta property="og:title" content="${title}">
       <meta property="og:description" content="${description}">
       <meta property="og:image" content="${ogImageUrl.toString()}">
+      <meta property="og:image:type" content="image/png">
+      <meta property="og:image:width" content="1200">
+      <meta property="og:image:height" content="630">
+      <meta property="og:image:alt" content="${title}">
 
       <!-- Twitter -->
-      <meta property="twitter:card" content="summary_large_image">
-      <meta property="twitter:url" content="https://brandonptdavis.com${path}">
-      <meta property="twitter:title" content="${title}">
-      <meta property="twitter:description" content="${description}">
-      <meta property="twitter:image" content="${ogImageUrl.toString()}">
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:url" content="https://brandonptdavis.com${path}">
+      <meta name="twitter:title" content="${title}">
+      <meta name="twitter:description" content="${description}">
+      <meta name="twitter:image" content="${ogImageUrl.toString()}">
+      <meta name="twitter:image:alt" content="${title}">
     </head>
     <body>
       <h1>${title}</h1>
       <p>${description}</p>
-      <img src="${ogImageUrl.toString()}" alt="${title}" />
+      <img src="${ogImageUrl.toString()}" alt="${title}" width="1200" height="630" />
       <p>Redirecting to full site...</p>
       <script>window.location.href = "${path}";</script>
     </body>
     </html>
   `, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    headers: { 
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=60' // Cache for performance
+    },
   });
 }
