@@ -1,6 +1,6 @@
-import { Context, Hono, Next } from "hono";
-import { cors } from "hono/cors";
-import { createClient } from "@supabase/supabase-js";
+import { Context, Hono, Next } from "npm:hono@3.11.7";
+import { cors } from "npm:hono@3.11.7/cors";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const app = new Hono();
 
@@ -601,6 +601,59 @@ app.get("/make-server-74296234/api/news/:slug", async (c: Context) => {
   if (error) return c.json({ error: error.message }, 404);
   return c.json(data);
 });
+
+// ===== MEDIA UPLOAD =====
+app.post(
+  "/make-server-74296234/api/admin/upload",
+  verifyAdminToken,
+  async (c: Context) => {
+    try {
+      const body = await c.req.parseBody();
+      const file = body["file"] || body["image"]; // Modified to check for 'image' as well
+      const bucket = body["bucket"] as string || "blog";
+      const path = body["path"] as string || "";
+
+      // Debugging: Log what we received
+      console.log("Upload request body keys:", Object.keys(body));
+
+      if (!file) {
+        return c.json({
+          error: "No file uploaded",
+          debug: {
+            keys: Object.keys(body),
+            contentType: c.req.header("content-type"),
+          },
+        }, 400);
+      }
+
+      const fileName = `${path ? path + "/" : ""}${Date.now()}-${
+        file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
+      }`;
+
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (error) {
+        console.error("Upload error:", error);
+        return c.json({ error: error.message }, 500);
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path);
+
+      return c.json({ success: true, url: publicUrl });
+    } catch (err) {
+      console.error("Server upload error:", err);
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return c.json({ error: message }, 500);
+    }
+  },
+);
 
 // ===== COLLABORATORS =====
 app.get("/make-server-74296234/api/collaborators", async (c: Context) => {

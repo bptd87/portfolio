@@ -217,6 +217,7 @@ export function ArticleManager() {
       images: [],
       seoTitle: '',
       seoDescription: '',
+      readTime: '',
       ogImage: '',
     },
   });
@@ -390,7 +391,7 @@ export function ArticleManager() {
         content: Array.isArray(data.content) ? data.content : [],
         category: data.category,
         cover_image: data.coverImage,
-        // cover_image_focal_point: data.focusPoint, // Column does not exist
+        cover_image_focal_point: data.focusPoint,
         published_at: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
         read_time: data.readTime || estimateReadTime(Array.isArray(data.content) ? data.content : [], data.excerpt),
         tags: data.tags || [],

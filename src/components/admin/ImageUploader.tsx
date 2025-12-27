@@ -129,7 +129,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'blog', cla
 
       await retryWithBackoff(async () => {
         const formData = new FormData();
-        formData.append('image', optimizedFile);
+        formData.append('file', optimizedFile);
         formData.append('bucket', bucketName);
 
         const response = await fetch(
@@ -138,6 +138,7 @@ export function ImageUploader({ value, onChange, label, bucketName = 'blog', cla
             method: 'POST',
             headers: {
               'X-Admin-Token': adminToken,
+              'Authorization': `Bearer ${publicAnonKey}`,
             },
             body: formData,
           }
@@ -367,7 +368,7 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
           // Upload with retry
           await retryWithBackoff(async () => {
             const formData = new FormData();
-            formData.append('image', optimizedFile);
+            formData.append('file', optimizedFile);
             formData.append('bucket', 'blog');
 
             const response = await fetch(
@@ -376,6 +377,7 @@ export function ImageGalleryManager({ label, images, onChange }: ImageGalleryMan
                 method: 'POST',
                 headers: {
                   'X-Admin-Token': adminToken,
+                  'Authorization': `Bearer ${publicAnonKey}`,
                 },
                 body: formData,
               }

@@ -223,11 +223,13 @@ export function htmlToBlocks(html: string): ContentBlock[] {
           metadata: { alt, caption: title, align, size }
         });
       }
-    } else if (el.classList.contains('ql-gallery')) {
+
+    } else if (el.classList.contains('ql-gallery') || el.classList.contains('tiptap-gallery') || el.hasAttribute('data-gallery')) {
       const galleryTypeAttr = el.getAttribute('data-gallery-type') || 'grid';
       const galleryType = (galleryTypeAttr === 'grid' || galleryTypeAttr === 'masonry' || galleryTypeAttr === 'carousel') 
         ? galleryTypeAttr 
         : 'grid' as 'grid' | 'masonry' | 'carousel';
+      
       const images = Array.from(el.querySelectorAll('figure, img')).map((item) => {
         const img = item.tagName === 'IMG' ? item as HTMLImageElement : (item as HTMLElement).querySelector('img') as HTMLImageElement;
         const figure = item.tagName === 'FIGURE' ? item as HTMLElement : (item as HTMLElement).closest('figure');
@@ -238,12 +240,15 @@ export function htmlToBlocks(html: string): ContentBlock[] {
           caption: caption || ''
         };
       }).filter(img => img.url);
-      blocks.push({
-        id: `block-${Date.now()}-${blockId++}`,
-        type: 'gallery',
-        content: '',
-        metadata: { images, galleryStyle: galleryType }
-      });
+      
+      if (images.length > 0) {
+        blocks.push({
+          id: `block-${Date.now()}-${blockId++}`,
+          type: 'gallery',
+          content: '',
+          metadata: { images, galleryStyle: galleryType }
+        });
+      }
     } else if (el.classList.contains('ql-video') || el.hasAttribute('data-video')) {
       blocks.push({
         id: `block-${Date.now()}-${blockId++}`,

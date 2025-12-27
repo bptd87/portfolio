@@ -1,11 +1,9 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Image from '@tiptap/extension-image';
-import UnderlineExt from '@tiptap/extension-underline';
 import { Mark, Node, mergeAttributes, CommandProps, RawCommands } from '@tiptap/core';
 import { AlignJustify, Bold, Heading2, Heading3, Image as ImageIcon, Italic, LayoutGrid, Link2, List, ListOrdered, Minus, Quote, Redo2, Square, Underline, Undo2, Video } from 'lucide-react';
 import { htmlToBlocks, blocksToHTML } from './ContentTabWrapper';
@@ -122,6 +120,7 @@ const ImageWithCaption = Node.create({
       
       // Edit button overlay
       const editBtn = document.createElement('button');
+      editBtn.type = 'button';
       editBtn.innerHTML = '✏️ Edit';
       editBtn.style.cssText = 'position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; opacity: 0; transition: opacity 0.2s;';
       dom.appendChild(editBtn);
@@ -131,15 +130,13 @@ const ImageWithCaption = Node.create({
       
       editBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const newAlt = prompt('Alt text:', node.attrs.alt || '') || node.attrs.alt;
-        const newCaption = prompt('Caption:', node.attrs.caption || '') || node.attrs.caption;
-        const newWidth = prompt('Width (e.g. 100%, 75%, 640px):', node.attrs.width || '100%') || node.attrs.width;
-        
         if (typeof getPos === 'function') {
           const pos = getPos();
           if (typeof pos === 'number') {
-            editor.commands.setNodeSelection(pos);
-            editor.commands.updateAttributes('imageWithCaption', { alt: newAlt, caption: newCaption, width: newWidth });
+            const event = new CustomEvent('tiptap-edit-image', {
+              detail: { pos, attrs: node.attrs }
+            });
+            window.dispatchEvent(event);
           }
         }
       });
@@ -317,7 +314,16 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
   const [imageAlt, setImageAlt] = useState('');
   const [imageCaption, setImageCaption] = useState('');
   const [stats, setStats] = useState({ words: 0, chars: 0, readTime: '1 min', updatedAt: '' });
+  const [editingImageNode, setEditingImageNode] = useState<{ pos: number; attrs: any } | null>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleEditImage = (e: any) => {
+      setEditingImageNode(e.detail);
+    };
+    window.addEventListener('tiptap-edit-image', handleEditImage);
+    return () => window.removeEventListener('tiptap-edit-image', handleEditImage);
+  }, []);
 
   const uploadDroppedImage = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -345,10 +351,8 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
         heading: { levels: [2, 3] },
       }),
       TextAlign.configure({ types: ['heading', 'paragraph', 'blockquote', 'listItem'] }),
-      Link.configure({ openOnClick: true, autolink: true, linkOnPaste: true }),
       Placeholder.configure({ placeholder }),
       Image.configure({ inline: false, allowBase64: false }),
-      UnderlineExt,
       Dropcap,
       Spacer,
       Gallery,
@@ -608,6 +612,85 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
                 Insert Video
               </button>
               <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg" onClick={() => setShowVideoDialog(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Attributes Edit Dialog */}
+      {editingImageNode && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={() => setEditingImageNode(null)}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-white text-lg font-semibold mb-4">Edit Image Details</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-white text-xs uppercase tracking-wider mb-1">Alt Text</label>
+                <input
+                  type="text"
+                  value={editingImageNode.attrs.alt}
+                  onChange={(e) => setEditingImageNode({ 
+                    ...editingImageNode, 
+                    attrs: { ...editingImageNode.attrs, alt: e.target.value } 
+                  })}
+                  className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white focus:border-white outline-none"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-white text-xs uppercase tracking-wider mb-1">Caption</label>
+                <input
+                  type="text"
+                  value={editingImageNode.attrs.caption}
+                  onChange={(e) => setEditingImageNode({ 
+                    ...editingImageNode, 
+                    attrs: { ...editingImageNode.attrs, caption: e.target.value } 
+                  })}
+                  className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white focus:border-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white text-xs uppercase tracking-wider mb-1">Width</label>
+                <select
+                  value={editingImageNode.attrs.width}
+                  onChange={(e) => setEditingImageNode({ 
+                    ...editingImageNode, 
+                    attrs: { ...editingImageNode.attrs, width: e.target.value } 
+                  })}
+                  className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white focus:border-white outline-none"
+                >
+                  <option value="100%">Full Width (100%)</option>
+                  <option value="75%">Large (75%)</option>
+                  <option value="50%">Medium (50%)</option>
+                  <option value="25%">Small (25%)</option>
+                  <option value="auto">Auto</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                className="flex-1 px-4 py-2 bg-white text-black hover:bg-zinc-200 font-medium rounded-lg transition-colors"
+                onClick={() => {
+                  editor.chain()
+                    .focus()
+                    .setNodeSelection(editingImageNode.pos)
+                    .updateAttributes('imageWithCaption', editingImageNode.attrs)
+                    .run();
+                  setEditingImageNode(null);
+                }}
+              >
+                Save Changes
+              </button>
+              <button 
+                type="button" 
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors" 
+                onClick={() => setEditingImageNode(null)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

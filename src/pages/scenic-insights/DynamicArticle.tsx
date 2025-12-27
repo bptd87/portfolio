@@ -6,6 +6,7 @@ import { BlogCard } from '../../components/shared/BlogCard';
 import { supabase } from '../../utils/supabase/client';
 import { LikeButton } from '../../components/shared/LikeButton';
 import { ShareButton } from '../../components/shared/ShareButton';
+import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { Eye } from 'lucide-react';
 
 interface Article {
@@ -19,6 +20,7 @@ interface Article {
   excerpt: string;
   coverImage?: string;
   tags: string[];
+  cover_image_focal_point?: { x: number; y: number };
   content: ContentBlock[];
 }
 
@@ -292,7 +294,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
           .from('articles')
           .select('*')
           .eq('published', true)
-          .order('publish_date', { ascending: false });
+          .order('published_at', { ascending: false });
 
         if (!error && data) {
           // Map DB fields to Article interface
@@ -493,13 +495,16 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
         <>
           {/* Full-width image */}
           <section className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-visible bg-neutral-900" style={{ minHeight: '50vh' }}>
-            <img
+          <div className="absolute inset-0 z-0">
+            <ImageWithFallback
               src={article.coverImage}
               alt={article.title}
-              className="absolute inset-0 w-full h-full object-cover z-0"
-              loading="eager"
-              crossOrigin="anonymous"
+              className="w-full h-full object-cover"
+              priority={true}
+              focusPoint={article.cover_image_focal_point}
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          </div>
 
 
           </section>
