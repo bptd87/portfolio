@@ -1,6 +1,6 @@
 {
   "buildCommand": "rm -rf node_modules/.vite && npm install --legacy-peer-deps && npm run build",
-  "buildCommand": "rm -rf node_modules/.vite && npm install --legacy-peer-deps && npm run build",
+
   "redirects": [
     {
       "source": "/feed/:slug",
