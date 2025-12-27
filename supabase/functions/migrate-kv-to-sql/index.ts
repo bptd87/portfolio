@@ -28,7 +28,7 @@ interface NewsItem {
   location?: string;
   link?: string;
   tags?: string[];
-  blocks?: any[]; // Keep any for blocks as structure varies
+  blocks?: Record<string, unknown>[]; // Structure varies, using flexible object definition
   images?: string[];
   created_at?: string;
 }

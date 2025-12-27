@@ -1,6 +1,6 @@
-import { Context, Hono, Next } from "npm:hono@3.11.7";
-import { cors } from "npm:hono@3.11.7/cors";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { Context, Hono, Next } from "hono";
+import { cors } from "hono/cors";
+import { createClient } from "@supabase/supabase-js";
 
 const app = new Hono();
 

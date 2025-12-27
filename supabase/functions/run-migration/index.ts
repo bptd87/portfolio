@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
+import { serve } from "std/http/server";
+import { Client } from "postgres";
 
 serve(async (_req) => {
   try {
