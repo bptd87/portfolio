@@ -8,7 +8,7 @@ import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { ExperientialTemplate } from './ExperientialTemplate';
 import { RenderingTemplate } from './RenderingTemplate';
 import { PageLoader } from '../../components/PageLoader';
-import { SEO } from '../../components/shared/SEO';
+import { SEO } from '../../components/SEO';
 
 interface Project {
   id: string;
@@ -28,6 +28,7 @@ interface Project {
   designNotes?: string[];
   views?: number;
   likes?: number;
+  ogImage?: string;
 }
 
 interface DynamicProjectProps {
@@ -221,7 +222,7 @@ export function DynamicProject({ slug, onNavigate }: DynamicProjectProps) {
         <SEO
           title={project.title}
           description={project.description}
-          image={project.cardImage || project.renderings?.[0]?.url}
+          image={project.ogImage || project.cardImage || project.renderings?.[0]?.url}
           keywords={[project.category, project.subcategory, 'Scenic Design', 'Theatre']}
         />
       )}
