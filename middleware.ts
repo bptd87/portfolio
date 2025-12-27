@@ -8,7 +8,9 @@ export default async function middleware(req: Request) {
   if (
     /\.(png|jpg|jpeg|svg|gif|webp|ico|css|js|woff|woff2|ttf|eot)$/.test(
       url.pathname,
-    )
+    ) ||
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/_vercel/")
   ) {
     return;
   }
