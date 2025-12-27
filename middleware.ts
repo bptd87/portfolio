@@ -61,7 +61,7 @@ export default async function middleware(req: Request) {
             const project = data[0];
             title = `${project.title} | Brandon PT Davis`;
             description = project.description || description;
-            let img = project.og_image || project.card_image ||
+            let img = project.card_image || project.og_image ||
               project.banner_image || project.cover_image;
 
             if (img && !img.startsWith("http")) {
