@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
-serve(async (req) => {
+serve(async (_req) => {
   try {
     // 1. Get DB connection string
     // Supabase Edge Functions provide SUPABASE_DB_URL, but sometimes we need to construct it
@@ -36,7 +36,8 @@ serve(async (req) => {
       },
     );
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

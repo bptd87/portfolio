@@ -14,6 +14,7 @@ const originalError = console.error;
 let dropcapRegistered = false;
 if (!dropcapRegistered) {
   const Parchment = Quill.import('parchment');
+  // @ts-ignore - Quill types are inconsistent
   const DropcapClass = new Parchment.Attributor.Class('dropcap', 'dropcap', {
     scope: Parchment.Scope.INLINE,
   });

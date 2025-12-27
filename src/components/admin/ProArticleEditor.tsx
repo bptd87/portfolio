@@ -628,6 +628,8 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
                 <label className="block text-white text-xs uppercase tracking-wider mb-1">Alt Text</label>
                 <input
                   type="text"
+                  aria-label="Image Alt Text"
+                  placeholder="Describe the image"
                   value={editingImageNode.attrs.alt}
                   onChange={(e) => setEditingImageNode({ 
                     ...editingImageNode, 
@@ -641,6 +643,8 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
                 <label className="block text-white text-xs uppercase tracking-wider mb-1">Caption</label>
                 <input
                   type="text"
+                  aria-label="Image Caption"
+                  placeholder="Add a caption"
                   value={editingImageNode.attrs.caption}
                   onChange={(e) => setEditingImageNode({ 
                     ...editingImageNode, 
@@ -653,6 +657,7 @@ export function ProArticleEditor({ initialBlocks = [], onChange, placeholder = '
               <div>
                 <label className="block text-white text-xs uppercase tracking-wider mb-1">Width</label>
                 <select
+                  aria-label="Image Width"
                   value={editingImageNode.attrs.width}
                   onChange={(e) => setEditingImageNode({ 
                     ...editingImageNode, 

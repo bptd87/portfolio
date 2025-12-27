@@ -616,24 +616,29 @@ app.post(
       // Debugging: Log what we received
       console.log("Upload request body keys:", Object.keys(body));
 
-      if (!file) {
+      if (!file || typeof file === "string" || Array.isArray(file)) {
         return c.json({
-          error: "No file uploaded",
+          error: "Invalid file uploaded",
           debug: {
             keys: Object.keys(body),
             contentType: c.req.header("content-type"),
+            fileType: typeof file,
+            isArray: Array.isArray(file),
           },
         }, 400);
       }
 
+      // At this point typescript knows 'file' is a File object because we eliminated string and array
+      const uploadedFile = file as unknown as File; // Hono types can be tricky, safe cast
+
       const fileName = `${path ? path + "/" : ""}${Date.now()}-${
-        file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
+        uploadedFile.name.replace(/[^a-zA-Z0-9.-]/g, "_")
       }`;
 
       const { data, error } = await supabase.storage
         .from(bucket)
-        .upload(fileName, file, {
-          contentType: file.type,
+        .upload(fileName, uploadedFile, {
+          contentType: uploadedFile.type,
           upsert: false,
         });
 
