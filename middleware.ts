@@ -5,33 +5,33 @@ export default async function middleware(req: Request) {
   const url = new URL(req.url);
 
   // 1. Component/Asset exclusions (Fast Exit)
-  // Define extensions to ignore
   if (
     /\.(png|jpg|jpeg|svg|gif|webp|ico|css|js|woff|woff2|ttf|eot)$/.test(
       url.pathname,
     )
   ) {
-    return; // Pass through to Vercel Static Serving
+    return;
   }
 
-  // 2. Bot Detection
+  // 2. Bot Detection (Expanded List for Validators)
   const userAgent = req.headers.get("user-agent") || "";
   const isBot =
-    /bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|linkedinbot|twitterbot|slackbot|whatsapp|telegram/i
+    /bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|linkedinbot|twitterbot|slackbot|whatsapp|telegram|vercel|validator|preview|meta|opengraph/i
       .test(userAgent);
 
   if (!isBot) {
-    return; // Pass through to standard Client-Side App
+    return;
   }
 
   // 3. Bot Handling Logic
   const path = url.pathname;
-  console.log(`[Middleware] Bot detected on: ${path}`);
+  console.log(`[Middleware] Bot/Validator detected on: ${path} (${userAgent})`);
 
   // Default metadata
   let title = "Brandon PT Davis | Scenic Designer";
   let description = "Scenic Designer for Theatre, Opera, and Experiential.";
-  let image = "https://brandonptdavis.com/og-default.jpg";
+  // Default to dynamic generation if no specific image found
+  let image = null;
 
   try {
     if (path.includes("/project/")) {
