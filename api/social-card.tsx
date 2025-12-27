@@ -18,8 +18,11 @@ export default async function handler(req: Request) {
   
   try {
     if (path.includes('/project/')) {
-      const slug = path.split('/project/')[1];
+      const rawSlug = path.split('/project/')[1];
+      const slug = rawSlug?.split('?')[0]; // Remove query params
+      
       if (slug) {
+        console.log(`[SocialCard] Fetching project: ${slug}`);
         // Fetch project data using publicly known keys (safe for anon access)
         const projectId = 'zuycsuajiuqsvopiioer';
         const anonKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1eWNzdWFqaXVxc3ZvcGlpb2VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4Mzk1ODUsImV4cCI6MjA3NzQxNTU4NX0.y7C3gkxAXQvOLRdaebj_3MRww2QjaN9fA2sCUzsdhEM';
@@ -37,17 +40,14 @@ export default async function handler(req: Request) {
             const project = data[0];
             title = `${project.title} | Brandon PT Davis`;
             description = project.description || description;
-            // Use custom OG image, or card image, or cover image
-            // We need to resolve relative URLs if they are relative
-            let img = project.og_image || project.card_image || project.cover_image;
+            
+            // Prefer og_image, then card, then banner, then cover
+            // Note: banner_image is often available in the keys
+            let img = project.og_image || project.card_image || project.banner_image || project.cover_image;
+            
+            console.log(`[SocialCard] Found project: ${project.title}, Image: ${img}`);
+            
             if (img && !img.startsWith('http')) {
-               // Assuming these are supabase storage paths if not absolute? 
-               // Actually the frontend maps them.
-               // Let's assume standard supabase pattern if it's a path
-               // But usually the DB stores full paths or we need to construct it.
-               // For now, let's pass it through and let the OG generator handle or fallback.
-               // If it's a relative path starting with /, prepend siteUrl?
-               // Actually, `og:image` MUST be absolute.
                if (img.startsWith('/')) {
                  image = `https://brandonptdavis.com${img}`;
                } else {
@@ -56,7 +56,11 @@ export default async function handler(req: Request) {
             } else if (img) {
               image = img;
             }
+          } else {
+             console.log(`[SocialCard] No project found for slug: ${slug}`);
           }
+        } else {
+           console.log(`[SocialCard] Supabase error: ${res.status}`);
         }
       }
     }
