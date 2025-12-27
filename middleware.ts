@@ -7,6 +7,7 @@ export const config = {
     "/scenic-insights/:path*",
     "/about",
     "/portfolio",
+    "/",
   ],
 };
 
