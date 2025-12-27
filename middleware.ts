@@ -32,8 +32,8 @@ export default async function middleware(req: Request) {
   // Default metadata
   let title = "Brandon PT Davis | Scenic Designer";
   let description = "Scenic Designer for Theatre, Opera, and Experiential.";
-  // Default to dynamic generation if no specific image found
-  let image = null;
+  // Default to static site image
+  let image = "https://brandonptdavis.com/og-default.jpg";
 
   try {
     if (path.includes("/project/")) {
