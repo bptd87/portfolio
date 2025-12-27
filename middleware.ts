@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+// Middleware for Bot Detection to serve Server-Side OpenGraph
+// Refactored to avoid 'next/server' dependencies in a Vite project
 
 export const config = {
   matcher: [
@@ -10,18 +10,25 @@ export const config = {
   ],
 };
 
-export default function middleware(req: NextRequest) {
+export default function middleware(req: Request) {
+  const url = new URL(req.url);
   const userAgent = req.headers.get("user-agent") || "";
   const isBot =
     /bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|linkedinbot|twitterbot|slackbot|whatsapp|telegram/i
       .test(userAgent);
 
   if (isBot) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/api/social-card";
-    url.searchParams.set("path", req.nextUrl.pathname);
-    return NextResponse.rewrite(url);
-  }
+    // Determine the actual path
+    const path = url.pathname;
 
-  return NextResponse.next();
+    // Construct the API URL to redirect to
+    // We use a 307 redirect so the bot fetches the API response (HTML with meta tags)
+    // Note: Some robust bots follow redirects.
+    // If 'Rewrite' is strictly needed without 'next/server', we'd fetch and return Response.
+    // However, 307 is safer/easier for this stack.
+    const apiUrl = new URL("/api/social-card", req.url);
+    apiUrl.searchParams.set("path", path);
+
+    return Response.redirect(apiUrl.toString(), 307);
+  }
 }
