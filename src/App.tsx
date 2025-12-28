@@ -83,6 +83,7 @@ const CommercialPaintFinder = lazy(() => import('./pages/CommercialPaintFinder')
 const Resources = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
 const BlogFormatter = lazy(() => import('./pages/BlogFormatter').then(m => ({ default: m.BlogFormatter })));
 const ScenicVault = lazy(() => import('./pages/ScenicVault').then(m => ({ default: m.ScenicVault })));
+const Directory = lazy(() => import('./pages/Directory').then(m => ({ default: m.Directory })));
 
 // Dynamic article renderer (replaces all hardcoded article components)
 const DynamicArticle = lazy(() => import('./pages/scenic-insights/DynamicArticle').then(m => ({ default: m.DynamicArticle })));
@@ -141,7 +142,7 @@ export default function App() {
     'classical-architecture-guide', 'rosco-paint-calculator',
     'commercial-paint-finder', 'blog-formatter', 'news', 'search', 'admin',
     'links', 'faq', 'privacy-policy', 'accessibility', 'terms-of-use', 'sitemap',
-    'project', 'blog', 'tutorial', 'test-database'
+    'project', 'blog', 'tutorial', 'test-database', 'directory'
   ];
 
   // Internal navigation logic (updates state only)
@@ -379,6 +380,7 @@ export default function App() {
       case '404': return <NotFound onNavigate={handleNavigation} />;
       case 'sitemap': return <Sitemap onNavigate={handleNavigation} />;
       case 'links': return <Links onNavigate={handleNavigation} />;
+      case 'directory': return <Directory />;
       default: return <Home onNavigate={handleNavigation} />;
     }
   };
