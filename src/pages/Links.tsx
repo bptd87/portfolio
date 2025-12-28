@@ -87,17 +87,21 @@ export function Links({ onNavigate }: LinksProps = {}) {
     setLoading(true);
     try {
       // 1. Fetch data concurrently
-      const [linksData, profileData, postsData, projectsData, newsData] = await Promise.all([
-        // Social/Custom Links
+      const [linksData, profileData, postsData, projectsData, newsData, bioLinksData, tutorialsData] = await Promise.all([
+        // Social Links (Top Row)
         supabase.from('social_links').select('*').eq('enabled', true).order('order'),
         // Profile
         supabase.from('profile').select('*').single(),
         // Articles
-        supabase.from('articles').select('*').eq('published', true).order('publish_date', { ascending: false }).limit(6),
+        supabase.from('articles').select('*').eq('published', true).order('publish_date', { ascending: false }).limit(50),
         // Projects
-        supabase.from('portfolio_projects').select('*').eq('published', true).order('year', { ascending: false }).limit(6),
+        supabase.from('portfolio_projects').select('*').eq('published', true).order('year', { ascending: false }).limit(50),
         // News
-        supabase.from('news').select('*').order('date', { ascending: false }).limit(6)
+        supabase.from('news').select('*').order('date', { ascending: false }).limit(50),
+        // Bio Links (Custom Buttons)
+        supabase.from('bio_links').select('*').eq('active', true).order('order'),
+        // Tutorials
+        supabase.from('tutorials').select('*').order('created_at', { ascending: false }).limit(50)
       ]) as any[];
 
       // 2. Handle Profile
@@ -112,12 +116,27 @@ export function Links({ onNavigate }: LinksProps = {}) {
       // 3. Process Content
       const dashboardItems: DashboardItem[] = [];
 
-      // --- Custom Links (Pinned/Ordered) ---
+      // --- Bio Links (Pinned Buttons) ---
+      if (bioLinksData.data) {
+        bioLinksData.data.forEach((link: any) => {
+           dashboardItems.push({
+            id: `bio-${link.id}`,
+            type: 'custom',
+            title: link.title,
+            subtitle: link.description,
+            url: link.url,
+            date: new Date().toISOString(), // Always top
+            icon: link.icon || 'link',
+            isPinned: true
+          });
+        });
+      }
+
+      // --- Custom Links (Legacy Fallback/Merger) ---
       const customLinks: any[] = linksData.data || [];
       const socialRowLinks = customLinks.filter(l => l.type === 'social');
+      // If any non-social links exist in social_links table, add them too
       const customGridLinks = customLinks.filter(l => l.type !== 'social');
-
-      // Add Custom Grid Links
       customGridLinks.forEach(link => {
         dashboardItems.push({
           id: `custom-${link.id}`,
@@ -143,6 +162,24 @@ export function Links({ onNavigate }: LinksProps = {}) {
             image: post.cover_image,
             date: post.publish_date,
             icon: 'pen-tool'
+          });
+        });
+      }
+
+      // --- Tutorials ---
+      if (tutorialsData.data) {
+        tutorialsData.data.forEach((tut: any) => {
+           dashboardItems.push({
+            id: `tutorial-${tut.id}`,
+            // We reuse 'article' type for layout or add 'tutorial' if you want specific styling
+            // For now, mapping to 'article' style or generic
+            type: 'article', 
+            title: tut.title,
+            subtitle: `Tutorial • ${tut.difficulty || 'General'}`,
+            url: `/tutorials/${tut.slug}`,
+            image: tut.cover_image,
+            date: tut.created_at, // Use created_at as date
+            icon: 'video'
           });
         });
       }
