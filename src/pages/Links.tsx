@@ -93,15 +93,15 @@ export function Links({ onNavigate }: LinksProps = {}) {
         // Profile
         supabase.from('profile').select('*').single(),
         // Articles
-        supabase.from('articles').select('*').eq('published', true).order('publish_date', { ascending: false }).limit(50),
+        supabase.from('articles').select('*').eq('published', true).order('publish_date', { ascending: false }).limit(1000),
         // Projects
-        supabase.from('portfolio_projects').select('*').eq('published', true).order('year', { ascending: false }).limit(50),
+        supabase.from('portfolio_projects').select('*').eq('published', true).order('year', { ascending: false }).limit(1000),
         // News
-        supabase.from('news').select('*').order('date', { ascending: false }).limit(50),
+        supabase.from('news').select('*').order('date', { ascending: false }).limit(1000),
         // Bio Links (Custom Buttons)
         supabase.from('bio_links').select('*').eq('active', true).order('order'),
         // Tutorials
-        supabase.from('tutorials').select('*').order('created_at', { ascending: false }).limit(50)
+        supabase.from('tutorials').select('*').order('created_at', { ascending: false }).limit(1000)
       ]) as any[];
 
       // 2. Handle Profile
