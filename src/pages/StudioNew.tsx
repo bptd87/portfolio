@@ -37,7 +37,7 @@ const MAIN_SECTIONS = [
     title: 'Scenic Directory',
     description: 'Curated links to organizations, software, suppliers, and archives.',
     image: 'https://kleljpvnebosqmtfnfgk.supabase.co/storage/v1/object/public/projects/joseph/Joseph_Render_Overhead.jpg',
-    route: 'resources',
+    route: 'directory',
     comingSoon: false,
   },
 ];
