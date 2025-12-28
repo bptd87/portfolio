@@ -259,16 +259,49 @@ export function MobileNav({ onNavigate }: MobileNavProps) {
                 </button>
 
                 {/* STUDIO */}
-                <button
-                  onClick={() => handleNavClick('studio')}
-                  className="block w-full font-pixel text-2xl tracking-[0.15em] text-white hover:text-white/80 focus:outline-none transition-all duration-200 relative group"
-                  style={{ imageRendering: 'pixelated', textRendering: 'geometricPrecision' }}
-                >
-                  <span className="relative">
+                <div>
+                  <button
+                    onClick={() => toggleSection('studio')}
+                    className="flex items-center justify-center gap-2 w-full font-pixel text-2xl tracking-[0.15em] text-white hover:text-white/80 focus:outline-none transition-all duration-200 group"
+                  >
                     STUDIO
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white/60 group-hover:w-full transition-all duration-300" />
-                  </span>
-                </button>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-300 group-hover:opacity-80 ${expandedSection === 'studio' ? 'rotate-180' : ''}`} />
+                  </button>
+                  {expandedSection === 'studio' && (
+                    <div className="mt-3 ml-4 space-y-2 border-l border-white/20 pl-4">
+                      <button
+                        onClick={() => handleNavClick('studio')}
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
+                      >
+                        OVERVIEW
+                      </button>
+                      <button
+                        onClick={() => handleNavClick('scenic-studio')}
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
+                      >
+                        TUTORIALS
+                      </button>
+                      <button
+                        onClick={() => handleNavClick('app-studio')}
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
+                      >
+                        APP STUDIO
+                      </button>
+                      <button
+                        onClick={() => handleNavClick('scenic-vault')}
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
+                      >
+                        VAULT
+                      </button>
+                      <button
+                        onClick={() => handleNavClick('directory')}
+                        className="block w-full font-pixel text-sm tracking-[0.12em] text-white/60 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-white/20 rounded px-2 py-1 transition-colors duration-200"
+                      >
+                        DIRECTORY
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {/* ABOUT */}
                 <div>
