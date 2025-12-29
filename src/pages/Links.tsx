@@ -153,14 +153,24 @@ export function Links({ onNavigate }: LinksProps = {}) {
       // --- Articles ---
       if (postsData.data) {
         postsData.data.forEach((post: any) => {
+          let dateStr = post.publish_date || post.created_at;
+           // Robust Date Parsing
+           try {
+             const d = new Date(dateStr);
+             if (isNaN(d.getTime())) throw new Error('Invalid Date');
+             dateStr = d.toISOString();
+           } catch (e) {
+             dateStr = new Date().toISOString();
+           }
+
           dashboardItems.push({
             id: `article-${post.id}`,
             type: 'article',
             title: post.title,
-            subtitle: new Date(post.publish_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            subtitle: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             url: `/articles/${post.slug}`,
             image: post.cover_image,
-            date: post.publish_date,
+            date: dateStr,
             icon: 'pen-tool'
           });
         });
@@ -169,16 +179,23 @@ export function Links({ onNavigate }: LinksProps = {}) {
       // --- Tutorials ---
       if (tutorialsData.data) {
         tutorialsData.data.forEach((tut: any) => {
-           dashboardItems.push({
+            let dateStr = tut.created_at;
+             try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) throw new Error('Invalid Date');
+                dateStr = d.toISOString();
+              } catch (e) {
+                dateStr = new Date().toISOString();
+              }
+
+            dashboardItems.push({
             id: `tutorial-${tut.id}`,
-            // We reuse 'article' type for layout or add 'tutorial' if you want specific styling
-            // For now, mapping to 'article' style or generic
             type: 'article', 
             title: tut.title,
             subtitle: `Tutorial • ${tut.difficulty || 'General'}`,
             url: `/tutorials/${tut.slug}`,
             image: tut.cover_image,
-            date: tut.created_at, // Use created_at as date
+            date: dateStr, // Use created_at as date
             icon: 'video'
           });
         });
@@ -188,7 +205,14 @@ export function Links({ onNavigate }: LinksProps = {}) {
       if (projectsData.data) {
         projectsData.data.forEach((project: any) => {
           // Construct date from year/month for sorting
-          const dateStr = `${project.year}-${String(project.month || 1).padStart(2, '0')}-01`;
+          let dateStr = `${project.year}-${String(project.month || 1).padStart(2, '0')}-01`;
+          try {
+             const d = new Date(dateStr);
+             if (isNaN(d.getTime())) throw new Error('Invalid Date');
+             dateStr = d.toISOString();
+           } catch (e) {
+             dateStr = new Date().toISOString();
+           }
 
           let selectedImage = project.card_image || project.cover_image;
           if (!selectedImage && project.galleries?.hero?.[0]) {
@@ -211,14 +235,23 @@ export function Links({ onNavigate }: LinksProps = {}) {
       // --- News ---
       if (newsData.data) {
         newsData.data.forEach((item: any) => {
+            let dateStr = item.date || item.created_at;
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) throw new Error('Invalid Date');
+                dateStr = d.toISOString();
+            } catch (e) {
+                dateStr = new Date().toISOString();
+            }
+
           dashboardItems.push({
             id: `news-${item.id}`,
             type: 'news',
             title: item.title,
-            subtitle: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            subtitle: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             url: item.url && item.url.startsWith('http') ? item.url : `/news/${item.slug || item.id}`,
             image: item.cover_image || item.thumbnail,
-            date: item.date,
+            date: dateStr,
             icon: 'newspaper'
           });
         });
@@ -229,7 +262,7 @@ export function Links({ onNavigate }: LinksProps = {}) {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
         if (a.isPinned && b.isPinned) return 0;
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
       });
 
       setItems(sortedItems);
