@@ -1,6 +1,25 @@
-import { useWatch } from 'react-hook-form';
-import { ContentBlock } from './WYSIWYGEditor';
-import { useState, useEffect, useRef, useCallback } from 'react';
+// Re-export ContentBlock locally to fix missing property error while preserving existing imports
+export interface ContentBlock {
+  id: string;
+  type: 'paragraph' | 'heading' | 'image' | 'video' | 'gallery' | 'list' | 'quote' | 'code' | 'spacer' | 'divider' | 'callout' | 'accordion' | 'file';
+  content: string;
+  metadata?: {
+    level?: number;
+    listType?: 'number' | 'bullet';
+    align?: 'left' | 'center' | 'right' | 'full';
+    size?: 'small' | 'medium' | 'large' | 'full';
+    alt?: string;
+    caption?: string;
+    images?: Array<{ url: string; alt?: string; caption?: string }>;
+    galleryStyle?: 'grid' | 'masonry' | 'carousel';
+    videoType?: 'youtube' | 'vimeo' | 'custom';
+    items?: Array<{ question: string; answer: string }>;
+    calloutType?: 'info' | 'warning' | 'success' | 'error';
+    fileName?: string;
+    fileSize?: string;
+    fileType?: string;
+  };
+}
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { ImageUploader } from './ImageUploader';

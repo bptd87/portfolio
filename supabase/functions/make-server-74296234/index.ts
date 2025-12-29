@@ -836,7 +836,7 @@ app.post(
       const data = await response.json();
       const result = JSON.parse(data.choices[0].message.content);
       return c.json({ success: true, tags: result.tags });
-    } catch (err) {
+    } catch (_err) {
       return c.json({ error: "Vision analysis failed" }, 500);
     }
   },
@@ -883,7 +883,7 @@ app.post(
       const data = await response.json();
       const result = JSON.parse(data.choices[0].message.content);
       return c.json({ success: true, result: result.result });
-    } catch (err) {
+    } catch (_err) {
       return c.json({ error: "Image analysis failed" }, 500);
     }
   },
@@ -893,11 +893,13 @@ app.post(
 app.post(
   "/make-server-74296234/api/admin/select-thumbnail",
   verifyAdminToken,
-  async (c: Context) => {
+  (c: Context) => {
     return c.json({
       success: false,
       error: "Not implemented on server-side. Use client-side canvas.",
     });
+  }
+);
   },
 );
 app.post(

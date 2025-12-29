@@ -361,7 +361,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
           slug: data.slug,
           title: data.title,
           category: data.category || 'Article',
-          category: data.category || 'Article',
+
           date: (() => {
             try {
               const d = data.publish_date || data.created_at;
