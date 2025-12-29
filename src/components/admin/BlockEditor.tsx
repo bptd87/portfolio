@@ -721,6 +721,16 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                     />
                     <span className="text-sm">Vimeo</span>
                   </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`video-type-${block.id}`}
+                      checked={block.metadata?.videoType === 'custom'}
+                      onChange={() => updateBlock(block.id, { metadata: { ...block.metadata, videoType: 'custom' } })}
+                      className="accent-accent-brand"
+                    />
+                    <span className="text-sm">Direct URL (.mp4)</span>
+                  </label>
                 </div>
 
                 <div>
@@ -750,6 +760,16 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
                             title="Vimeo Video Player"
                           />
                         ) : <div className="w-full h-full flex items-center justify-center text-white/40">Invalid Vimeo URL</div>;
+                      } else if (block.metadata?.videoType === 'custom') {
+                        return (
+                           <video
+                              src={block.content}
+                              controls
+                              className="w-full h-full object-contain"
+                           >
+                              Your browser does not support the video tag.
+                           </video>
+                        );
                       } else {
                         const id = getYouTubeId(block.content);
                         return id ? (

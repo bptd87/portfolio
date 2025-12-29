@@ -310,20 +310,33 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               } else if (videoType === 'vimeo') {
                 const id = getVimeoId(block.content);
                 if (id) videoSrc = `https://player.vimeo.com/video/${id}`;
+              } else if (videoType === 'custom') {
+                videoSrc = block.content;
               }
 
               if (!videoSrc) return null;
 
               return (
-                <div key={block.id} className="my-12 aspect-video bg-black rounded-2xl overflow-hidden">
-                  <iframe
-                    src={videoSrc}
-                    title="Video player"
-                    className="w-full h-full"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+                <div key={block.id} className="my-12 bg-black rounded-2xl overflow-hidden shadow-xl">
+                  {videoType === 'custom' ? (
+                    <video
+                      src={videoSrc}
+                      controls
+                      className="w-full h-auto max-h-[80vh] mx-auto"
+                      preload="metadata"
+                    />
+                  ) : (
+                    <div className="aspect-video">
+                      <iframe
+                        src={videoSrc}
+                        title="Video player"
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
                 </div>
               );
 
