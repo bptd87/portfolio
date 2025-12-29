@@ -898,8 +898,6 @@ app.post(
       success: false,
       error: "Not implemented on server-side. Use client-side canvas.",
     });
-  }
-);
   },
 );
 app.post(

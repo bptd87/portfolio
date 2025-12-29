@@ -1,3 +1,7 @@
+import { useWatch } from 'react-hook-form';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import ReactQuill, { Quill } from 'react-quill';
+
 // Re-export ContentBlock locally to fix missing property error while preserving existing imports
 export interface ContentBlock {
   id: string;
