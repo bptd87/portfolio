@@ -105,7 +105,8 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
   };
 
   const getYouTubeId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    // Supports: standard v=, short youtu.be, embed, shorts, live
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/|live\/)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   };
