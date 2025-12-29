@@ -271,7 +271,7 @@ export function Directory() {
                   <button 
                     type="submit"
                     disabled={submitting}
-                    className="px-6 py-2 bg-yellow-400 text-black font-bold rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
+                    className="px-6 py-2 bg-white text-black font-bold rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50"
                   >
                     {submitting ? 'Sending...' : 'Submit Suggestion'}
                   </button>
