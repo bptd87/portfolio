@@ -301,7 +301,17 @@ export function ArticleManager() {
           // Map published (boolean) to status (string)
           status: a.published ? 'published' : 'draft',
           // Use published_at if available, otherwise created_at
-          date: a.published_at || a.created_at || new Date().toISOString()
+          date: (() => {
+            try {
+              const d = a.published_at || a.created_at;
+              // Ensure valid date
+              const dateObj = d ? new Date(d) : new Date();
+              if (isNaN(dateObj.getTime())) return new Date().toISOString();
+              return dateObj.toISOString();
+            } catch (e) {
+              return new Date().toISOString();
+            }
+          })()
         }));
 
         setArticles(normalized);
@@ -344,7 +354,15 @@ export function ArticleManager() {
     methods.reset({
       title: article.title || '',
       category: article.category || categories.articles[0]?.name || '',
-      date: (article.date || new Date().toISOString()).split('T')[0],
+      date: (() => {
+        try {
+          const d = article.date ? new Date(article.date) : new Date();
+          if (isNaN(d.getTime())) return new Date().toISOString().split('T')[0];
+          return d.toISOString().split('T')[0];
+        } catch (e) {
+          return new Date().toISOString().split('T')[0];
+        }
+      })(),
       featured: article.featured || false,
       status: article.status || 'draft',
       tags: article.tags || [],
@@ -392,7 +410,15 @@ export function ArticleManager() {
         category: data.category,
         cover_image: data.coverImage,
         cover_image_focal_point: data.focusPoint,
-        published_at: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
+        published_at: (() => {
+          try {
+            const d = data.date ? new Date(data.date) : new Date();
+            if (isNaN(d.getTime())) return new Date().toISOString();
+            return d.toISOString();
+          } catch (e) {
+            return new Date().toISOString();
+          }
+        })(),
         read_time: data.readTime || estimateReadTime(Array.isArray(data.content) ? data.content : [], data.excerpt),
         tags: data.tags || [],
         published: data.status === 'published',
