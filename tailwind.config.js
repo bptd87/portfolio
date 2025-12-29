@@ -11,6 +11,24 @@ export default {
     theme: {
         extend: {
             colors: {
+                // Ensure extended palette is available
+                emerald: {
+                  400: '#34d399',
+                  500: '#10b981',
+                },
+                amber: {
+                  400: '#fbbf24',
+                  500: '#f59e0b',
+                },
+                pink: {
+                  400: '#f472b6',
+                },
+                purple: {
+                  400: '#c084fc',
+                },
+                blue: {
+                  400: '#60a5fa',
+                },
                 border: 'hsl(var(--border))',
                 input: 'hsl(var(--input))',
                 ring: 'hsl(var(--ring))',
