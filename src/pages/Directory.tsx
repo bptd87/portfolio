@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Building2, Code, Palette, BookOpen, FolderOpen, ExternalLink, Search, Send, PlusCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Building2, Code, Palette, BookOpen, FolderOpen, ExternalLink, Search, Send, PlusCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../utils/supabase/client';
 import { SEO } from '../components/SEO';
 import { toast } from 'sonner';
@@ -107,11 +107,33 @@ export function Directory() {
     linksByCategory[link.category_slug].push(link);
   });
 
+  // Generate structured data for the list
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Scenic Design Directory",
+    "description": "A curated directory of scenic design resources, software, organizations, and research archives.",
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": categories.flatMap((cat, catIndex) => {
+          const catLinks = linksByCategory[cat.slug] || [];
+          return catLinks.map((link, linkIndex) => ({
+            "@type": "ListItem",
+            "position": (catIndex * 100) + linkIndex + 1,
+            "url": link.url,
+            "name": link.title,
+            "description": link.description
+          }));
+      })
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+          <p className="font-pixel text-[10px] tracking-[0.3em] opacity-50">LOADING DIRECTORY</p>
         </div>
       </div>
     );
@@ -123,6 +145,7 @@ export function Directory() {
         title="Directory | Brandon PT Davis"
         description="A curated directory of scenic design resources, software, organizations, and research archives."
         keywords={['scenic design', 'theatre directory', 'scenography resources', 'drafting software', 'prop suppliers']}
+        structuredData={structuredData}
       />
 
       {/* Hero */}
