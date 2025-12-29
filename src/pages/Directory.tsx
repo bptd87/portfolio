@@ -14,6 +14,7 @@ interface DirectoryLink {
   category_slug: string;
   enabled: boolean;
   display_order: number;
+  likes?: number;
 }
 
 interface DirectoryCategory {
@@ -39,6 +40,7 @@ export function Directory() {
   const [categories, setCategories] = useState<DirectoryCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
 
   // Suggestion Form State
   const [suggestionOpen, setSuggestionOpen] = useState(false);
@@ -47,13 +49,18 @@ export function Directory() {
 
   useEffect(() => {
     fetchData();
+    // Load liked IDs from local storage to prevent spamming (basic client-side check)
+    const stored = localStorage.getItem('directory_liked_ids');
+    if (stored) {
+      setLikedIds(new Set(JSON.parse(stored)));
+    }
   }, []);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [linksRes, catsRes] = await Promise.all([
-        supabase.from('directory_links').select('*').eq('enabled', true).order('title'), // Alphabetical within categories usually better for lists
+        supabase.from('directory_links').select('*').eq('enabled', true),
         supabase.from('directory_categories').select('*').order('display_order')
       ]);
 
@@ -63,6 +70,31 @@ export function Directory() {
       console.error('Error fetching directory data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLike = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent opening link
+    e.stopPropagation();
+
+    if (likedIds.has(id)) return; // Already liked
+
+    // Optimistic Update
+    setLinks(prev => prev.map(l => l.id === id ? { ...l, likes: (l.likes || 0) + 1 } : l));
+    
+    // Update Local State
+    const newLiked = new Set(likedIds);
+    newLiked.add(id);
+    setLikedIds(newLiked);
+    localStorage.setItem('directory_liked_ids', JSON.stringify(Array.from(newLiked)));
+
+    try {
+      const { error } = await supabase.rpc('increment_directory_link_likes', { link_id: id });
+      if (error) throw error;
+      toast.success('Thanks for the vote!');
+    } catch (err) {
+      console.error('Failed to like:', err);
+      // Revert if needed, but for likes usually okay to just ignore error visually
     }
   };
 
@@ -98,13 +130,23 @@ export function Directory() {
     (link.description && link.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  // Group by category
+  // Group by category and Sort
   const linksByCategory: Record<string, DirectoryLink[]> = {};
   filteredLinks.forEach(link => {
     if (!linksByCategory[link.category_slug]) {
       linksByCategory[link.category_slug] = [];
     }
     linksByCategory[link.category_slug].push(link);
+  });
+
+  // Sort each category: Likes DESC, then Title ASC
+  Object.keys(linksByCategory).forEach(key => {
+    linksByCategory[key].sort((a, b) => {
+      const likesA = a.likes || 0;
+      const likesB = b.likes || 0;
+      if (likesA !== likesB) return likesB - likesA; // Highest likes first
+      return a.title.localeCompare(b.title);
+    });
   });
 
   // Generate structured data for the list
@@ -263,31 +305,58 @@ export function Directory() {
 
               {/* List Group */}
               <div className="flex flex-col divide-y divide-foreground/5 border-l border-foreground/5 ml-3 pl-0">
-                {catLinks.map(link => (
-                  <a 
-                    key={link.id}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group relative flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 py-4 px-4 hover:bg-foreground/5 -ml-px border-l border-transparent hover:border-l-amber-500 transition-all duration-200"
-                  >
-                    {/* Title */}
-                    <div className="sm:w-1/3 flex-shrink-0 font-medium text-lg leading-tight group-hover:text-amber-500 transition-colors flex items-center gap-2">
-                       {link.title}
-                       <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-                    </div>
+                {catLinks.map(link => {
+                  const isLiked = likedIds.has(link.id);
+                  return (
+                    <a 
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 py-4 px-4 hover:bg-foreground/5 -ml-px border-l border-transparent hover:border-l-amber-500 transition-all duration-200"
+                    >
+                      {/* Title */}
+                      <div className="sm:w-1/3 flex-shrink-0 font-medium text-lg leading-tight group-hover:text-amber-500 transition-colors flex items-center gap-2">
+                         {link.title}
+                         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+                      </div>
 
-                    {/* Description */}
-                    <div className="flex-1 text-sm text-foreground/60 group-hover:text-foreground/80 leading-relaxed font-sans mt-1 sm:mt-0">
-                      {link.description}
-                    </div>
-                    
-                     {/* Domain hint (Mobile hidden if too cramped, or small) */}
-                    <div className="hidden sm:block text-[10px] font-pixel uppercase tracking-widest opacity-20 group-hover:opacity-40 whitespace-nowrap self-center">
-                       {new URL(link.url).hostname.replace('www.', '')}
-                    </div>
-                  </a>
-                ))}
+                      {/* Description */}
+                      <div className="flex-1 text-sm text-foreground/60 group-hover:text-foreground/80 leading-relaxed font-sans mt-1 sm:mt-0">
+                        {link.description}
+                      </div>
+
+                      {/* Actions/Meta */}
+                      <div className="flex items-center gap-4 self-start sm:self-center mt-2 sm:mt-0">
+                        {/* Likes */}
+                        <button
+                          onClick={(e) => handleLike(link.id, e)}
+                          className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${isLiked ? 'text-red-500' : 'text-foreground/20 hover:text-red-500'}`}
+                          title="Vote for this resource"
+                        >
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            viewBox="0 0 24 24" 
+                            fill={isLiked ? "currentColor" : "none"} 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className="w-4 h-4"
+                          >
+                            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                          </svg>
+                          <span>{link.likes || 0}</span>
+                        </button>
+
+                        {/* Domain */}
+                        <div className="hidden sm:block text-[10px] font-pixel uppercase tracking-widest opacity-20 group-hover:opacity-40 whitespace-nowrap">
+                           {new URL(link.url).hostname.replace('www.', '')}
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
               </div>
             </div>
           );
