@@ -731,6 +731,175 @@ app.post(
 );
 
 // ===== AI GENERATION =====
+
+app.post(
+  "/make-server-74296234/api/admin/expand-notes",
+  verifyAdminToken,
+  async (c: Context) => {
+    try {
+      const { notes, context } = await c.req.json();
+      const apiKey = Deno.env.get("OPENAI_API_KEY");
+
+      if (!apiKey) {
+        return c.json({ error: "OpenAI configuration missing" }, 500);
+      }
+
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "system",
+                content: `You are a professional design portfolio copywriter. 
+                                Expand the provided bullet points into a detailed, professional paragraph (~300 words). 
+                                Focus on technical details, artistic intent, and design process. 
+                                Maintain a professional, sophisticated tone suitable for a scenic design portfolio.
+                                Return ONLY a JSON object with a single key "expandedNotes" containing the array of expanded strings (one per note group).`,
+              },
+              {
+                role: "user",
+                content: `Context: ${
+                  context || "Scenic Design Portfolio"
+                }\n\nNotes to expand:\n${JSON.stringify(notes)}`,
+              },
+            ],
+            response_format: { type: "json_object" },
+          }),
+        },
+      );
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+
+      const result = JSON.parse(data.choices[0].message.content);
+      return c.json({ success: true, expandedNotes: result.expandedNotes });
+    } catch (err) {
+      console.error("AI Notes Error:", err);
+      return c.json({
+        error: err instanceof Error ? err.message : "Generation failed",
+      }, 500);
+    }
+  },
+);
+
+app.post(
+  "/make-server-74296234/api/admin/generate-tags",
+  verifyAdminToken,
+  async (c: Context) => {
+    try {
+      const { imageUrl, context } = await c.req.json();
+      const apiKey = Deno.env.get("OPENAI_API_KEY");
+
+      if (!apiKey) return c.json({ error: "OpenAI key missing" }, 500);
+
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Analyze this image for a scenic design portfolio. Generate 8-12 relevant, standard industry tags describing the style, mood, key architectural elements, color palette, and materials. Return ONLY a JSON object with a 'tags' array of strings.",
+              },
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: context
+                      ? `Context: ${context}`
+                      : "Analyze this image.",
+                  },
+                  { type: "image_url", image_url: { url: imageUrl } },
+                ],
+              },
+            ],
+            response_format: { type: "json_object" },
+          }),
+        },
+      );
+
+      const data = await response.json();
+      const result = JSON.parse(data.choices[0].message.content);
+      return c.json({ success: true, tags: result.tags });
+    } catch (err) {
+      return c.json({ error: "Vision analysis failed" }, 500);
+    }
+  },
+);
+
+app.post(
+  "/make-server-74296234/api/admin/ai/analyze-image",
+  verifyAdminToken,
+  async (c: Context) => {
+    try {
+      const { imageUrl } = await c.req.json();
+      const apiKey = Deno.env.get("OPENAI_API_KEY");
+
+      if (!apiKey) return c.json({ error: "OpenAI key missing" }, 500);
+
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Generate a professional, concise caption (1 sentence) for this portfolio image. Focus on the scenic elements visible. Return ONLY a JSON object with a 'result' key string.",
+              },
+              {
+                role: "user",
+                content: [
+                  { type: "image_url", image_url: { url: imageUrl } },
+                ],
+              },
+            ],
+            response_format: { type: "json_object" },
+          }),
+        },
+      );
+
+      const data = await response.json();
+      const result = JSON.parse(data.choices[0].message.content);
+      return c.json({ success: true, result: result.result });
+    } catch (err) {
+      return c.json({ error: "Image analysis failed" }, 500);
+    }
+  },
+);
+
+// Stub for select-thumbnail if needed (logic usually handled client-side or separate service, but adding endpoint to prevent 404)
+app.post(
+  "/make-server-74296234/api/admin/select-thumbnail",
+  verifyAdminToken,
+  async (c: Context) => {
+    return c.json({
+      success: false,
+      error: "Not implemented on server-side. Use client-side canvas.",
+    });
+  },
+);
 app.post(
   "/make-server-74296234/api/admin/ai/seo-tags",
   verifyAdminToken,
