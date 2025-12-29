@@ -90,7 +90,7 @@ export function blocksToHTML(blocks: ContentBlock[]): string {
         
         return `<figure class="${alignClass}" style="text-align: ${align}; margin: 1rem 0;"><img src="${block.content}" alt="${alt}" title="${title}" class="ql-image" style="${sizeStyle} height: auto; object-fit: contain;" />${title ? `<figcaption style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: #a1a1aa;">${title}</figcaption>` : ''}</figure>`;
       case 'video':
-        return `<div class="ql-video" data-video="${block.content}">${block.content}</div>`;
+        return `<div class="tiptap-video-wrapper"><iframe data-video-embed="true" src="${block.content}" title="Embedded video" allowfullscreen="true"></iframe></div>`;
       case 'gallery':
         const images = block.metadata?.images || [];
         // Fix: Use 'galleryStyle' instead of non-existent 'galleryType' property; fallback to 'grid'
@@ -103,7 +103,7 @@ export function blocksToHTML(blocks: ContentBlock[]): string {
         } else {
           galleryStyle = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;';
         }
-        return `<div class="ql-gallery" data-gallery-type="${galleryType}" style="${galleryStyle}">${images.map((img) => {
+        return `<div class="tiptap-gallery" data-gallery="${galleryType}" style="${galleryStyle}">${images.map((img) => {
           const imgStyle = galleryType === 'carousel' ? 'max-width: 300px; height: auto; display: block; flex-shrink: 0; scroll-snap-align: start; object-fit: contain;' : 'max-width: 100%; height: auto; display: block; margin: 0.5rem auto; object-fit: contain;';
           const caption = img.caption ? `<figcaption style="text-align: center; margin-top: 0.5rem; font-size: 0.875rem; color: #a1a1aa;">${img.caption}</figcaption>` : '';
           return `<figure style="margin: 0;"><img src="${img.url}" alt="${img.alt || ''}" class="ql-image" style="${imgStyle}" />${caption}</figure>`;
@@ -226,7 +226,7 @@ export function htmlToBlocks(html: string): ContentBlock[] {
       }
 
     } else if (el.classList.contains('ql-gallery') || el.classList.contains('tiptap-gallery') || el.hasAttribute('data-gallery')) {
-      const galleryTypeAttr = el.getAttribute('data-gallery-type') || 'grid';
+      const galleryTypeAttr = el.getAttribute('data-gallery') || el.getAttribute('data-gallery-type') || 'grid';
       const galleryType = (galleryTypeAttr === 'grid' || galleryTypeAttr === 'masonry' || galleryTypeAttr === 'carousel') 
         ? galleryTypeAttr 
         : 'grid' as 'grid' | 'masonry' | 'carousel';
@@ -250,12 +250,22 @@ export function htmlToBlocks(html: string): ContentBlock[] {
           metadata: { images, galleryStyle: galleryType }
         });
       }
-    } else if (el.classList.contains('ql-video') || el.hasAttribute('data-video')) {
-      blocks.push({
-        id: `block-${Date.now()}-${blockId++}`,
-        type: 'video',
-        content: el.getAttribute('data-video') || el.textContent || ''
-      });
+    } else if (el.classList.contains('ql-video') || el.hasAttribute('data-video') || el.hasAttribute('data-video-embed') || el.classList.contains('tiptap-video-wrapper') || tag === 'iframe') {
+      const iframe = tag === 'iframe' ? el : el.querySelector('iframe');
+      const src = iframe?.getAttribute('src') || el.getAttribute('data-video') || el.textContent || '';
+      
+      let videoType = 'youtube';
+      if (src.includes('vimeo')) videoType = 'vimeo';
+      else if (!src.includes('youtube') && !src.includes('youtu.be')) videoType = 'custom';
+      
+      if (src) {
+        blocks.push({
+          id: `block-${Date.now()}-${blockId++}`,
+          type: 'video',
+          content: src,
+          metadata: { videoType }
+        });
+      }
     } else {
       // Process children
       Array.from(el.childNodes).forEach(processNode);
