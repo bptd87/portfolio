@@ -305,7 +305,16 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
             slug: p.slug,
             title: p.title,
             category: p.category || 'Article',
-            date: p.publish_date,
+            date: (() => {
+              try {
+                const d = p.publish_date || p.created_at;
+                const dateObj = d ? new Date(d) : new Date();
+                if (isNaN(dateObj.getTime())) return new Date().toISOString();
+                return dateObj.toISOString();
+              } catch (e) {
+                return new Date().toISOString();
+              }
+            })(),
             readTime: '5 min read', // TODO: Calculate read time from content
             excerpt: p.excerpt,
             coverImage: p.cover_image,
@@ -352,7 +361,17 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
           slug: data.slug,
           title: data.title,
           category: data.category || 'Article',
-          date: data.publish_date,
+          category: data.category || 'Article',
+          date: (() => {
+            try {
+              const d = data.publish_date || data.created_at;
+              const dateObj = d ? new Date(d) : new Date();
+              if (isNaN(dateObj.getTime())) return new Date().toISOString();
+              return dateObj.toISOString();
+            } catch (e) {
+              return new Date().toISOString();
+            }
+          })(),
           readTime: '5 min read',
           excerpt: data.excerpt,
           coverImage: data.cover_image,
@@ -449,7 +468,16 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
           slug: p.slug,
           title: p.title,
           category: p.category || 'Article',
-          date: p.publish_date,
+          date: (() => {
+            try {
+              const d = p.publish_date || p.created_at;
+              const dateObj = d ? new Date(d) : new Date();
+              if (isNaN(dateObj.getTime())) return new Date().toISOString();
+              return dateObj.toISOString();
+            } catch (e) {
+              return new Date().toISOString();
+            }
+          })(),
           readTime: '5 min read',
           excerpt: p.excerpt,
           coverImage: p.cover_image,
