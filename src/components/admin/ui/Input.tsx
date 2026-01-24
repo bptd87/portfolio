@@ -8,6 +8,8 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   type?: string;
   className?: string;
   placeholder?: string;
+  list?: string;
+  disabled?: boolean;
 }
 
 export function Input({ name, label, required, ...props }: InputProps) {
