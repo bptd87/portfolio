@@ -1,5 +1,9 @@
 {
   "trailingSlash": false,
+  "framework": "nextjs",
+  "installCommand": "npm --prefix v2-next install",
+  "buildCommand": "npm --prefix v2-next run build",
+  "outputDirectory": "v2-next/.next",
 
 
   "rewrites": [
