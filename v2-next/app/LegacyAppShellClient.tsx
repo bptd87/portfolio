@@ -1,10 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const LegacyAppClient = dynamic(() => import("./LegacyAppClient"), {
-  ssr: false,
-});
+import LegacyAppClient from "./LegacyAppClient";
 
 export default function LegacyAppShellClient() {
   return <LegacyAppClient />;
