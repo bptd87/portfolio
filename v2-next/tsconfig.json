@@ -82,6 +82,9 @@
       ],
       "@tiptap/extension-image": [
         "./node_modules/@tiptap/extension-image"
+      ],
+      "@tiptap/core": [
+        "./node_modules/@tiptap/core"
       ]
     },
     "plugins": [
