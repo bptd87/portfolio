@@ -6,7 +6,6 @@ import {
   FileType, HardDrive, Calendar, Eye, Tag, Layers, Box, ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Link } from 'react-router-dom';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { supabase } from '../utils/supabase/client';
 
