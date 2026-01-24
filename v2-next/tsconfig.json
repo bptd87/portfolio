@@ -79,6 +79,9 @@
       ],
       "@tiptap/extension-text-align": [
         "./node_modules/@tiptap/extension-text-align"
+      ],
+      "@tiptap/extension-image": [
+        "./node_modules/@tiptap/extension-image"
       ]
     },
     "plugins": [
