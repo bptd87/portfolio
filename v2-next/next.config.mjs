@@ -26,7 +26,12 @@ const nextConfig = {
         __dirname,
         "./node_modules/@hookform/resolvers",
       ),
+      "zod": path.resolve(__dirname, "./node_modules/zod"),
       "react-day-picker@8.10.1": "react-day-picker",
+      "react-quill-new": path.resolve(
+        __dirname,
+        "./node_modules/react-quill-new",
+      ),
       "next-themes@0.4.6": "next-themes",
       "lucide-react@0.487.0": "lucide-react",
       "lucide-react": path.resolve(
