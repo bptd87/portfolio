@@ -113,6 +113,10 @@ const nextConfig = {
         __dirname,
         "./node_modules/phosphor-react",
       ),
+      "react-helmet-async": path.resolve(
+        __dirname,
+        "./node_modules/react-helmet-async",
+      ),
       "d3-scale": path.resolve(__dirname, "./node_modules/d3-scale"),
       "react-syntax-highlighter": path.resolve(
         __dirname,

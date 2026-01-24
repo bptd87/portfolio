@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { cache } from "react";
+import { unstable_cache as cache } from "next/cache";
 import {
   DEFAULT_METADATA,
   PAGE_METADATA,
