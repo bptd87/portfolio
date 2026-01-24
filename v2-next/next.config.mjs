@@ -78,6 +78,11 @@ const nextConfig = {
         "./node_modules/@radix-ui/react-tabs",
       ),
       "clsx": path.resolve(__dirname, "./node_modules/clsx"),
+      "jspdf": path.resolve(__dirname, "./node_modules/jspdf"),
+      "@supabase/supabase-js": path.resolve(
+        __dirname,
+        "./node_modules/@supabase/supabase-js",
+      ),
       "tailwind-merge": path.resolve(
         __dirname,
         "./node_modules/tailwind-merge",
