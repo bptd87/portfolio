@@ -98,6 +98,9 @@
       ],
       "react-router-dom": [
         "./node_modules/react-router-dom"
+      ],
+      "@vercel/speed-insights/react": [
+        "./node_modules/@vercel/speed-insights/react"
       ]
     },
     "plugins": [
