@@ -1,0 +1,10 @@
+
+> brandonptdavis-com@0.1.0 lint
+> eslint .
+
+
+/Users/brandonptdavis/portfolio/src/components/ThemeProvider.tsx
+  10:14  warning  Fast refresh only works when a file only exports components. Move your React context(s) to a separate file  react-refresh/only-export-components
+
+✖ 1 problem (0 errors, 1 warning)
+

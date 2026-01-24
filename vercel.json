@@ -1,0 +1,97 @@
+{
+  "rootDirectory": "v2-next",
+  "trailingSlash": false,
+
+
+  "rewrites": [
+    {
+      "source": "/resume.pdf",
+      "destination": "https://zuycsuajiuqsvopiioer.supabase.co/storage/v1/object/public/portfolio/resume.pdf"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/feed/:slug",
+      "destination": "/project/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/experiential-design/:slug",
+      "destination": "/project/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/experiential-design/all",
+      "destination": "/portfolio?filter=experiential",
+      "permanent": true
+    },
+    {
+      "source": "/vectorworks-vault/:path*",
+      "destination": "/scenic-studio",
+      "permanent": true
+    },
+    {
+      "source": "/resources/all",
+      "destination": "/scenic-insights",
+      "permanent": true
+    },
+    {
+      "source": "/scenicinsights/:slug*",
+      "destination": "/articles/:slug*",
+      "permanent": true
+    },
+    {
+      "source": "/scenic-insights/:slug*",
+      "destination": "/articles/:slug*",
+      "permanent": true
+    },
+    {
+      "source": "/scenic-design/:slug",
+      "destination": "/project/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/design-portfolio/scenic-design/:slug",
+      "destination": "/project/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/news/:slug",
+      "destination": "/articles/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/feed",
+      "destination": "/articles",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
+        }
+      ]
+    }
+  ]
+}

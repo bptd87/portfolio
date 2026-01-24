@@ -1,0 +1,23 @@
+import { createContext, useContext } from "react";
+
+export type Theme = "dark" | "light";
+
+export interface ThemeContextType {
+    theme: Theme;
+    toggleTheme: () => void;
+}
+
+export const ThemeContext = createContext<ThemeContextType | undefined>(
+    undefined,
+);
+
+/**
+ * Hook to access theme and toggle function
+ */
+export function useTheme() {
+    const context = useContext(ThemeContext);
+    if (context === undefined) {
+        throw new Error("useTheme must be used within a ThemeProvider");
+    }
+    return context;
+}

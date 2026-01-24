@@ -1,0 +1,7 @@
+-- Add missing columns to news table
+ALTER TABLE public.news 
+ADD COLUMN IF NOT EXISTS category TEXT,
+ADD COLUMN IF NOT EXISTS tags TEXT[],
+ADD COLUMN IF NOT EXISTS link TEXT,
+ADD COLUMN IF NOT EXISTS location TEXT,
+ADD COLUMN IF NOT EXISTS blocks JSONB;

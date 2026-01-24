@@ -1,0 +1,813 @@
+import { useState, useEffect } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Save, X, Layout, Image, Users, Tags, FileJson, Briefcase } from 'lucide-react';
+
+import { useCategories } from '../../hooks/useCategories';
+import { SaveButton, IconButton } from './AdminButtons';
+import { AdminPageHeader } from './shared/AdminPageHeader';
+import { AdminListItem } from './shared/AdminListItem';
+import { Input } from './ui/Input';
+import { Textarea } from './ui/Textarea';
+import { Select } from './ui/Select';
+import { Checkbox } from './ui/Checkbox';
+import { toast } from 'sonner';
+import { CreditsManager } from './CreditsManager';
+import { GalleryEditor, DesignNotesEditor } from './ProjectTemplateFields';
+import { TagInput } from './ui/TagInput';
+import { YouTubeVideosEditor } from './YouTubeVideosEditor';
+import { ProjectSEOTools } from './ProjectSEOTools';
+import { UnifiedPortfolioEditor } from './UnifiedPortfolioEditor';
+import { ImageUploaderWithFocalPoint } from './ImageUploaderWithFocalPoint';
+import { SimpleGalleryEditor } from './SimpleGalleryEditor';
+import { SEOImageFixer } from './SEOImageFixer';
+import { AIAltTextGenerator } from './AIImageEnhancers';
+import { supabase } from '../../lib/supabase';
+
+
+// Zod schema for validation
+const projectSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  category: z.string().min(1, 'Category is required'),
+  subcategory: z.string().optional(),
+  venue: z.string().optional(), // Made optional as it depends on category
+  location: z.string().optional(),
+  clientName: z.string().optional(), // For Experiential
+  client: z.string().optional(), // For Rendering
+  year: z.coerce.number().min(1900, 'Invalid year').max(new Date().getFullYear() + 1, 'Invalid year'),
+  month: z.any().optional(), // Relaxed validation as it is conditional
+  featured: z.boolean(),
+  published: z.boolean().optional(), // New field
+  description: z.string().min(1, 'Description is required'),
+  cardImage: z.string().optional(),
+  focusPoint: z.object({ x: z.number(), y: z.number() }).optional(),
+  credits: z.array(z.object({ role: z.string(), name: z.string() })).optional(),
+  tags: z.array(z.string()).optional(),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  seoKeywords: z.array(z.string()).optional(),
+  cardImageAlt: z.string().optional(),
+
+  // Scenic Design specific
+  galleries: z.any().optional(),
+  youtubeVideos: z.array(z.string()).optional(),
+  designNotes: z.array(z.string()).optional(),
+
+  // Experiential specific
+  role: z.string().nullable().optional(),
+  challenge: z.string().nullable().optional(),
+  solution: z.string().nullable().optional(),
+  keyFeatures: z.any().nullable().optional(),
+  process: z.any().nullable().optional(),
+  team: z.any().nullable().optional(),
+  metrics: z.any().optional(),
+  testimonial: z.any().optional(),
+  experientialContent: z.any().optional(), // Renamed to avoid conflict with generic content
+
+  // Rendering specific
+  softwareUsed: z.array(z.string()).optional(),
+  projectOverview: z.string().optional(),
+  videoUrls: z.array(z.string()).optional(),
+});
+
+type ProjectFormData = z.infer<typeof projectSchema>;
+
+type TabId = 'basic' | 'media' | 'details' | 'seo';
+
+export function PortfolioManager() {
+  const [projects, setProjects] = useState<any[]>([]);
+  // loading state removed as unused currently, though typically used for UI
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>('basic');
+  const [sortBy, setSortBy] = useState<'date' | 'title' | 'category'>('date');
+  const { categories } = useCategories();
+  const [generatedAltText, setGeneratedAltText] = useState("");
+
+
+  const methods = useForm<ProjectFormData>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      category: 'Scenic Design',
+      subcategory: '',
+      venue: '',
+      location: '',
+      clientName: '',
+      client: '',
+      year: new Date().getFullYear(),
+      month: 1,
+      cardImage: '',
+      featured: false,
+      published: true,
+      galleries: {
+        hero: [],
+        heroCaptions: [],
+        heroAlt: [],
+        process: [],
+        processCaptions: [],
+        processAlt: []
+      },
+      credits: [],
+      tags: [],
+      youtubeVideos: [],
+      designNotes: [],
+      videoUrls: [],
+      softwareUsed: [],
+      projectOverview: '',
+      keyFeatures: [],
+      metrics: [],
+      team: [],
+      process: [],
+      experientialContent: [],
+      seoTitle: '',
+      seoDescription: '',
+      seoKeywords: [],
+      cardImageAlt: ''
+    }
+  });
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    try {
+      // 1. Try fetching from SQL Table first
+      const { data: sqlProjects, error } = await supabase
+        .from('portfolio_projects')
+        .select('*')
+        .order('year', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching projects:', error);
+        toast.error('Failed to load projects from database');
+        return;
+      }
+
+      if (sqlProjects) {
+        // Transform SQL snake_case to CamelCase if needed or use as is
+        // Our schema uses snake_case in DB but we might need mapping
+        // OR we updated our app to handle both.
+        // For simplicity, let's map DB fields to our frontend structure
+        const mappedProjects = sqlProjects.map((p: any) => ({
+          ...p,
+          cardImage: p.card_image || '',
+          youtubeVideos: p.youtube_videos || [],
+          videoUrls: p.youtube_videos || [],
+          designNotes: p.design_notes || [],
+          clientName: p.client_name || '',
+          role: p.role || '',
+          challenge: p.challenge || '',
+          solution: p.solution || '',
+          keyFeatures: p.key_features || [],
+          softwareUsed: p.software_used || [], // Ensure array
+          projectOverview: p.project_overview || '',
+          process: p.process || [],
+          team: p.team || [],
+          metrics: p.metrics || [],
+          testimonial: p.testimonial || null,
+          experientialContent: p.content || [],
+          // Safe defaults for others
+          description: p.description || '',
+          venue: p.venue || '',
+          location: p.location || '',
+          credits: p.credits || [],
+          galleries: p.galleries || { hero: [], heroCaptions: [], process: [], processCaptions: [] },
+          tags: p.tags || [],
+          focusPoint: p.focus_point || { x: 50, y: 50 },
+          seoTitle: p.seo_title || '',
+          seoDescription: p.seo_description || '',
+          seoKeywords: p.seo_keywords || [],
+          cardImageAlt: p.card_image_alt || ''
+        }));
+
+        setProjects(mappedProjects);
+      }
+    } catch (error) {
+      console.error('Error loading projects:', error);
+      toast.error('Error connecting to server.');
+    }
+  };
+  const handleCreate = () => {
+    methods.reset({
+      title: '',
+      category: categories.portfolio[0]?.name || '',
+      year: new Date().getFullYear(),
+      month: new Date().getMonth() + 1,
+      featured: false,
+      published: false, // Default to draft
+      credits: [],
+      tags: [],
+      galleries: { hero: [], heroCaptions: [], process: [], processCaptions: [] },
+      youtubeVideos: [],
+      videoUrls: [],
+      designNotes: [],
+      softwareUsed: [],
+      projectOverview: '',
+      seoTitle: '',
+      seoDescription: '',
+      seoKeywords: [],
+      cardImageAlt: ''
+    });
+    setEditingId('new');
+    setShowForm(true);
+    setActiveTab('basic');
+  };
+
+  const handleEdit = (project: any) => {
+    // Ensure galleries structure exists
+    const safeProject = {
+      ...project,
+      galleries: project.galleries || { hero: [], heroCaptions: [], process: [], processCaptions: [] },
+      credits: project.credits || [],
+      tags: project.tags || [],
+      youtubeVideos: project.youtubeVideos || [],
+      designNotes: project.designNotes || [],
+      role: project.role || '',
+      challenge: project.challenge || '',
+      solution: project.solution || '',
+      clientName: project.clientName || '',
+      month: project.month || '', // Ensure not null for Select component
+      published: project.published !== undefined ? project.published : true, // Default to true for existing projects
+      videoUrls: project.videoUrls || [],
+      softwareUsed: project.softwareUsed || [],
+      projectOverview: project.projectOverview || '',
+      keyFeatures: project.keyFeatures || [],
+      metrics: project.metrics || [],
+      team: project.team || [],
+      process: project.process || [],
+      seoTitle: project.seoTitle || '',
+      seoDescription: project.seoDescription || '',
+      seoKeywords: project.seoKeywords || [],
+      cardImageAlt: project.cardImageAlt || ''
+    };
+    methods.reset(safeProject);
+    setEditingId(project.id);
+    setShowForm(true);
+    setActiveTab('basic');
+  };
+
+  const onSubmit = async (formData: ProjectFormData) => {
+    try {
+      const isNew = editingId === 'new';
+      // Generate slug if new or missing, simplified logic
+      let slug = formData.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '';
+
+      if (!isNew && editingId) {
+        const loadedP = projects.find(p => p.id === editingId);
+        if (loadedP && loadedP.slug) slug = loadedP.slug;
+      }
+
+      // Explicit Session Check
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error('Session Check Failed:', sessionError);
+        toast.error('Session expired. Please log in again.');
+        return; // Block the save attempt
+      }
+      console.log('Session Validated:', session.user.id, session.user.role);
+
+      // Transform to DB Schema
+      const dbPayload = {
+        title: formData.title,
+        slug: slug,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        venue: formData.venue,
+        location: formData.location,
+        year: formData.year,
+        description: formData.description,
+        featured: formData.featured,
+        published: formData.published,
+        card_image: formData.cardImage,
+        credits: formData.credits,
+        galleries: formData.galleries,
+        tags: formData.tags,
+        youtube_videos: formData.category?.includes('Rendering') ? formData.videoUrls : formData.youtubeVideos,
+        month: parseInt(String(formData.month || 0)) || null,
+        design_notes: formData.designNotes,
+
+        // Experiential & Rendering Specific Mappings
+        client_name: formData.clientName || formData.client, // Merge both frontend fields to single DB col
+        role: formData.role,
+        challenge: formData.challenge,
+        solution: formData.solution,
+        key_features: formData.keyFeatures,
+        process: formData.process,
+        team: formData.team,
+        metrics: formData.metrics,
+        testimonial: formData.testimonial,
+        software_used: formData.softwareUsed,
+        project_overview: formData.projectOverview,
+        content: formData.experientialContent,
+        focus_point: formData.focusPoint,
+        seo_title: formData.seoTitle,
+        seo_description: formData.seoDescription,
+        seo_keywords: formData.seoKeywords,
+        card_image_alt: formData.cardImageAlt,
+      };
+
+      console.log('Saving Project Payload:', dbPayload);
+
+      let error;
+      if (isNew) {
+        const { data, error: insertError } = await supabase
+          .from('portfolio_projects' as any)
+          .insert([dbPayload] as any)
+          .select()
+          .single();
+        error = insertError;
+        if (data) setEditingId((data as any).id);
+      } else {
+        const { error: updateError } = await supabase
+          .from('portfolio_projects' as any)
+          // @ts-ignore
+          .update(dbPayload)
+          .eq('id', editingId as string);
+        error = updateError;
+      }
+
+      if (error) {
+        console.error('Supabase Error Detail:', error);
+        throw error;
+      }
+
+      toast.success('Project saved successfully!');
+      await loadProjects();
+
+    } catch (err: any) {
+      console.error('Full Save Error:', err);
+      
+      // Auth Recovery Strategy
+      const msg = err.message || err.details || '';
+      const isAuthError = 
+        msg.includes('JWT') || 
+        msg.includes('row-level security') ||
+        err.code === '401' || 
+        err.code === '403' ||
+        err.status === 401 ||
+        err.status === 403;
+
+      if (isAuthError) {
+        console.error('🛑 Auth Error Detected. Forcing Logout/Refresh.');
+        toast.error('Session corrupted. Logging out to refresh...');
+        
+        // Force cleanup
+        await supabase.auth.signOut();
+        sessionStorage.removeItem('admin_token');
+        sessionStorage.removeItem('supabase_token');
+        
+        // Give UI a moment to show toast then reload
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+        return;
+      }
+
+      toast.error(`Failed to save: ${msg || 'Unknown error'}`);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this project?')) return;
+    try {
+      // Explicit Session Check
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        toast.error('Session expired. Please log in again.');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('portfolio_projects')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Project deleted successfully!');
+      await loadProjects();
+    } catch (err: any) {
+      console.error(err);
+      
+      // Auth Recovery Strategy
+      const msg = err.message || err.details || '';
+      const isAuthError = 
+        msg.includes('JWT') || 
+        msg.includes('row-level security') ||
+        err.code === '401' || 
+        err.code === '403' ||
+        err.status === 401 ||
+        err.status === 403;
+
+      if (isAuthError) {
+        console.error('🛑 Auth Error Detected during DELETE. Forcing Logout/Refresh.');
+        toast.error('Session corrupted. Logging out to refresh...');
+        
+        await supabase.auth.signOut();
+        sessionStorage.removeItem('admin_token');
+        sessionStorage.removeItem('supabase_token');
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+        return;
+      }
+
+      toast.error('An error occurred while deleting the project.');
+    }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingId(null);
+  };
+
+  const handleBulkImport = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const json = JSON.parse(e.target?.result as string);
+          if (Array.isArray(json)) {
+            // Handle array of projects
+            toast.info(`Found ${json.length} projects. Import logic to be implemented.`);
+          } else {
+            // Handle single project
+            methods.reset(json);
+            setEditingId('new');
+            setShowForm(true);
+            toast.success('Project data loaded from JSON');
+          }
+        } catch (err) {
+          toast.error('Invalid JSON file');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const category = methods.watch('category');
+
+  // Construct context for AI
+  const contextTitle = methods.watch('title');
+  const contextCredits = methods.watch('credits') || [];
+  const contextDesigner = contextCredits.find((c: any) => c.role.toLowerCase().includes('scenic') || c.role.toLowerCase().includes('designer'))?.name;
+  const projectContext = `${contextTitle} (${category})${contextDesigner ? ` - Design by ${contextDesigner}` : ''}`;
+
+  const tabs = [
+    { id: 'basic', label: 'Basic Info', icon: Layout },
+    { id: 'media', label: category === 'Experiential Design' ? 'Content' : 'Media & Gallery', icon: Image },
+    { id: 'details', label: 'Credits & Notes', icon: Users },
+    { id: 'seo', label: 'SEO & Tags', icon: Tags },
+  ] as const;
+
+  const onError = (errors: any) => {
+    console.error('Form Validation Errors:', errors);
+    const missingFields = Object.keys(errors).join(', ');
+    toast.error(`Please check the form. Missing/Invalid: ${missingFields}`);
+  };
+
+  const sortedProjects = [...projects].sort((a, b) => {
+    if (sortBy === 'date') {
+      // Fix: Always include day parameter to prevent year from being interpreted as milliseconds
+      const dateA = new Date(a.year, (a.month || 1) - 1, 1);
+      const dateB = new Date(b.year, (b.month || 1) - 1, 1);
+      return dateB.getTime() - dateA.getTime();
+    }
+    if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
+    if (sortBy === 'category') return (a.category || '').localeCompare(b.category || '');
+    return 0;
+  });
+
+  return (
+    <div className="space-y-6">
+      {!showForm && (
+        <AdminPageHeader
+          title="Portfolio Projects"
+          description={`${projects.length} total project${projects.length !== 1 ? 's' : ''}`}
+          onCreate={handleCreate}
+          createLabel="New Project"
+          actions={
+            <>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-400 uppercase tracking-wider">Sort:</span>
+                <select
+                  aria-label="Sort projects"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
+                >
+                  <option value="date">Date (Newest)</option>
+                  <option value="title">Title (A-Z)</option>
+                  <option value="category">Category</option>
+                </select>
+              </div>
+              <button
+                onClick={handleBulkImport}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg transition-all"
+              >
+                <FileJson className="w-4 h-4" />
+                <span>Import JSON</span>
+              </button>
+            </>
+          }
+        />
+      )}
+
+      {showForm && (
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmit, onError)} className="border border-border bg-card rounded-3xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h3 className="tracking-tight text-lg font-medium">{editingId === 'new' ? 'Create New Project' : 'Edit Project'}</h3>
+              <div className="flex items-center gap-2">
+                <SaveButton type="submit" disabled={methods.formState.isSubmitting}>
+                  <Save className="w-4 h-4" />
+                  <span>{methods.formState.isSubmitting ? 'Saving...' : 'Save'}</span>
+                </SaveButton>
+                <IconButton onClick={handleCancel}><X className="w-5 h-5" /></IconButton>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-border bg-muted/30">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${activeTab === tab.id
+                    ? 'text-foreground bg-background'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                  {activeTab === tab.id && (
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Content */}
+            <div className="p-6 min-h-[400px]">
+              {activeTab === 'basic' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <Input name="title" label="Project Title" required placeholder="e.g. Million Dollar Quartet" />
+                  <div className="grid grid-cols-2 gap-6">
+                    <Select name="category" label="Category" required>
+                      <option value="Scenic Design">Scenic Design</option>
+                      <option value="Experiential Design">Experiential Design</option>
+                      <option value="Rendering & Visualization">Rendering & Visualization</option>
+                      <option value="Design Documentation">Design Documentation</option>
+                      <option value="Archive">Archive</option>
+                    </Select>
+                    <Input name="subcategory" label="Subcategory" placeholder="e.g. Musical, Play, Opera" />
+                  </div>
+
+                  {/* Conditional Fields based on Category */}
+                  {category === 'Experiential Design' ? (
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input name="clientName" label="Client Name" required placeholder="e.g. Google" />
+                      <Input name="location" label="Location" required placeholder="e.g. New York, NY" />
+                    </div>
+                  ) : category === 'Rendering & Visualization' ? (
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input name="client" label="Client / Project Name" placeholder="e.g. Personal Project" />
+                      {/* Year is common, removed duplicate from here */}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input name="venue" label="Venue" required placeholder="e.g. Paper Mill Playhouse" />
+                      <Input name="location" label="Location" required placeholder="e.g. Millburn, NJ" />
+                    </div>
+                  )}
+
+                  {/* Common Year/Month for ALL categories now */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <Input name="year" label="Year" type="number" required />
+                    <Select name="month" label="Month" required={category !== 'Rendering & Visualization'}>
+                      <option value="">Select month...</option>
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <option key={i + 1} value={String(i + 1)}>
+                          {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+
+                  <Textarea name="description" label="Description" required rows={5} placeholder="Project description..." />
+                  <div className="flex items-center gap-6">
+                    <Checkbox name="featured" label="Featured Project (Show on Home Page)" />
+                    <Checkbox name="published" label="Published (Visible on Site)" />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'media' && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <div className="bg-muted/30 p-4 rounded-xl border border-border">
+                    <ImageUploaderWithFocalPoint
+                      label="Card Image (Thumbnail)"
+                      value={methods.watch('cardImage')}
+                      focalPoint={(() => {
+                        const fp = methods.watch('focusPoint');
+                        return fp && typeof fp.x === 'number' && typeof fp.y === 'number'
+                          ? { x: fp.x, y: fp.y }
+                          : undefined;
+                      })()}
+                      onChange={(url, point) => {
+                        methods.setValue('cardImage', url);
+                        if (point) methods.setValue('focusPoint', point);
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">This image will be used on the portfolio grid.</p>
+                    
+                    {/* AI Alt Text for Card Image */}
+                    <div className="mt-3 border-t border-border/50 pt-3">
+                      <div className="flex items-center justify-between">
+                        <div className="mt-2">
+                      <AIAltTextGenerator
+                        imageUrl={methods.watch("cardImage") || ''}
+                        onAltTextGenerated={(text) => {
+                          methods.setValue('cardImageAlt', text, { shouldDirty: true });
+                          toast.success("Alt text generated and applied!");
+                        }}
+                        context={`Title: ${methods.getValues("title")}\nCategory: ${methods.getValues("category")}`}
+                      />
+                      <div className="mt-4">
+                        <Input name="cardImageAlt" label="Card Image Alt Text" placeholder="Describe the image for accessibility..." />
+                      </div>
+                    </div>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  {category?.includes('Documentation') ? (
+                    <SimpleGalleryEditor
+                      label="Gallery Images"
+                      images={methods.watch('galleries.process') || []}
+                      captions={methods.watch('galleries.processCaptions') || []}
+                      onChange={(images, captions) => {
+                        methods.setValue('galleries.process', images);
+                        methods.setValue('galleries.processCaptions', captions);
+                      }}
+                      captionPlaceholder={
+                        methods.watch('subcategory') === 'Archive'
+                          ? "Production Name\nLocation: Theater, City, State\nDirector: Name | Scenic Designer: Name"
+                          : "Production Name (Year)\n\nMaterials: List materials\nScale: 1/4\" = 1'-0\"\n\nProcess: Describe construction"
+                      }
+                    />
+                  ) : (
+                    <UnifiedPortfolioEditor
+                      category={category || ''}
+                      data={methods.watch() as any}
+                      onChange={(updates) => {
+                        // Merge updates into form
+                        Object.entries(updates).forEach(([key, value]) => {
+                          methods.setValue(key as any, value, { shouldValidate: true, shouldDirty: true });
+                        });
+                      }}
+                      currentCover={methods.watch('cardImage')}
+                      onSetCover={(url) => methods.setValue('cardImage', url)}
+                      projectContext={projectContext}
+                    />
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'details' && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  {category === 'Experiential Design' ? (
+                    <div className="p-8 text-center text-muted-foreground bg-muted/30 rounded-xl border border-border">
+                      <p>Experiential projects manage team and details within the Content Editor (Media Tab).</p>
+                    </div>
+                  ) : (
+                    <>
+                      <CreditsManager
+                        credits={(methods.watch('credits') || []).map((credit: any) => ({
+                          role: credit?.role || '',
+                          name: credit?.name || '',
+                        }))}
+                        onChange={(credits) => methods.setValue('credits', credits)}
+                      />
+                      <div className="h-px bg-border" />
+                      <DesignNotesEditor notes={methods.watch('designNotes') || []} onChange={(notes) => methods.setValue('designNotes', notes)} />
+                    </>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'seo' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <ProjectSEOTools
+                    title={methods.watch('title')}
+                    description={methods.watch('description')}
+                    currentTags={methods.watch('seoKeywords') || []}
+                    onTagsGenerated={(tags) => methods.setValue('seoKeywords', tags, { shouldDirty: true })}
+                    onDescriptionGenerated={(desc) => {
+                      methods.setValue('seoDescription', desc, { shouldDirty: true });
+                    }}
+                  />
+                  <div className="grid grid-cols-1 gap-6 bg-muted/20 p-6 rounded-xl border border-border">
+                    <h4 className="text-sm font-medium text-white">SEO Metadata Overrides</h4>
+                    <Input name="seoTitle" label="SEO Title (Meta Tag)" placeholder="Custom title for Google Search..." />
+                    <Textarea name="seoDescription" label="SEO Description (Meta Tag)" rows={3} placeholder="Custom meta description..." />
+                    <TagInput
+                      label="SEO Keywords (Meta Tag)"
+                      value={methods.watch('seoKeywords') || []}
+                      onChange={(tags) => methods.setValue('seoKeywords', tags, { shouldDirty: true })}
+                      placeholder="e.g., Broadway, Scenic Design, 2024"
+                    />
+                  </div>
+                  <div className="bg-blue-500/5 border border-blue-500/20 p-4 rounded-xl">
+                    <h4 className="text-sm font-medium text-blue-400 mb-2">SEO Preview</h4>
+                    <p className="text-xs text-muted-foreground">
+                      The slug for this project will be automatically generated from the title:
+                      <code className="ml-2 bg-background px-2 py-1 rounded border border-border">
+                        {methods.watch('title')?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '...'}
+                      </code>
+                    </p>
+                  </div>
+
+                  {/* AI Image Renamer & Caption Generator */}
+                  {editingId !== 'new' ? (
+                    <SEOImageFixer
+                      project={{ ...methods.watch(), id: editingId }}
+                      onUpdate={(updatedData) => {
+                        methods.reset({ ...methods.getValues(), ...updatedData });
+                        toast.success('Project form updated with new image URLs. Please Save.');
+                      }}
+                      onAutoSave={async (updatedData) => {
+                        const newData = { ...methods.getValues(), ...updatedData };
+                        methods.reset(newData);
+                        await onSubmit(newData);
+                      }}
+                    />
+                  ) : (
+                    <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-xl text-center space-y-3">
+                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/10 text-blue-400 mb-2">
+                        <Tags className="w-5 h-5" />
+                      </div>
+                      <h3 className="text-sm font-medium text-slate-200">Save Project to Enable AI Tools</h3>
+                      <p className="text-xs text-slate-400 max-w-[300px] mx-auto">
+                        The AI Image Optimizer requires the project to be saved first. Please save your progress to rename images and generate captions.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </form>
+        </FormProvider>
+      )}
+
+      {!showForm && (
+        <div className="space-y-3">
+          {sortedProjects.length === 0 ? (
+            <div className="text-center py-12 text-zinc-400">
+              <Briefcase className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-sm">No projects yet. Create your first project to get started.</p>
+            </div>
+          ) : (
+            sortedProjects.map((project) => (
+              <AdminListItem
+                key={project.id}
+                title={project.title}
+                subtitle={project.description}
+                thumbnail={project.cardImage}
+                thumbnailFallback={<Image className="w-5 h-5" />}
+                status={
+                  project.published === false
+                    ? { label: 'Draft', variant: 'draft' }
+                    : { label: 'Published', variant: 'published' }
+                }
+                metadata={[
+                  { label: '', value: project.category },
+                  { label: '', value: project.venue || project.location || '' },
+                  { label: '', value: project.year?.toString() || '' }
+                ]}
+                onEdit={() => handleEdit(project)}
+                onDelete={() => handleDelete(project.id)}
+              />
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
