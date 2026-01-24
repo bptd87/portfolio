@@ -32,6 +32,11 @@ const nextConfig = {
         __dirname,
         "./node_modules/react-quill-new",
       ),
+      "motion/react": path.resolve(__dirname, "./node_modules/motion/react"),
+      "@tiptap/react": path.resolve(
+        __dirname,
+        "./node_modules/@tiptap/react",
+      ),
       "next-themes@0.4.6": "next-themes",
       "lucide-react@0.487.0": "lucide-react",
       "lucide-react": path.resolve(
