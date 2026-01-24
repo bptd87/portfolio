@@ -85,6 +85,9 @@
       ],
       "@tiptap/core": [
         "./node_modules/@tiptap/core"
+      ],
+      "react-simple-maps": [
+        "./node_modules/react-simple-maps"
       ]
     },
     "plugins": [
