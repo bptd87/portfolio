@@ -57,6 +57,14 @@ const nextConfig = {
         __dirname,
         "./node_modules/@tiptap/core",
       ),
+      "framer-motion": path.resolve(
+        __dirname,
+        "./node_modules/framer-motion",
+      ),
+      "@radix-ui/react-accordion": path.resolve(
+        __dirname,
+        "./node_modules/@radix-ui/react-accordion",
+      ),
       "d3-scale": path.resolve(__dirname, "./node_modules/d3-scale"),
       "react-syntax-highlighter": path.resolve(
         __dirname,
