@@ -26,6 +26,10 @@
         "./app/*",
         "../src/*"
       ],
+      "*": [
+        "./node_modules/*",
+        "../node_modules/*"
+      ],
       "sonner": [
         "./node_modules/sonner"
       ],
