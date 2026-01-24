@@ -73,6 +73,11 @@ const nextConfig = {
         __dirname,
         "./node_modules/@radix-ui/react-label",
       ),
+      "@radix-ui/react-tabs": path.resolve(
+        __dirname,
+        "./node_modules/@radix-ui/react-tabs",
+      ),
+      "clsx": path.resolve(__dirname, "./node_modules/clsx"),
       "d3-scale": path.resolve(__dirname, "./node_modules/d3-scale"),
       "react-syntax-highlighter": path.resolve(
         __dirname,
