@@ -91,6 +91,9 @@
       ],
       "react-responsive-masonry": [
         "./node_modules/react-responsive-masonry"
+      ],
+      "react-router-dom": [
+        "./node_modules/react-router-dom"
       ]
     },
     "plugins": [
