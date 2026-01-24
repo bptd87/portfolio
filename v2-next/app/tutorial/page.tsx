@@ -1,4 +1,4 @@
-import TermsOfUsePageClient from "../_components/TermsOfUsePageClient";
+import TutorialPageClient from "../_components/TutorialPageClient";
 import { resolveMetadataFromParams } from "../seo/resolve-metadata";
 
 export async function generateMetadata({
@@ -8,9 +8,9 @@ export async function generateMetadata({
     | Record<string, string | string[] | undefined>
     | Promise<Record<string, string | string[] | undefined>>;
 }) {
-  return resolveMetadataFromParams({ params: { path: ["terms"] }, searchParams });
+  return resolveMetadataFromParams({ params: { path: ["tutorial"] }, searchParams });
 }
 
-export default function TermsPage() {
-  return <TermsOfUsePageClient />;
+export default function TutorialPage() {
+  return <TutorialPageClient />;
 }

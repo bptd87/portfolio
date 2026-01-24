@@ -1,11 +1,25 @@
-import { redirect } from "next/navigation";
+import TagPageClient from "../../_components/TagPageClient";
+import { resolveMetadataFromParams } from "../../seo/resolve-metadata";
 
-export default async function TagRedirect({
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ tag: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedParams = await Promise.resolve(params);
+  return resolveMetadataFromParams({
+    params: { path: ["tag", resolvedParams.tag] },
+    searchParams,
+  });
+}
+
+export default async function TagPage({
   params,
 }: {
   params: Promise<{ tag: string }>;
 }) {
   const resolvedParams = await Promise.resolve(params);
-  const tag = encodeURIComponent(resolvedParams.tag);
-  redirect(`/articles?tag=${tag}`);
+  return <TagPageClient tag={resolvedParams.tag} />;
 }

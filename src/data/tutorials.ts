@@ -75,6 +75,11 @@ export const TUTORIALS: Tutorial[] = [
     thumbnail: "https://img.youtube.com/vi/Q-oM0jkKuS0/maxresdefault.jpg",
     videoUrl: "https://www.youtube.com/embed/Q-oM0jkKuS0",
     publishDate: "2021-03-08",
+    learningObjectives: [
+      "Set up sheet layers and viewports for 2D output",
+      "Apply render styles that keep drafting clear and readable",
+      "Export a clean construction drawing set from a 3D model",
+    ],
     resources: [
       {
         name: "Watch on YouTube",
@@ -109,6 +114,11 @@ export const TUTORIALS: Tutorial[] = [
     thumbnail: "https://img.youtube.com/vi/9CgllDnbSHU/maxresdefault.jpg",
     videoUrl: "https://www.youtube.com/embed/9CgllDnbSHU",
     publishDate: "2025-05-21",
+    learningObjectives: [
+      "Track the scenic design process from concept to walkthrough",
+      "See how movement and rhythm informed spatial choices",
+      "Review Vectorworks + Twinmotion workflow decisions",
+    ],
     resources: [
       {
         name: "Watch on YouTube",
@@ -128,6 +138,11 @@ export const TUTORIALS: Tutorial[] = [
     thumbnail: "https://img.youtube.com/vi/fazgboSnrQc/maxresdefault.jpg",
     videoUrl: "https://www.youtube.com/embed/fazgboSnrQc",
     publishDate: "2025-05-21",
+    learningObjectives: [
+      "Navigate the Coraline walkthrough and spatial beats",
+      "Understand how multiple disciplines shaped the environment",
+      "Review the Twinmotion presentation workflow",
+    ],
     resources: [
       {
         name: "Watch on YouTube",
@@ -147,6 +162,11 @@ export const TUTORIALS: Tutorial[] = [
     thumbnail: "https://img.youtube.com/vi/ZjGy_3Ipk_w/maxresdefault.jpg",
     videoUrl: "https://www.youtube.com/embed/ZjGy_3Ipk_w",
     publishDate: "2025-05-21",
+    learningObjectives: [
+      "Review design choices for outdoor, socially distanced staging",
+      "See how ritual and modern constraints guided layout",
+      "Understand the walkthrough presentation structure",
+    ],
     resources: [
       {
         name: "Watch on YouTube",
@@ -166,6 +186,11 @@ export const TUTORIALS: Tutorial[] = [
     thumbnail: "https://img.youtube.com/vi/Jp4eG5n3esc/maxresdefault.jpg",
     videoUrl: "https://www.youtube.com/embed/Jp4eG5n3esc",
     publishDate: "2025-05-21",
+    learningObjectives: [
+      "Set up camera views and lighting for a 3D model",
+      "Apply Renderworks styles for clean presentation images",
+      "Export high-quality renders for review",
+    ],
     resources: [
       {
         name: "Watch on YouTube",
@@ -200,6 +225,11 @@ export const TUTORIALS: Tutorial[] = [
     thumbnail: "https://img.youtube.com/vi/Gd9_hB5USkQ/maxresdefault.jpg",
     videoUrl: "https://www.youtube.com/embed/Gd9_hB5USkQ",
     publishDate: "2021-02-28",
+    learningObjectives: [
+      "Create a custom 24x36 sheet layer",
+      "Set up title blocks and viewports for layout",
+      "Export a clean PDF without a plotter",
+    ],
     resources: [
       {
         name: "Watch on YouTube",
@@ -234,6 +264,11 @@ export const TUTORIALS: Tutorial[] = [
     thumbnail: "https://img.youtube.com/vi/EZB5O-Wmsk4/maxresdefault.jpg",
     videoUrl: "https://www.youtube.com/embed/EZB5O-Wmsk4",
     publishDate: "2021-01-31",
+    learningObjectives: [
+      "Trace trim profiles with the Polyline Tool",
+      "Create reusable symbols from traced profiles",
+      "Scale profiles accurately using real-world dimensions",
+    ],
     resources: [
       {
         name: "Watch on YouTube",

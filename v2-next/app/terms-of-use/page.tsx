@@ -1,16 +1,5 @@
-import TermsOfUsePageClient from "../_components/TermsOfUsePageClient";
-import { resolveMetadataFromParams } from "../seo/resolve-metadata";
+import { redirect } from "next/navigation";
 
-export async function generateMetadata({
-  searchParams,
-}: {
-  searchParams?:
-    | Record<string, string | string[] | undefined>
-    | Promise<Record<string, string | string[] | undefined>>;
-}) {
-  return resolveMetadataFromParams({ params: { path: ["terms-of-use"] }, searchParams });
-}
-
-export default function TermsOfUsePage() {
-  return <TermsOfUsePageClient />;
+export default function TermsOfUseRedirect() {
+  redirect("/terms");
 }

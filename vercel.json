@@ -8,13 +8,58 @@
   ],
   "redirects": [
     {
-      "source": "/feed/:slug",
-      "destination": "/project/:slug",
+      "source": "/privacy-policy",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/terms-of-use",
+      "destination": "/terms",
+      "permanent": true
+    },
+    {
+      "source": "/tutorials",
+      "destination": "/tutorial",
+      "permanent": true
+    },
+    {
+      "source": "/tutorials/:slug",
+      "destination": "/tutorial/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/post",
+      "destination": "/articles",
+      "permanent": true
+    },
+    {
+      "source": "/post/:slug",
+      "destination": "/articles/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/scenic-studio",
+      "destination": "/tutorial",
+      "permanent": true
+    },
+    {
+      "source": "/scenic-studio/:slug",
+      "destination": "/tutorial/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/studio/tutorial/:slug",
+      "destination": "/tutorial/:slug",
       "permanent": true
     },
     {
       "source": "/work",
       "destination": "/portfolio",
+      "permanent": true
+    },
+    {
+      "source": "/cv",
+      "destination": "/resume",
       "permanent": true
     },
     {
@@ -24,6 +69,16 @@
     },
     {
       "source": "/experiential-design/:slug",
+      "destination": "/project/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/scenic-models/:slug",
+      "destination": "/project/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/rendering/:slug",
       "destination": "/project/:slug",
       "permanent": true
     },
@@ -63,12 +118,12 @@
       "permanent": true
     },
     {
-      "source": "/news/:slug",
-      "destination": "/articles/:slug",
+      "source": "/feed",
+      "destination": "/portfolio",
       "permanent": true
     },
     {
-      "source": "/feed",
+      "source": "/feed/:path*",
       "destination": "/portfolio",
       "permanent": true
     }

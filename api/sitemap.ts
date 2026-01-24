@@ -69,7 +69,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             "/commercial-paint-finder",
             "/classical-architecture-guide",
             "/design-history-timeline",
-            "/blog-formatter",
         ];
         resourcePages.forEach((p) => addUrl(SITE_URL + p, "0.8", "weekly"));
 

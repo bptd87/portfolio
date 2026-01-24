@@ -75,13 +75,29 @@ type TabId = 'overview' | 'content' | 'narrative' | 'seo';
 interface UnifiedProjectFormProps {
     category: string;
     subcategory?: string;
+    lockSubcategory?: boolean;
     initialData?: any;
     onClose: () => void;
     onSaveConfig?: () => Promise<void>; // Any extra post-save actions
 }
 
-export function UnifiedProjectForm({ category, subcategory, initialData, onClose, onSaveConfig }: UnifiedProjectFormProps) {
+const DEFAULT_SUBCATEGORY_OPTIONS = [
+    'Archive',
+    'Case Study',
+    'Comedy',
+    'Commercial',
+    'Drama',
+    'Interior Design',
+    'Models',
+    'Musical Theatre',
+    'Outdoor Theatre',
+    'Shakespeare',
+    'Venue Documentation'
+];
+
+export function UnifiedProjectForm({ category, subcategory, lockSubcategory = false, initialData, onClose, onSaveConfig }: UnifiedProjectFormProps) {
     const [activeTab, setActiveTab] = useState<TabId>('overview');
+    const [subcategoryOptions, setSubcategoryOptions] = useState<string[]>(DEFAULT_SUBCATEGORY_OPTIONS);
 
     // Determine editing mode
     const isNew = !initialData?.id || initialData.id === 'new';
@@ -92,7 +108,7 @@ export function UnifiedProjectForm({ category, subcategory, initialData, onClose
         defaultValues: {
             title: initialData?.title || '',
             category: category,
-            subcategory: subcategory || initialData?.subcategory || '',
+            subcategory: (lockSubcategory ? subcategory : (initialData?.subcategory || subcategory)) || '',
             year: initialData?.year || new Date().getFullYear(),
             month: initialData?.month || null,
             description: initialData?.description || '',
@@ -132,6 +148,34 @@ export function UnifiedProjectForm({ category, subcategory, initialData, onClose
         }
     });
 
+    useEffect(() => {
+        const loadSubcategories = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('portfolio_projects')
+                    .select('subcategory')
+                    .not('subcategory', 'is', null);
+
+                if (error) throw error;
+
+                const existing = (data || [])
+                    .map((item: any) => (item.subcategory || '').toString().trim())
+                    .filter(Boolean);
+
+                const merged = Array.from(new Set([...
+                    DEFAULT_SUBCATEGORY_OPTIONS,
+                    ...existing
+                ])).sort((a, b) => a.localeCompare(b));
+
+                setSubcategoryOptions(merged);
+            } catch (err) {
+                console.error('Failed to load subcategories:', err);
+            }
+        };
+
+        loadSubcategories();
+    }, []);
+
     const onSubmit = async (formData: UnifiedFormData) => {
         try {
             let slug = formData.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '';
@@ -148,7 +192,7 @@ export function UnifiedProjectForm({ category, subcategory, initialData, onClose
                 title: formData.title,
                 slug,
                 category: category, // Enforce locked props (or use dynamic if needed, but simplistic for now)
-                subcategory: subcategory || formData.subcategory, // Prefer prop, fallback to form
+                subcategory: lockSubcategory ? subcategory : (formData.subcategory || subcategory),
                 year: formData.year,
                 month: formData.month || null,
                 description: formData.description, // Short desc
@@ -230,7 +274,7 @@ export function UnifiedProjectForm({ category, subcategory, initialData, onClose
                 <div className="flex items-center justify-between p-6 border-b border-border bg-background z-10 sticky top-0">
                     <div>
                         <h3 className="text-lg font-medium">{isNew ? 'New Project' : 'Edit Project'}</h3>
-                        <p className="text-sm text-muted-foreground">{category} {subcategory ? ` / ${subcategory}` : ''}</p>
+                        <p className="text-sm text-muted-foreground">{category} {((lockSubcategory ? subcategory : methods.watch('subcategory')) || '') ? ` / ${lockSubcategory ? subcategory : methods.watch('subcategory')}` : ''}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <SaveButton type="submit" disabled={methods.formState.isSubmitting}>
@@ -267,6 +311,26 @@ export function UnifiedProjectForm({ category, subcategory, initialData, onClose
                     {activeTab === 'overview' && (
                         <div className="space-y-6 animate-in fade-in max-w-4xl mx-auto">
                             <Input name="title" label="Project Title" required />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Input
+                                    name="subcategory"
+                                    label="Secondary Category (Optional)"
+                                    placeholder="e.g., Musical Theatre"
+                                    list="portfolio-subcategory-options"
+                                    disabled={lockSubcategory}
+                                />
+                                <div className="text-xs text-muted-foreground pt-7">
+                                    {lockSubcategory
+                                        ? 'This project is locked to a required subcategory.'
+                                        : 'Start typing to choose an existing subcategory or create a new one.'}
+                                </div>
+                            </div>
+                            <datalist id="portfolio-subcategory-options">
+                                {subcategoryOptions.map(option => (
+                                    <option key={option} value={option} />
+                                ))}
+                            </datalist>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Input name="clientName" label="Client / Brand" />

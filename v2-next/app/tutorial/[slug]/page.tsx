@@ -1,5 +1,6 @@
 import TutorialDetailPageClient from "../../_components/TutorialDetailPageClient";
-import { resolveMetadataFromParams } from "../../seo/resolve-metadata";
+import { StructuredData } from "../../seo/StructuredData";
+import { resolveMetadataFromParams, resolveStructuredData } from "../../seo/resolve-metadata";
 
 export async function generateMetadata({
   params,
@@ -10,16 +11,29 @@ export async function generateMetadata({
 }) {
   const resolvedParams = await Promise.resolve(params);
   return resolveMetadataFromParams({
-    params: { path: ["scenic-studio", resolvedParams.slug] },
+    params: { path: ["tutorial", resolvedParams.slug] },
     searchParams,
   });
 }
 
-export default async function TutorialDetailAliasPage({
+export default async function TutorialDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedParams = await Promise.resolve(params);
-  return <TutorialDetailPageClient slug={resolvedParams.slug} />;
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const structuredData = await resolveStructuredData(
+    `/tutorial/${resolvedParams.slug}`,
+    resolvedSearchParams,
+  );
+
+  return (
+    <>
+      <StructuredData data={structuredData} />
+      <TutorialDetailPageClient slug={resolvedParams.slug} />
+    </>
+  );
 }

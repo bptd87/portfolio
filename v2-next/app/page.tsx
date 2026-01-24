@@ -1,5 +1,6 @@
 import HomePageClient from "./_components/HomePageClient";
-import { resolveMetadataFromParams } from "./seo/resolve-metadata";
+import { StructuredData } from "./seo/StructuredData";
+import { resolveMetadataFromParams, resolveStructuredData } from "./seo/resolve-metadata";
 
 export async function generateMetadata({
   searchParams,
@@ -9,6 +10,18 @@ export async function generateMetadata({
   return resolveMetadataFromParams({ params: { path: [] }, searchParams });
 }
 
-export default function HomePage() {
-  return <HomePageClient />;
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const structuredData = await resolveStructuredData("/", resolvedSearchParams);
+
+  return (
+    <>
+      <StructuredData data={structuredData} />
+      <HomePageClient />
+    </>
+  );
 }

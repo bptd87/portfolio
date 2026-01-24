@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, Coffee, Code, Sparkle, GridFour, Ruler, PaintBrush } from 'phosphor-react';
+import { APP_STUDIO_TOOLS } from '../data/app-studio-tools';
 import { motion } from 'motion/react';
 import { useTheme } from '../hooks/useTheme';
 
@@ -94,6 +95,18 @@ const APPS: AppCard[] = [
   },
 ];
 
+const TOOL_LOOKUP = new Map(APP_STUDIO_TOOLS.map((tool) => [tool.id, tool]));
+const appForTool = (app: AppCard) => {
+  const tool = TOOL_LOOKUP.get(app.id);
+  return {
+    ...app,
+    title: tool?.title || app.title,
+    description: tool?.description || app.description,
+    category: tool?.category || app.category,
+    route: tool?.route || app.route,
+  };
+};
+
 interface AppStudioProps {
   onNavigate?: (page: string) => void;
 }
@@ -120,9 +133,10 @@ export function AppStudio({ onNavigate }: AppStudioProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const categories = ['all', 'Reference', 'Calculation', 'Design'];
 
+  const normalizedApps = APPS.map(appForTool);
   const filteredApps = selectedCategory === 'all'
-    ? APPS
-    : APPS.filter(app => app.category === selectedCategory);
+    ? normalizedApps
+    : normalizedApps.filter(app => app.category === selectedCategory);
 
   // Programmatic Colors (Fail-Safe)
   const colors = {

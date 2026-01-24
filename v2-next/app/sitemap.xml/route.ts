@@ -34,7 +34,6 @@ const STATIC_ROUTES = [
   "/classical-architecture-guide",
   "/rosco-paint-calculator",
   "/commercial-paint-finder",
-  "/blog-formatter",
   "/search",
   "/faq",
   "/privacy-policy",

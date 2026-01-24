@@ -1,5 +1,6 @@
 import ArticleDetailPageClient from "../../_components/ArticleDetailPageClient";
-import { resolveMetadataFromParams } from "../../seo/resolve-metadata";
+import { StructuredData } from "../../seo/StructuredData";
+import { resolveMetadataFromParams, resolveStructuredData } from "../../seo/resolve-metadata";
 
 export async function generateMetadata({
   params,
@@ -17,9 +18,22 @@ export async function generateMetadata({
 
 export default async function ArticleDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const resolvedParams = await Promise.resolve(params);
-  return <ArticleDetailPageClient slug={resolvedParams.slug} />;
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const structuredData = await resolveStructuredData(
+    `/articles/${resolvedParams.slug}`,
+    resolvedSearchParams,
+  );
+
+  return (
+    <>
+      <StructuredData data={structuredData} />
+      <ArticleDetailPageClient slug={resolvedParams.slug} />
+    </>
+  );
 }

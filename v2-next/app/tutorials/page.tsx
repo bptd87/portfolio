@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function ScenicStudioRedirect() {
+export default function TutorialsRedirect() {
   redirect("/tutorial");
 }

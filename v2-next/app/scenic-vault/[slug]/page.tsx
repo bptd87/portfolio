@@ -1,4 +1,4 @@
-import NewsDetailPageClient from "../../_components/NewsDetailPageClient";
+import ScenicVaultPageClient from "../../_components/ScenicVaultPageClient";
 import { StructuredData } from "../../seo/StructuredData";
 import { resolveMetadataFromParams, resolveStructuredData } from "../../seo/resolve-metadata";
 
@@ -11,12 +11,12 @@ export async function generateMetadata({
 }) {
   const resolvedParams = await Promise.resolve(params);
   return resolveMetadataFromParams({
-    params: { path: ["news", resolvedParams.slug] },
+    params: { path: ["scenic-vault", resolvedParams.slug] },
     searchParams,
   });
 }
 
-export default async function NewsArticlePage({
+export default async function ScenicVaultDetailPage({
   params,
   searchParams,
 }: {
@@ -26,14 +26,14 @@ export default async function NewsArticlePage({
   const resolvedParams = await Promise.resolve(params);
   const resolvedSearchParams = await Promise.resolve(searchParams);
   const structuredData = await resolveStructuredData(
-    `/news/${resolvedParams.slug}`,
+    `/scenic-vault/${resolvedParams.slug}`,
     resolvedSearchParams,
   );
 
   return (
     <>
       <StructuredData data={structuredData} />
-      <NewsDetailPageClient slug={resolvedParams.slug} />
+      <ScenicVaultPageClient slug={resolvedParams.slug} />
     </>
   );
 }

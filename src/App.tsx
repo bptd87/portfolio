@@ -82,7 +82,6 @@ const ClassicalArchitectureGuide = lazy(() => import('./pages/ClassicalArchitect
 const RoscoPaintCalculator = lazy(() => import('./pages/RoscoPaintCalculator').then(m => ({ default: m.RoscoPaintCalculator })));
 const CommercialPaintFinder = lazy(() => import('./pages/CommercialPaintFinder').then(m => ({ default: m.CommercialPaintFinder })));
 const Resources = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
-const BlogFormatter = lazy(() => import('./pages/BlogFormatter').then(m => ({ default: m.BlogFormatter })));
 const ScenicVault = lazy(() => import('./pages/ScenicVault').then(m => ({ default: m.ScenicVault })));
 const Directory = lazy(() => import('./pages/Directory').then(m => ({ default: m.Directory })));
 
@@ -92,7 +91,7 @@ const DynamicArticle = lazy(() => import('./pages/scenic-insights/DynamicArticle
 // Agency Pages
 const AgencyCategoryPage = lazy(() => import('./pages/AgencyCategoryPage').then(m => ({ default: m.AgencyCategoryPage })));
 
-type Page = 'home' | 'portfolio' | 'about' | 'creative-statement' | 'cv' | 'collaborators' | 'teaching-philosophy' | 'contact' | 'scenic-insights' | 'articles' | 'studio' | 'scenic-studio' | 'scenic-vault' | 'app-studio' | 'resources' | 'architecture-scale-converter' | 'dimension-reference' | 'model-reference-scaler' | 'design-history-timeline' | 'classical-architecture-guide' | 'rosco-paint-calculator' | 'commercial-paint-finder' | 'blog-formatter' | 'news' | 'news-article' | 'project' | 'project-new' | 'experiential-detail' | 'blog' | 'tutorial' | 'search' | 'admin' | 'links' | 'faq' | 'privacy-policy' | 'accessibility' | 'terms-of-use' | '404' | 'sitemap' | 'directory' | 'experiential-design' | 'rendering' | 'scenic-models';
+type Page = 'home' | 'portfolio' | 'about' | 'creative-statement' | 'cv' | 'collaborators' | 'teaching-philosophy' | 'contact' | 'scenic-insights' | 'articles' | 'studio' | 'scenic-studio' | 'scenic-vault' | 'app-studio' | 'resources' | 'architecture-scale-converter' | 'dimension-reference' | 'model-reference-scaler' | 'design-history-timeline' | 'classical-architecture-guide' | 'rosco-paint-calculator' | 'commercial-paint-finder' | 'news' | 'news-article' | 'project' | 'project-new' | 'experiential-detail' | 'blog' | 'tutorial' | 'search' | 'admin' | 'links' | 'faq' | 'privacy-policy' | 'accessibility' | 'terms-of-use' | '404' | 'sitemap' | 'directory' | 'experiential-design' | 'rendering' | 'scenic-models';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -140,7 +139,7 @@ export default function App() {
     'scenic-vault', 'app-studio', 'resources', 'architecture-scale-converter',
     'dimension-reference', 'model-reference-scaler', 'design-history-timeline',
     'classical-architecture-guide', 'rosco-paint-calculator',
-    'commercial-paint-finder', 'blog-formatter', 'news', 'search', 'admin',
+    'commercial-paint-finder', 'news', 'search', 'admin',
     'links', 'faq', 'privacy-policy', 'accessibility', 'terms-of-use', 'sitemap',
     'project', 'blog', 'tutorial', 'tutorials', 'test-database', 'directory',
     'experiential-design', 'rendering', 'scenic-models'
@@ -506,7 +505,6 @@ export default function App() {
       case 'classical-architecture-guide': return <ClassicalArchitectureGuide />;
       case 'rosco-paint-calculator': return <RoscoPaintCalculator onNavigate={handleNavigation} />;
       case 'commercial-paint-finder': return <CommercialPaintFinder onNavigate={handleNavigation} />;
-      case 'blog-formatter': return <BlogFormatter />;
       case 'project':
         if (currentProjectSlug) return <ProjectDetail key={currentProjectSlug} slug={currentProjectSlug} onNavigate={handleNavigation} />;
         return <Portfolio onNavigate={handleNavigation} />;

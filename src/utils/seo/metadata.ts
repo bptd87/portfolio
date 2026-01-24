@@ -178,6 +178,20 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     canonicalPath: "/scenic-models",
   },
 
+  tutorial: {
+    title: "Tutorials | Scenic Studio",
+    description:
+      "Tutorials, guides, and workflows for scenic design, Vectorworks, and visualization tools.",
+    keywords: [
+      "scenic design tutorials",
+      "vectorworks tutorials",
+      "design workflows",
+      "scenic studio",
+    ],
+    ogType: "website",
+    canonicalPath: "/tutorial",
+  },
+
   // ABOUT
   about: {
     title: "About | Brandon PT Davis - Scenic & Experiential Designer",
@@ -517,15 +531,6 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     noindex: true,
   },
 
-  "blog-formatter": {
-    title: "Blog Formatter | Editor Workspace",
-    description: "Internal blog formatting workspace.",
-    keywords: ["blog formatter", "editor"],
-    ogType: "website",
-    canonicalPath: "/blog-formatter",
-    noindex: true,
-  },
-
   "news-article": {
     title: "News Article | Update",
     description: "Latest news update from Brandon PT Davis.",
@@ -738,7 +743,7 @@ export function generateTutorialMetadata(tutorial: {
     ogImage: absoluteThumbnail,
     ogType: "article",
     twitterCard: "summary_large_image",
-    canonicalPath: `/studio/tutorial/${tutorial.slug}`,
+    canonicalPath: `/tutorial/${tutorial.slug}`,
   };
 }
 
@@ -763,7 +768,7 @@ export function generateVaultItemMetadata(item: {
     ogImage: item.previewImage,
     ogType: "website",
     twitterCard: "summary_large_image",
-    canonicalPath: `/vault/${item.slug}`,
+    canonicalPath: `/scenic-vault/${item.slug}`,
   };
 }
 

@@ -80,6 +80,7 @@ export function ModelsManager() {
             <UnifiedProjectForm
                 category="Scenic Models"
                 subcategory="Scenic Models" // Enforce subcategory to match existing data
+                lockSubcategory
                 initialData={editingProject}
                 onClose={handleClose}
                 onSaveConfig={handleSave}

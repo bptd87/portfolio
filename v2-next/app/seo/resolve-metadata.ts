@@ -6,16 +6,23 @@ import {
   generateNewsMetadata,
   generateProjectMetadata,
   generateTutorialMetadata,
+  generateVaultItemMetadata,
   type PageMetadata,
 } from "../../../src/utils/seo/metadata";
 import { blogPosts } from "../../../src/data/blog-posts";
 import { newsItems } from "../../../src/data/news";
 import { TUTORIALS } from "../../../src/data/tutorials";
+import { FAQ_ITEMS } from "../../../src/data/faq";
+import { APP_STUDIO_TOOLS } from "../../../src/data/app-studio-tools";
 import { projects } from "../../../src/data/projects.deprecated";
 import {
   generateArticleSchema,
   generateBreadcrumbSchema,
   generateCreativeWorkSchema,
+  generateFaqSchema,
+  generateHowToSchema,
+  generateItemListSchema,
+  generateProfilePageSchema,
   generatePersonSchema,
   generateVideoSchema,
   generateWebSiteSchema,
@@ -61,6 +68,7 @@ const toAbsoluteUrl = (value?: string) => {
 const resolveStaticKey = (path: string) => {
   if (path === "/") return "home";
   if (path === "/scenic-insights") return "articles";
+  if (path === "/tutorial") return "tutorial";
   if (path.startsWith("/tag/")) return "articles";
   return path.replace("/", "");
 };
@@ -220,8 +228,15 @@ const resolveDynamicMetadata = async (path: string) => {
     });
   }
 
-  if (path.startsWith("/scenic-studio/") || path.startsWith("/studio/tutorial/")) {
-    const slug = path.replace("/scenic-studio/", "").replace("/studio/tutorial/", "");
+  if (
+    path.startsWith("/scenic-studio/") ||
+    path.startsWith("/studio/tutorial/") ||
+    path.startsWith("/tutorial/")
+  ) {
+    const slug = path
+      .replace("/scenic-studio/", "")
+      .replace("/studio/tutorial/", "")
+      .replace("/tutorial/", "");
     const supabaseTutorial = await fetchSupabaseRow("tutorials", slug);
     if (supabaseTutorial) {
       return generateTutorialMetadata({
@@ -307,6 +322,38 @@ const resolveDynamicMetadata = async (path: string) => {
       slug,
       tags: [],
     });
+  }
+
+  if (path.startsWith("/scenic-vault/")) {
+    const slug = path.replace("/scenic-vault/", "");
+    const url = new URL(`${SUPABASE_REST_URL}/vault_assets`);
+    url.searchParams.set("select", "*");
+    url.searchParams.set("slug", `eq.${slug}`);
+    url.searchParams.set("limit", "1");
+    url.searchParams.set("enabled", "eq.true");
+
+    try {
+      const response = await fetch(url.toString(), {
+        headers: SUPABASE_HEADERS,
+        next: { revalidate: 300 },
+      });
+
+      if (response.ok) {
+        const data = (await response.json()) as any[];
+        const item = data?.[0];
+        if (item) {
+          return generateVaultItemMetadata({
+            title: item.name || item.title || "Vault Asset",
+            description: item.description || "",
+            previewImage: item.preview_image_url || item.thumbnail_url,
+            category: item.category,
+            slug: item.slug || item.id || slug,
+          });
+        }
+      }
+    } catch {
+      return undefined;
+    }
   }
 
   return undefined;
@@ -402,15 +449,15 @@ export const resolveStructuredData = async (
   const canonicalPath = metadata.canonicalPath || path;
   const canonical = new URL(canonicalPath, SITE_URL).toString();
 
-  schemas.push(
-    generatePersonSchema({
-      name: DEFAULT_METADATA.siteName,
-      jobTitle: "Scenic Designer",
-      description: DEFAULT_METADATA.defaultDescription,
-      url: SITE_URL,
-      sameAs: DEFAULT_METADATA.socialProfiles,
-    }),
-  );
+  const personSchema = generatePersonSchema({
+    name: DEFAULT_METADATA.siteName,
+    jobTitle: "Scenic Designer",
+    description: DEFAULT_METADATA.defaultDescription,
+    url: SITE_URL,
+    sameAs: DEFAULT_METADATA.socialProfiles,
+  });
+
+  schemas.push(personSchema);
 
   if (path === "/") {
     schemas.push(
@@ -424,6 +471,35 @@ export const resolveStructuredData = async (
   }
 
   schemas.push(generateBreadcrumbSchema(buildBreadcrumbs(canonicalPath)));
+
+  if (path === "/about") {
+    schemas.push(
+      generateProfilePageSchema({
+        name: DEFAULT_METADATA.siteName,
+        url: canonical,
+        person: personSchema,
+      }),
+    );
+  }
+
+  if (path === "/faq") {
+    schemas.push(generateFaqSchema(FAQ_ITEMS));
+  }
+
+  if (path === "/app-studio") {
+    schemas.push(
+      generateItemListSchema({
+        name: "App Studio Tools",
+        description:
+          "Interactive tools and calculators for scenic designers and production teams.",
+        items: APP_STUDIO_TOOLS.map((tool) => ({
+          name: tool.title,
+          description: tool.description,
+          url: `${SITE_URL}/${tool.route}`,
+        })),
+      }),
+    );
+  }
 
   if (path.startsWith("/articles/")) {
     const slug = path.replace("/articles/", "");
@@ -483,8 +559,15 @@ export const resolveStructuredData = async (
     }
   }
 
-  if (path.startsWith("/scenic-studio/") || path.startsWith("/studio/tutorial/")) {
-    const slug = path.replace("/scenic-studio/", "").replace("/studio/tutorial/", "");
+  if (
+    path.startsWith("/scenic-studio/") ||
+    path.startsWith("/studio/tutorial/") ||
+    path.startsWith("/tutorial/")
+  ) {
+    const slug = path
+      .replace("/scenic-studio/", "")
+      .replace("/studio/tutorial/", "")
+      .replace("/tutorial/", "");
     const tutorial = (await fetchSupabaseRow("tutorials", slug)) ||
       TUTORIALS.find((item) => item.slug === slug || item.id === slug);
     if (tutorial) {
@@ -505,6 +588,26 @@ export const resolveStructuredData = async (
           embedUrl: tutorial.video_url || tutorial.videoUrl,
         }),
       );
+
+      const steps = (tutorial.learningObjectives || []).map((objective) => ({
+        name: objective,
+        text: objective,
+      }));
+
+      if (steps.length > 0) {
+        schemas.push(
+          generateHowToSchema({
+            name: tutorial.title || "Tutorial",
+            description: tutorial.description || "",
+            steps,
+            image: toAbsoluteUrl(
+              tutorial.thumbnail_url ||
+                tutorial.thumbnail ||
+                tutorial.cover_image,
+            ),
+          }),
+        );
+      }
     }
   }
 

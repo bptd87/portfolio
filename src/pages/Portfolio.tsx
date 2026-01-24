@@ -21,11 +21,29 @@ export function Portfolio({ onNavigate, initialFilter, initialTag }: PortfolioPr
   // Default to scenic-design
   // const [selectedFilter, setSelectedFilter] = useState('scenic-design'); // Removed filter state
   const [selectedTag, setSelectedTag] = useState<string | undefined>(initialTag);
+  const [selectedFilter, setSelectedFilter] = useState<string | undefined>(initialFilter);
 
   // Sync props with state when navigation changes
   useEffect(() => {
     setSelectedTag(initialTag);
   }, [initialTag]);
+
+  useEffect(() => {
+    setSelectedFilter(initialFilter);
+  }, [initialFilter]);
+
+  const normalizeFilterValue = (value?: string) =>
+    value
+      ? decodeURIComponent(value).toLowerCase().replace(/-/g, ' ').trim()
+      : '';
+
+  const buildPortfolioRoute = (filter?: string, tag?: string) => {
+    const params = new URLSearchParams();
+    if (filter) params.set('filter', filter);
+    if (tag) params.set('tag', tag);
+    const query = params.toString();
+    return query ? `portfolio?${query}` : 'portfolio';
+  };
 
   const cacheKey = (slug: string) => `project-cache-${slug}`;
 
@@ -147,6 +165,15 @@ export function Portfolio({ onNavigate, initialFilter, initialTag }: PortfolioPr
   const filteredProjects = useMemo(() => {
     let filtered = projects;
 
+    if (selectedFilter) {
+      const normalizedFilter = normalizeFilterValue(selectedFilter);
+      filtered = filtered.filter(p => {
+        const normalizedSubcategory = normalizeFilterValue(p.subcategory || '');
+        const normalizedCategory = normalizeFilterValue(p.category || '');
+        return normalizedSubcategory === normalizedFilter || normalizedCategory === normalizedFilter;
+      });
+    }
+
     if (selectedTag) {
       filtered = filtered.filter(p =>
         p.tags && p.tags.some((t: string) => t.toLowerCase() === selectedTag.toLowerCase())
@@ -157,11 +184,26 @@ export function Portfolio({ onNavigate, initialFilter, initialTag }: PortfolioPr
     filtered = filtered.filter(p => p.category !== 'Archive' && p.category !== 'archive');
 
     return filtered;
-  }, [projects, selectedTag]);
+  }, [projects, selectedFilter, selectedTag]);
+
+  const subcategoryOptions = useMemo(() => {
+    const options = new Set<string>();
+    projects.forEach(p => {
+      if (p.subcategory && p.subcategory !== 'Scenic Models') {
+        options.add(p.subcategory);
+      }
+    });
+    return Array.from(options).sort((a, b) => a.localeCompare(b));
+  }, [projects]);
 
   const clearTag = () => {
     setSelectedTag(undefined);
-    onNavigate('portfolio');
+    onNavigate(buildPortfolioRoute(selectedFilter, undefined));
+  };
+
+  const clearFilter = () => {
+    setSelectedFilter(undefined);
+    onNavigate(buildPortfolioRoute(undefined, selectedTag));
   };
 
   // STRICT NAV
@@ -235,6 +277,38 @@ export function Portfolio({ onNavigate, initialFilter, initialTag }: PortfolioPr
       <section className="pt-8 pb-64 px-6 lg:px-12">
         <div className="relative">
           <div className="max-w-[1800px] mx-auto">
+            {subcategoryOptions.length > 0 && (
+              <div className="mb-8 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  onClick={clearFilter}
+                  className={`px-3 py-1 rounded-full text-[10px] tracking-[0.2em] uppercase transition-colors ${!selectedFilter
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-black/5 dark:bg-white/10 text-black/60 dark:text-white/60 hover:bg-black/10 dark:hover:bg-white/20'
+                    }`}
+                >
+                  All
+                </button>
+                {subcategoryOptions.map((option) => {
+                  const isActive = normalizeFilterValue(selectedFilter) === normalizeFilterValue(option);
+                  return (
+                    <button
+                      key={option}
+                      onClick={() => {
+                        setSelectedFilter(option);
+                        onNavigate(buildPortfolioRoute(option, selectedTag));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`px-3 py-1 rounded-full text-[10px] tracking-[0.2em] uppercase transition-colors ${isActive
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-black/5 dark:bg-white/10 text-black/60 dark:text-white/60 hover:bg-black/10 dark:hover:bg-white/20'
+                        }`}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {filteredProjects.length === 0 ? (
               <div className="text-center py-24">
                 <p className="text-white/40">No projects found</p>

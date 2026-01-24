@@ -1,16 +1,5 @@
-import PrivacyPolicyPageClient from "../_components/PrivacyPolicyPageClient";
-import { resolveMetadataFromParams } from "../seo/resolve-metadata";
+import { redirect } from "next/navigation";
 
-export async function generateMetadata({
-  searchParams,
-}: {
-  searchParams?:
-    | Record<string, string | string[] | undefined>
-    | Promise<Record<string, string | string[] | undefined>>;
-}) {
-  return resolveMetadataFromParams({ params: { path: ["privacy-policy"] }, searchParams });
-}
-
-export default function PrivacyPolicyPage() {
-  return <PrivacyPolicyPageClient />;
+export default function PrivacyPolicyRedirect() {
+  redirect("/privacy");
 }

@@ -10,6 +10,9 @@
  * - CreativeWork (for projects)
  * - BreadcrumbList
  * - WebSite (with search action)
+ * - FAQPage
+ * - ProfilePage
+ * - HowTo
  */
 
 import { DEFAULT_METADATA } from './metadata';
@@ -208,6 +211,93 @@ export function generateBreadcrumbSchema(breadcrumbs: Array<{
       position: index + 1,
       name: crumb.name,
       item: crumb.url,
+    })),
+  };
+}
+
+/**
+ * FAQPage schema for FAQ content
+ */
+export function generateFaqSchema(items: Array<{ question: string; answer: string }>): StructuredData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  };
+}
+
+/**
+ * ProfilePage schema for About page
+ */
+export function generateProfilePageSchema(data: {
+  name: string;
+  url: string;
+  person: StructuredData;
+}): StructuredData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    name: data.name,
+    url: data.url,
+    mainEntity: data.person,
+  };
+}
+
+/**
+ * HowTo schema for tutorial steps
+ */
+export function generateHowToSchema(data: {
+  name: string;
+  description: string;
+  steps: Array<{ name: string; text: string }>;
+  image?: string;
+}): StructuredData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: data.name,
+    description: data.description,
+    image: data.image,
+    step: data.steps.map((step, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: step.name,
+      text: step.text,
+    })),
+  };
+}
+
+/**
+ * ItemList schema for collections of tools or resources
+ */
+export function generateItemListSchema(data: {
+  name: string;
+  description?: string;
+  items: Array<{ name: string; url: string; description?: string }>;
+}): StructuredData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: data.name,
+    description: data.description,
+    itemListElement: data.items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      url: item.url,
+      item: {
+        '@type': 'WebPage',
+        name: item.name,
+        url: item.url,
+        description: item.description,
+      },
     })),
   };
 }

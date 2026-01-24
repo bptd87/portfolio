@@ -72,9 +72,10 @@ const MOCK_ASSETS: VaultAsset[] = [];
 
 interface ScenicVaultProps {
   onNavigate: (page: string) => void;
+  initialSlug?: string;
 }
 
-export function ScenicVault({ onNavigate }: ScenicVaultProps) {
+export function ScenicVault({ onNavigate, initialSlug }: ScenicVaultProps) {
   const [assets, setAssets] = useState<VaultAsset[]>(MOCK_ASSETS);
   const [categories, setCategories] = useState<VaultCategory[]>(DEFAULT_CATEGORIES);
   const [loading, setLoading] = useState(true);
@@ -89,6 +90,14 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!initialSlug || assets.length === 0) return;
+    const match = assets.find((asset) => asset.slug === initialSlug || asset.id === initialSlug);
+    if (match) {
+      setSelectedAsset(match);
+    }
+  }, [initialSlug, assets]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -139,6 +148,14 @@ export function ScenicVault({ onNavigate }: ScenicVaultProps) {
           fileSize: a.file_size
         }));
         setAssets(mappedAssets);
+        if (initialSlug) {
+          const match = mappedAssets.find(
+            (asset) => asset.slug === initialSlug || asset.id === initialSlug,
+          );
+          if (match) {
+            setSelectedAsset(match);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching vault data:', error);
