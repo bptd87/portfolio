@@ -1,7 +1,12 @@
 {
   "trailingSlash": false,
-  "rootDirectory": "v2-next",
-  "framework": "nextjs",
+  "installCommand": "npm install && npm --prefix v2-next install",
+  "builds": [
+    {
+      "src": "v2-next/package.json",
+      "use": "@vercel/next"
+    }
+  ],
 
 
   "rewrites": [
