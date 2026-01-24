@@ -13,6 +13,16 @@
       "permanent": true
     },
     {
+      "source": "/work",
+      "destination": "/portfolio",
+      "permanent": true
+    },
+    {
+      "source": "/Portfolio",
+      "destination": "/portfolio",
+      "permanent": true
+    },
+    {
       "source": "/experiential-design/:slug",
       "destination": "/project/:slug",
       "permanent": true
@@ -59,7 +69,7 @@
     },
     {
       "source": "/feed",
-      "destination": "/articles",
+      "destination": "/portfolio",
       "permanent": true
     }
   ],
