@@ -64,6 +64,9 @@
       ],
       "zod": [
         "./node_modules/zod"
+      ],
+      "react-quill-new": [
+        "./node_modules/react-quill-new"
       ]
     },
     "plugins": [
