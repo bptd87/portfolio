@@ -45,6 +45,14 @@ const nextConfig = {
         __dirname,
         "./node_modules/@tiptap/extension-placeholder",
       ),
+      "@tiptap/extension-text-align": path.resolve(
+        __dirname,
+        "./node_modules/@tiptap/extension-text-align",
+      ),
+      "@tiptap/extension-image": path.resolve(
+        __dirname,
+        "./node_modules/@tiptap/extension-image",
+      ),
       "next-themes@0.4.6": "next-themes",
       "lucide-react@0.487.0": "lucide-react",
       "lucide-react": path.resolve(
