@@ -88,6 +88,10 @@ const nextConfig = {
         __dirname,
         "./node_modules/@supabase/supabase-js",
       ),
+      "@vercel/analytics/react": path.resolve(
+        __dirname,
+        "./node_modules/@vercel/analytics/react",
+      ),
       "tailwind-merge": path.resolve(
         __dirname,
         "./node_modules/tailwind-merge",
