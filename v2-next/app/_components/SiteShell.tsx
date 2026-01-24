@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 import React, { useEffect, useState } from "react";
 import { DesktopNav } from "../../../src/components/DesktopNav";
 import { MobileNav } from "../../../src/components/MobileNav";
@@ -10,9 +10,9 @@ import { RedirectHandler } from "../../../src/components/RedirectHandler";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "../../../src/components/ThemeProvider";
-import { HelmetProvider } from "react-helmet-async";
 
-const HelmetProviderCompat = HelmetProvider as unknown as ComponentType<any>;
+// Dynamically loaded HelmetProvider - null until client-side
+let HelmetProviderCompat: ComponentType<{ children: ReactNode }> | null = null;
 
 interface SiteShellProps {
   currentPage: string;
@@ -25,7 +25,11 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
   const [helmetReady, setHelmetReady] = useState(false);
 
   useEffect(() => {
-    setHelmetReady(true);
+    // Dynamically import react-helmet-async only on client
+    import("react-helmet-async").then((mod) => {
+      HelmetProviderCompat = mod.HelmetProvider as unknown as ComponentType<{ children: ReactNode }>;
+      setHelmetReady(true);
+    });
   }, []);
 
   const hideChrome = currentPage === "admin" || currentPage === "links";
@@ -113,7 +117,7 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
 
   return (
     <ThemeProvider>
-      {helmetReady ? (
+      {helmetReady && HelmetProviderCompat ? (
         <HelmetProviderCompat>
           {content}
         </HelmetProviderCompat>

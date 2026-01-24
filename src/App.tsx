@@ -1,7 +1,6 @@
 
-import type { ComponentType, PropsWithChildren } from 'react';
+import type { ComponentType, PropsWithChildren, ReactNode } from 'react';
 import { useState, lazy, Suspense, useEffect } from 'react';
-import { HelmetProvider } from 'react-helmet-async';
 import { Analytics } from "@vercel/analytics/react";
 
 import { DesktopNav } from './components/DesktopNav';
@@ -16,13 +15,8 @@ import { Toaster } from 'sonner';
 import { AnalyticsTracker } from './components/AnalyticsTracker';
 import { RedirectHandler } from './components/RedirectHandler';
 
-const HelmetProviderCompat = HelmetProvider as unknown as ComponentType<
-  PropsWithChildren<{
-    context?: {
-      helmet?: unknown;
-    };
-  }>
->;
+// Dynamically loaded HelmetProvider - null until client-side
+let HelmetProviderCompat: ComponentType<PropsWithChildren<{ context?: { helmet?: unknown } }>> | null = null;
 
 
 
@@ -107,7 +101,11 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    setHelmetReady(true);
+    // Dynamically import react-helmet-async only on client
+    import('react-helmet-async').then((mod) => {
+      HelmetProviderCompat = mod.HelmetProvider as unknown as ComponentType<PropsWithChildren<{ context?: { helmet?: unknown } }>>;
+      setHelmetReady(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -663,7 +661,7 @@ export default function App() {
     </>
   );
 
-  return helmetReady ? (
+  return helmetReady && HelmetProviderCompat ? (
     <HelmetProviderCompat>
       {content}
     </HelmetProviderCompat>
