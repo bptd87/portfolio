@@ -312,6 +312,11 @@ export default function App() {
 
   // Public navigation handler (updates state + URL)
   const handleNavigation = (page: string, slugOrBlogSlug?: string) => {
+    // Guard against invalid page values
+    if (typeof page !== "string" || page.includes("[object") || page === "undefined" || page === "null") {
+      console.error("[App.handleNavigation] Invalid page:", page);
+      return;
+    }
     navigateInternal(page, slugOrBlogSlug);
 
     // Construct URL for History API

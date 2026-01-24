@@ -8,8 +8,14 @@ export function useLegacyNavigate() {
 
   return useCallback(
     (page: string, slug?: string) => {
+      // Guard against object being passed as page
       if (typeof page !== "string") {
-        console.warn("onNavigate called with non-string page", page);
+        console.error("[useLegacyNavigate] Invalid page type:", typeof page, page);
+        return;
+      }
+      // Guard against [object Object] string (accidental stringified object)
+      if (page.includes("[object") || page === "undefined" || page === "null") {
+        console.error("[useLegacyNavigate] Invalid page value:", page);
         return;
       }
       let targetPath = page;
