@@ -26,6 +26,10 @@ interface SEOProps {
 }
 
 export function SEO({ metadata, structuredData, title, description, keywords, image }: SEOProps) {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   const siteUrl = DEFAULT_METADATA.siteUrl;
 
   // Merge direct props with metadata object, falling back to defaults
