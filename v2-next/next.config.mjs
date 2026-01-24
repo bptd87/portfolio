@@ -5,6 +5,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
+const parentNodeModules = path.resolve(__dirname, "../node_modules");
+const localNodeModules = path.resolve(__dirname, "./node_modules");
+
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   outputFileTracingRoot: path.resolve(__dirname, ".."),
   experimental: {
@@ -14,12 +18,18 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    // Force all React imports to use v2-next's React, preventing duplicate React instances
+    // This is critical when using externalDir to import from parent's src/
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       "@": path.resolve(__dirname, "../src"),
-      "react": path.resolve(__dirname, "./node_modules/react"),
-      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
+      // Redirect any React imports from parent node_modules to local
+      [path.join(parentNodeModules, "react")]: path.resolve(localNodeModules, "react"),
+      [path.join(parentNodeModules, "react-dom")]: path.resolve(localNodeModules, "react-dom"),
+      // Standard React aliases
+      "react": path.resolve(localNodeModules, "react"),
+      "react-dom": path.resolve(localNodeModules, "react-dom"),
       "react-dom/client": path.resolve(
         __dirname,
         "./node_modules/react-dom/client",
@@ -62,22 +72,22 @@ const nextConfig = {
       ),
       "vaul@1.1.2": "vaul",
       "sonner@2.0.3": "sonner",
-      "sonner": path.resolve(__dirname, "./node_modules/sonner"),
+      "sonner": path.resolve(localNodeModules, "sonner"),
       "recharts@2.15.2": "recharts",
       "react-resizable-panels@2.1.7": "react-resizable-panels",
       "react-hook-form@7.55.0": "react-hook-form",
-      "react-hook-form": path.resolve(__dirname, "./node_modules/react-hook-form"),
+      "react-hook-form": path.resolve(localNodeModules, "react-hook-form"),
       "@hookform/resolvers": path.resolve(
         __dirname,
         "./node_modules/@hookform/resolvers",
       ),
-      "zod": path.resolve(__dirname, "./node_modules/zod"),
+      "zod": path.resolve(localNodeModules, "zod"),
       "react-day-picker@8.10.1": "react-day-picker",
       "react-quill-new": path.resolve(
         __dirname,
         "./node_modules/react-quill-new",
       ),
-      "motion/react": path.resolve(__dirname, "./node_modules/motion/react"),
+      "motion/react": path.resolve(localNodeModules, "motion/react"),
       "@tiptap/react": path.resolve(
         __dirname,
         "./node_modules/@tiptap/react",
@@ -122,13 +132,13 @@ const nextConfig = {
         __dirname,
         "./node_modules/@radix-ui/react-label",
       ),
-      "recharts": path.resolve(__dirname, "./node_modules/recharts"),
+      "recharts": path.resolve(localNodeModules, "recharts"),
       "@radix-ui/react-tabs": path.resolve(
         __dirname,
         "./node_modules/@radix-ui/react-tabs",
       ),
-      "clsx": path.resolve(__dirname, "./node_modules/clsx"),
-      "jspdf": path.resolve(__dirname, "./node_modules/jspdf"),
+      "clsx": path.resolve(localNodeModules, "clsx"),
+      "jspdf": path.resolve(localNodeModules, "jspdf"),
       "@supabase/supabase-js": path.resolve(
         __dirname,
         "./node_modules/@supabase/supabase-js",
@@ -149,7 +159,7 @@ const nextConfig = {
         __dirname,
         "./node_modules/react-helmet-async",
       ),
-      "d3-scale": path.resolve(__dirname, "./node_modules/d3-scale"),
+      "d3-scale": path.resolve(localNodeModules, "d3-scale"),
       "react-syntax-highlighter": path.resolve(
         __dirname,
         "./node_modules/react-syntax-highlighter",
