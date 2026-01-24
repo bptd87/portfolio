@@ -37,6 +37,14 @@ const nextConfig = {
         __dirname,
         "./node_modules/@tiptap/react",
       ),
+      "@tiptap/starter-kit": path.resolve(
+        __dirname,
+        "./node_modules/@tiptap/starter-kit",
+      ),
+      "@tiptap/extension-placeholder": path.resolve(
+        __dirname,
+        "./node_modules/@tiptap/extension-placeholder",
+      ),
       "next-themes@0.4.6": "next-themes",
       "lucide-react@0.487.0": "lucide-react",
       "lucide-react": path.resolve(
