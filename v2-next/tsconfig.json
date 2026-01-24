@@ -49,6 +49,9 @@
       ],
       "lucide-react": [
         "./node_modules/lucide-react"
+      ],
+      "motion/react": [
+        "./node_modules/motion/react"
       ]
     },
     "plugins": [
