@@ -30,6 +30,24 @@ const SUPABASE_HEADERS = {
   Authorization: `Bearer ${publicAnonKey}`,
 };
 
+const PROJECT_METADATA_OVERRIDES: Record<
+  string,
+  {
+    title: string;
+    description: string;
+    ogImage?: string;
+    cardImage?: string;
+  }
+> = {
+  "the-glass-menagerie": {
+    title: "The Glass Menagerie",
+    description:
+      "The Glass Menagerie at Maples Repertory Theatre, directed by Kimberly Braun, staged as a memory play shaped by Tom Wingfield’s recollection rather than a literal apartment.",
+    cardImage:
+      "https://zuycsuajiuqsvopiioer.supabase.co/storage/v1/object/public/projects/561341373-1396572259138873-1153848128221018463-n-1768245608582.webp",
+  },
+};
+
 const normalizePath = (segments?: string[]) => {
   if (!segments || segments.length === 0) return "/";
   return `/${segments.join("/")}`;
@@ -98,6 +116,18 @@ const resolveDynamicMetadata = async (path: string) => {
         seoDescription: supabaseProject.seo_description,
         seoKeywords: supabaseProject.seo_keywords,
         ogImage: supabaseProject.og_image,
+      });
+    }
+
+    const override = PROJECT_METADATA_OVERRIDES[slug];
+    if (override) {
+      return generateProjectMetadata({
+        title: override.title,
+        description: override.description,
+        heroImage: override.cardImage,
+        cardImage: override.cardImage,
+        ogImage: override.ogImage,
+        slug,
       });
     }
 

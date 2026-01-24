@@ -317,7 +317,7 @@ export const blogPosts: BlogPost[] = [
       "Exploring how video game environment design principles can inform and enhance theatrical scenic design.",
     featured: true,
     coverImage:
-      "https://images.unsplash.com/photo-1760802185763-fe4999466b78?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYW50YXN5JTIwZ2FtZSUyMGNvbmNlcHQlMjBhcnR8ZW58MXx8fHwxNzYxNzk0MTY0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://zuycsuajiuqsvopiioer.supabase.co/storage/v1/object/public/blog/chatgpt-image-jan-12-2026-at-01-52-33-pm-1768254773810.webp",
     tags: [
       "Game Design",
       "Environment Design",
