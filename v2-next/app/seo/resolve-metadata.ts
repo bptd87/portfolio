@@ -193,20 +193,31 @@ const resolveDynamicMetadata = async (path: string) => {
     }
 
     const article = blogPosts.find((post) => post.slug === slug || post.id === slug);
-    return article
-      ? generateArticleMetadata({
-          title: article.title,
-          excerpt: article.excerpt,
-          coverImage: article.coverImage,
-          category: article.category,
-          date: article.date,
-          author: DEFAULT_METADATA.author,
-          id: article.id,
-          slug: article.slug,
-          tags: article.tags,
-          updatedAt: article.lastModified,
-        })
-      : undefined;
+    if (article) {
+      return generateArticleMetadata({
+        title: article.title,
+        excerpt: article.excerpt,
+        coverImage: article.coverImage,
+        category: article.category,
+        date: article.date,
+        author: DEFAULT_METADATA.author,
+        id: article.id,
+        slug: article.slug,
+        tags: article.tags,
+        updatedAt: article.lastModified,
+      });
+    }
+
+    return generateArticleMetadata({
+      title: `Article: ${slug.replace(/-/g, " ")}`,
+      excerpt: DEFAULT_METADATA.defaultDescription,
+      coverImage: DEFAULT_METADATA.defaultOgImage,
+      category: "Article",
+      date: new Date().toISOString(),
+      author: DEFAULT_METADATA.author,
+      id: slug,
+      slug,
+    });
   }
 
   if (path.startsWith("/scenic-studio/") || path.startsWith("/studio/tutorial/")) {
@@ -226,15 +237,23 @@ const resolveDynamicMetadata = async (path: string) => {
     }
 
     const tutorial = TUTORIALS.find((item) => item.slug === slug || item.id === slug);
-    return tutorial
-      ? generateTutorialMetadata({
-          title: tutorial.title,
-          description: tutorial.description,
-          thumbnail: tutorial.thumbnail,
-          category: tutorial.category,
-          slug: tutorial.slug,
-        })
-      : undefined;
+    if (tutorial) {
+      return generateTutorialMetadata({
+        title: tutorial.title,
+        description: tutorial.description,
+        thumbnail: tutorial.thumbnail,
+        category: tutorial.category,
+        slug: tutorial.slug,
+      });
+    }
+
+    return generateTutorialMetadata({
+      title: `Tutorial: ${slug.replace(/-/g, " ")}`,
+      description: DEFAULT_METADATA.defaultDescription,
+      thumbnail: DEFAULT_METADATA.defaultOgImage,
+      category: "tutorial",
+      slug,
+    });
   }
 
   if (path.startsWith("/news/")) {
@@ -263,19 +282,31 @@ const resolveDynamicMetadata = async (path: string) => {
     }
 
     const news = newsItems.find((item) => item.slug === slug || item.id === slug);
-    return news
-      ? generateNewsMetadata({
-          title: news.title,
-          excerpt: news.excerpt,
-          coverImage: news.coverImage,
-          category: news.category,
-          date: news.date,
-          lastModified: news.lastModified,
-          id: news.id,
-          slug: news.slug,
-          tags: news.tags,
-        })
-      : undefined;
+    if (news) {
+      return generateNewsMetadata({
+        title: news.title,
+        excerpt: news.excerpt,
+        coverImage: news.coverImage,
+        category: news.category,
+        date: news.date,
+        lastModified: news.lastModified,
+        id: news.id,
+        slug: news.slug,
+        tags: news.tags,
+      });
+    }
+
+    return generateNewsMetadata({
+      title: `News: ${slug.replace(/-/g, " ")}`,
+      excerpt: DEFAULT_METADATA.defaultDescription,
+      coverImage: DEFAULT_METADATA.defaultOgImage,
+      category: "News",
+      date: new Date().toISOString(),
+      lastModified: new Date().toISOString(),
+      id: slug,
+      slug,
+      tags: [],
+    });
   }
 
   return undefined;
