@@ -18,23 +18,26 @@ const nextConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       "@": path.resolve(__dirname, "../src"),
-      "react": path.resolve(__dirname, "./node_modules/react"),
-      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
+      "react": path.resolve(__dirname, "./node_modules/next/dist/compiled/react"),
+      "react-dom": path.resolve(
+        __dirname,
+        "./node_modules/next/dist/compiled/react-dom",
+      ),
       "react-dom/client": path.resolve(
         __dirname,
-        "./node_modules/react-dom/client",
+        "./node_modules/next/dist/compiled/react-dom/client",
       ),
       "react-dom/server": path.resolve(
         __dirname,
-        "./node_modules/react-dom/server",
+        "./node_modules/next/dist/compiled/react-dom/server",
       ),
       "react/jsx-runtime": path.resolve(
         __dirname,
-        "./node_modules/react/jsx-runtime",
+        "./node_modules/next/dist/compiled/react/jsx-runtime",
       ),
       "react/jsx-dev-runtime": path.resolve(
         __dirname,
-        "./node_modules/react/jsx-dev-runtime",
+        "./node_modules/next/dist/compiled/react/jsx-dev-runtime",
       ),
       "vaul@1.1.2": "vaul",
       "sonner@2.0.3": "sonner",
