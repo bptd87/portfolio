@@ -13,10 +13,8 @@
  */
 
 import type { ComponentType } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { useEffect, useState } from 'react';
 import { PageMetadata, DEFAULT_METADATA } from '../utils/seo/metadata';
-
-const HelmetCompat = Helmet as unknown as ComponentType<any>;
 
 export interface SEOProps {
   metadata?: PageMetadata;
@@ -28,6 +26,15 @@ export interface SEOProps {
 }
 
 export function SEOClient({ metadata, structuredData, title, description, keywords, image }: SEOProps) {
+  const [HelmetCompat, setHelmetCompat] = useState<ComponentType<any> | null>(null);
+
+  useEffect(() => {
+    // Dynamically import Helmet only on client side
+    import('react-helmet-async').then((mod) => {
+      setHelmetCompat(() => mod.Helmet as unknown as ComponentType<any>);
+    });
+  }, []);
+
   const siteUrl = DEFAULT_METADATA.siteUrl;
 
   // Merge direct props with metadata object, falling back to defaults
@@ -126,7 +133,16 @@ export function SEOClient({ metadata, structuredData, title, description, keywor
   };
 
   // Breadcrumb Schema
-  const breadcrumbSchema = {
+  const breadcrumbSchema: {
+    "@context": string;
+    "@type": string;
+    itemListElement: Array<{
+      "@type": string;
+      position: number;
+      name: string;
+      item: string;
+    }>;
+  } = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [{
@@ -159,24 +175,29 @@ export function SEOClient({ metadata, structuredData, title, description, keywor
   }
 
   // Combine schemas
-  const schemas = [personSchema, breadcrumbSchema];
+  const schemas: Record<string, unknown>[] = [personSchema, breadcrumbSchema];
   if (structuredData) {
     if (Array.isArray(structuredData)) {
       // Filter out invalid schemas (must have @context string)
       const validSchemas = structuredData.filter(schema => {
         // Safe check for object and @context property
         if (!schema || typeof schema !== 'object') return false;
-        const context = (schema as any)['@context'];
+        const context = (schema as Record<string, unknown>)['@context'];
         return typeof context === 'string';
       });
       schemas.push(...validSchemas);
     } else if (typeof structuredData === 'object') {
       // Safe check for object and @context property
-      const context = (structuredData as any)['@context'];
+      const context = (structuredData as Record<string, unknown>)['@context'];
       if (typeof context === 'string') {
         schemas.push(structuredData);
       }
     }
+  }
+
+  // Don't render anything until Helmet is loaded (client-only)
+  if (!HelmetCompat) {
+    return null;
   }
 
   return (
