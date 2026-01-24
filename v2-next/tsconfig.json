@@ -88,6 +88,9 @@
       ],
       "react-simple-maps": [
         "./node_modules/react-simple-maps"
+      ],
+      "react-responsive-masonry": [
+        "./node_modules/react-responsive-masonry"
       ]
     },
     "plugins": [
