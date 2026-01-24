@@ -100,6 +100,16 @@ const resolveDynamicMetadata = async (path: string) => {
     const slug = path.replace("/project/", "");
     const supabaseProject = await fetchSupabaseRow("portfolio_projects", slug);
     if (supabaseProject) {
+      const galleries = supabaseProject.galleries as
+        | { hero?: string[] }
+        | undefined;
+      const heroImage = galleries?.hero?.[0];
+      const fallbackImage =
+        heroImage ||
+        supabaseProject.banner_image ||
+        supabaseProject.card_image ||
+        supabaseProject.cover_image;
+
       return generateProjectMetadata({
         title: supabaseProject.title || supabaseProject.name || "Project",
         description:
@@ -107,15 +117,15 @@ const resolveDynamicMetadata = async (path: string) => {
           supabaseProject.description ||
           supabaseProject.excerpt ||
           "",
-        heroImage: supabaseProject.cover_image || supabaseProject.card_image,
-        cardImage: supabaseProject.card_image || supabaseProject.cover_image,
+        heroImage: fallbackImage,
+        cardImage: supabaseProject.card_image || fallbackImage,
         year: supabaseProject.year,
         venue: supabaseProject.venue,
         slug: supabaseProject.slug || supabaseProject.id || slug,
         seoTitle: supabaseProject.seo_title,
         seoDescription: supabaseProject.seo_description,
         seoKeywords: supabaseProject.seo_keywords,
-        ogImage: supabaseProject.og_image,
+        ogImage: supabaseProject.og_image || fallbackImage,
       });
     }
 
@@ -132,17 +142,25 @@ const resolveDynamicMetadata = async (path: string) => {
     }
 
     const project = projects.find((item) => item.id === slug || item.slug === slug);
-    return project
-      ? generateProjectMetadata({
-          title: project.title,
-          description: project.description,
-          heroImage: project.cardImage,
-          cardImage: project.cardImage,
-          year: project.year,
-          venue: project.venue,
-          slug,
-        })
-      : undefined;
+    if (project) {
+      return generateProjectMetadata({
+        title: project.title,
+        description: project.description,
+        heroImage: project.cardImage,
+        cardImage: project.cardImage,
+        year: project.year,
+        venue: project.venue,
+        slug,
+      });
+    }
+
+    return generateProjectMetadata({
+      title: `Project: ${slug.replace(/-/g, " ")}`,
+      description: DEFAULT_METADATA.defaultDescription,
+      cardImage: DEFAULT_METADATA.defaultOgImage,
+      heroImage: DEFAULT_METADATA.defaultOgImage,
+      slug,
+    });
   }
 
   if (path.startsWith("/articles/")) {
