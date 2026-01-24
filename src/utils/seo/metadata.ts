@@ -720,6 +720,13 @@ export function generateTutorialMetadata(tutorial: {
   category?: string;
   slug: string;
 }): PageMetadata {
+  const thumbnailValue = resolveImageUrl(tutorial.thumbnail);
+  const absoluteThumbnail = thumbnailValue
+    ? (thumbnailValue.startsWith("http")
+      ? thumbnailValue
+      : `${DEFAULT_METADATA.siteUrl}${thumbnailValue}`)
+    : undefined;
+
   return {
     title: `${tutorial.title} | Studio`,
     description: tutorial.description,
@@ -728,7 +735,7 @@ export function generateTutorialMetadata(tutorial: {
       "scenic design tutorial",
       tutorial.category?.toLowerCase() || "design tutorial",
     ],
-    ogImage: tutorial.thumbnail,
+    ogImage: absoluteThumbnail,
     ogType: "article",
     twitterCard: "summary_large_image",
     canonicalPath: `/studio/tutorial/${tutorial.slug}`,
@@ -791,11 +798,18 @@ export function generateNewsMetadata(newsItem: {
   // Use slug for canonical if available, otherwise ID
   const pathId = newsItem.slug || newsItem.id;
 
+  const coverImageValue = resolveImageUrl(newsItem.coverImage);
+  const absoluteCoverImage = coverImageValue
+    ? (coverImageValue.startsWith("http")
+      ? coverImageValue
+      : `${DEFAULT_METADATA.siteUrl}${coverImageValue}`)
+    : undefined;
+
   return {
     title: `${newsItem.title} | News`,
     description: newsItem.excerpt,
     keywords: keywords,
-    ogImage: newsItem.coverImage,
+    ogImage: absoluteCoverImage,
     ogType: "article",
     twitterCard: "summary_large_image",
     canonicalPath: `/news/${pathId}`,
