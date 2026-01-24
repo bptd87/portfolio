@@ -5,6 +5,9 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
   name: string;
   label: string;
   required?: boolean;
+  rows?: number;
+  className?: string;
+  placeholder?: string;
 }
 
 export function Textarea({ name, label, required, ...props }: TextareaProps) {

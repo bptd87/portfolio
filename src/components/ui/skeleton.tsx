@@ -2,6 +2,8 @@ import React from 'react'
 import { cn } from './utils'
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string
+  style?: React.CSSProperties
   /**
    * Variant of the skeleton
    * - text: For text lines

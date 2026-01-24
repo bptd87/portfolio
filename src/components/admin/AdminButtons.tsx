@@ -9,6 +9,11 @@ import { AdminTokens } from '../../styles/admin-tokens';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   icon?: React.ElementType;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
+  className?: string;
+  type?: "button" | "submit" | "reset";
+  title?: string;
 }
 
 export function PrimaryButton({

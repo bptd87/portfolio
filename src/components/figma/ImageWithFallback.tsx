@@ -12,6 +12,15 @@ const BLUR_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEA
 const failedOptimizedWarnings = new Set<string>();
 
 interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+  src?: string;
+  alt?: string;
+  style?: React.CSSProperties;
+  className?: string;
+  onLoad?: React.ReactEventHandler<HTMLImageElement>;
+  onError?: React.ReactEventHandler<HTMLImageElement>;
+  title?: string;
+  sizes?: string;
+  onClick?: React.MouseEventHandler<HTMLImageElement>;
   /**
    * Whether to enable lazy loading (default: true)
    * Images will only load when they're about to enter the viewport

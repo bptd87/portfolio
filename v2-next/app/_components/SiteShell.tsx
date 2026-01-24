@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentType } from "react";
 import React from "react";
 import { DesktopNav } from "../../../src/components/DesktopNav";
 import { MobileNav } from "../../../src/components/MobileNav";
@@ -10,6 +11,8 @@ import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "../../../src/components/ThemeProvider";
 import { HelmetProvider } from "react-helmet-async";
+
+const HelmetProviderCompat = HelmetProvider as unknown as ComponentType<any>;
 
 interface SiteShellProps {
   currentPage: string;
@@ -43,7 +46,7 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
 
   return (
     <ThemeProvider>
-      <HelmetProvider>
+      <HelmetProviderCompat>
         <style>{`
           .app-mobile-nav { display: block; }
           .app-desktop-nav { display: none; }
@@ -100,7 +103,7 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
             </div>
           )}
         </div>
-      </HelmetProvider>
+      </HelmetProviderCompat>
     </ThemeProvider>
   );
 }

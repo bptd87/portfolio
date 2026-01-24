@@ -78,7 +78,7 @@ export function News({ onNavigate }: NewsProps) {
     ? ['all', ...categories.map(cat => cat.name)]
     : ['all', ...Array.from(new Set(newsItems.map(item => item.category)))];
 
-  const years = ['all', ...Array.from(new Set(newsItems.map(item => new Date(item.date).getFullYear().toString()))).sort().reverse()];
+  const years: string[] = ['all', ...(Array.from(new Set(newsItems.map(item => new Date(item.date).getFullYear().toString()))) as string[]).sort().reverse()];
 
   const filteredNews = newsItems.filter(item => {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;

@@ -2,6 +2,7 @@
 
 import { useWatch } from 'react-hook-form';
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect, useMemo } from 'react';
+import type { ComponentType } from 'react';
 import ReactQuill, { Quill } from 'react-quill-new';
 
 // Re-export ContentBlock locally to fix missing property error while preserving existing imports
@@ -31,6 +32,8 @@ export interface ContentBlock {
 import 'react-quill-new/dist/quill.snow.css';
 import { ImageUploader, ImageGalleryManager } from './ImageUploader';
 import { Image as ImageIcon, Video, LayoutGrid, X, Type } from 'lucide-react';
+
+const ReactQuillCompat = ReactQuill as unknown as ComponentType<any>;
 
 // Suppress ReactQuill deprecation warnings
 
@@ -748,14 +751,14 @@ export function ContentTabWrapper({ methods }: { methods: any }) {
 
     // If both have images, check if we're about to lose any
     if (currentHasImages && newHasImages) {
-      const currentImgSrcs = Array.from(quill.root.querySelectorAll('img')).map(img => {
+      const currentImgSrcs = (Array.from(quill.root.querySelectorAll('img')) as HTMLImageElement[]).map(img => {
         const src = img.getAttribute('src') || img.src;
         return src.split('?')[0];
       }).filter(Boolean);
 
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = html;
-      const newImgSrcs = Array.from(tempDiv.querySelectorAll('img')).map(img => {
+      const newImgSrcs = (Array.from(tempDiv.querySelectorAll('img')) as HTMLImageElement[]).map(img => {
         const src = img.getAttribute('src') || img.src;
         return src.split('?')[0];
       }).filter(Boolean);
@@ -1440,7 +1443,7 @@ export function ContentTabWrapper({ methods }: { methods: any }) {
           This is a known issue with react-quill library and will be fixed in a future update.
           The warning can be safely ignored as it doesn't affect functionality. */}
       <div className="bg-zinc-900 rounded-lg border border-zinc-700 overflow-hidden relative" style={{ isolation: 'isolate', maxHeight: '800px', display: 'flex', flexDirection: 'column' }}>
-        <ReactQuill
+        <ReactQuillCompat
           ref={quillRef}
           theme="snow"
           defaultValue={(() => {

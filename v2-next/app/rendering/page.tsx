@@ -1,6 +1,8 @@
 import AgencyCategoryPageClient from "../_components/AgencyCategoryPageClient";
 import { resolveMetadataFromParams } from "../seo/resolve-metadata";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata() {
   return resolveMetadataFromParams({ params: { path: ["rendering"] } });
 }

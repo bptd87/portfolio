@@ -479,7 +479,7 @@ export function GalleryEditor({ label, images, captions, altTexts = [], onChange
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+      const imageFiles = (Array.from(files) as File[]).filter(file => file.type.startsWith('image/'));
       if (imageFiles.length > 0) {
         const fileList = new DataTransfer();
         imageFiles.forEach(file => fileList.items.add(file));

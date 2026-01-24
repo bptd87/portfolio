@@ -14,6 +14,10 @@ interface ButtonProps extends MotionButtonProps {
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
   children?: React.ReactNode;
+  className?: string;
+  type?: 'button' | 'submit' | 'reset';
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
 }
 
 const buttonStyles = {

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { unstable_cache as cache } from "next/cache";
 import {
   DEFAULT_METADATA,
   PAGE_METADATA,
@@ -48,7 +47,9 @@ const resolveStaticKey = (path: string) => {
   return path.replace("/", "");
 };
 
-const fetchSupabaseRow = cache(async (table: string, slug: string) => {
+const cacheWrapper = <T extends (...args: any[]) => any>(fn: T) => fn;
+
+const fetchSupabaseRow = cacheWrapper(async (table: string, slug: string) => {
   const url = new URL(`${SUPABASE_REST_URL}/${table}`);
   url.searchParams.set("select", "*");
   url.searchParams.set("or", `(slug.eq.${slug},id.eq.${slug})`);

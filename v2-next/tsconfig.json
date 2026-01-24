@@ -17,11 +17,20 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
     "baseUrl": ".",
     "paths": {
       "@/*": [
         "./app/*",
         "../src/*"
+      ],
+      "sonner": [
+        "./node_modules/sonner"
+      ],
+      "recharts": [
+        "./node_modules/recharts"
       ],
       "react": [
         "./node_modules/react"

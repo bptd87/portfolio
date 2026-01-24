@@ -74,6 +74,7 @@ interface ParallaxImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
     offset?: number; // How much the image moves (e.g., 50px)
     fetchpriority?: string; // For resolving React warning vs TS types
     width?: number; // Optimization width
+    style?: React.CSSProperties;
 }
 
 export function ParallaxImageComponent({ src, alt, className = '', offset = 50, width = 1200, style, ...props }: ParallaxImageProps) {

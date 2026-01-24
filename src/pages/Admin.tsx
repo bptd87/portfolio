@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react';
 import React, { Suspense, lazy, useState } from 'react';
 import { Lock, Eye, EyeOff, Mail } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -5,6 +6,8 @@ import { AdminLayout } from '../components/admin/AdminLayout';
 import { AdminDashboard } from '../components/admin/AdminDashboard';
 import { SimpleErrorBoundary } from '../components/SimpleErrorBoundary';
 import { projectId } from '../utils/supabase/info';
+
+const SimpleErrorBoundaryCompat = SimpleErrorBoundary as unknown as ComponentType<any>;
 
 
 const ArticleManager = lazy(() => import('../components/admin/ArticleManager').then((m) => ({ default: m.ArticleManager })));
@@ -319,7 +322,7 @@ export function Admin({ onNavigate }: AdminProps) {
   };
 
   return (
-    <SimpleErrorBoundary>
+    <SimpleErrorBoundaryCompat>
       <AdminLayout
         activeView={activeView}
         onNavigate={(view) => {
@@ -333,7 +336,7 @@ export function Admin({ onNavigate }: AdminProps) {
           {renderActiveView()}
         </Suspense>
       </AdminLayout>
-    </SimpleErrorBoundary>
+    </SimpleErrorBoundaryCompat>
   );
 }
 

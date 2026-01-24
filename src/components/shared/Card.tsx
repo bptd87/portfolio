@@ -12,6 +12,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   interactive?: boolean;
   asMotion?: boolean;
   children?: React.ReactNode;
+  className?: string;
 }
 
 const cardStyles = {

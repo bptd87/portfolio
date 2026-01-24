@@ -10,8 +10,11 @@
  * <SEO metadata={generateArticleMetadata(article)} structuredData={articleSchema} />
  */
 
+import type { ComponentType } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { PageMetadata, DEFAULT_METADATA } from '../utils/seo/metadata';
+
+const HelmetCompat = Helmet as unknown as ComponentType<any>;
 
 interface SEOProps {
   metadata?: PageMetadata;
@@ -175,7 +178,7 @@ export function SEO({ metadata, structuredData, title, description, keywords, im
   }
 
   return (
-    <Helmet>
+    <HelmetCompat>
       {/* Basic */}
       <title>{fullTitle}</title>
       <meta name="description" content={metaDescription} />
@@ -208,6 +211,6 @@ export function SEO({ metadata, structuredData, title, description, keywords, im
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas) }}
       />
-    </Helmet>
+    </HelmetCompat>
   );
 }

@@ -1,4 +1,5 @@
 
+import type { ComponentType, PropsWithChildren } from 'react';
 import { useState, lazy, Suspense, useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { Analytics } from "@vercel/analytics/react";
@@ -14,6 +15,14 @@ import { Toaster } from 'sonner';
 
 import { AnalyticsTracker } from './components/AnalyticsTracker';
 import { RedirectHandler } from './components/RedirectHandler';
+
+const HelmetProviderCompat = HelmetProvider as unknown as ComponentType<
+  PropsWithChildren<{
+    context?: {
+      helmet?: unknown;
+    };
+  }>
+>;
 
 
 
@@ -590,7 +599,7 @@ export default function App() {
   const pageKey = `${currentPage}-${currentProjectSlug}-${currentBlogSlug}-${currentTutorialSlug}-${currentNewsSlug}`;
 
   return (
-    <HelmetProvider>
+    <HelmetProviderCompat>
       <style>{`
           .app-mobile-nav { display: block; }
           .app-desktop-nav { display: none; }
@@ -648,6 +657,6 @@ export default function App() {
           </div>
         )}
       </div>
-    </HelmetProvider>
+    </HelmetProviderCompat>
   );
 }
