@@ -58,11 +58,6 @@
       "permanent": true
     },
     {
-      "source": "/cv",
-      "destination": "/resume",
-      "permanent": true
-    },
-    {
       "source": "/Portfolio",
       "destination": "/portfolio",
       "permanent": true

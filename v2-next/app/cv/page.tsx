@@ -1,5 +1,16 @@
-import { redirect } from "next/navigation";
+import CVPageClient from "../_components/CVPageClient";
+import { resolveMetadataFromParams } from "../seo/resolve-metadata";
 
-export default function CVRedirect() {
-  redirect("/resume");
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?:
+    | Record<string, string | string[] | undefined>
+    | Promise<Record<string, string | string[] | undefined>>;
+}) {
+  return resolveMetadataFromParams({ params: { path: ["cv"] }, searchParams });
+}
+
+export default function CVPage() {
+  return <CVPageClient />;
 }
