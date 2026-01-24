@@ -7,8 +7,7 @@ import { MobileNav } from "@/src/components/MobileNav";
 import { Footer } from "@/src/components/Footer";
 import { AnalyticsTracker } from "@/src/components/AnalyticsTracker";
 import { RedirectHandler } from "@/src/components/RedirectHandler";
-// Temporarily disabled - was causing React context issues in server render
-// import { Toaster } from "sonner";
+import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/src/components/ThemeProvider";
 
