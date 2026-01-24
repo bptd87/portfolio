@@ -3,7 +3,7 @@
   "installCommand": "npm install && npm --prefix v2-next install",
   "builds": [
     {
-      "src": "v2-next/package.json",
+      "src": "v2-next/next.config.mjs",
       "use": "@vercel/next"
     }
   ],
