@@ -55,6 +55,9 @@
       ],
       "framer-motion": [
         "./node_modules/framer-motion"
+      ],
+      "react-hook-form": [
+        "./node_modules/react-hook-form"
       ]
     },
     "plugins": [
