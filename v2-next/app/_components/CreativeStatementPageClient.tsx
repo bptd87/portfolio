@@ -1,6 +1,6 @@
 "use client";
 
-import { CreativeStatement } from "../../../src/pages/CreativeStatement";
+import { CreativeStatement } from "@/src/views/CreativeStatement";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

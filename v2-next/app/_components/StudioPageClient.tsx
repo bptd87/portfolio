@@ -1,6 +1,6 @@
 "use client";
 
-import { StudioNew } from "../../../src/pages/StudioNew";
+import { StudioNew } from "@/src/views/StudioNew";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

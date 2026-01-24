@@ -1,6 +1,6 @@
 "use client";
 
-import { ScenicStudio } from "../../../src/pages/ScenicStudio";
+import { ScenicStudio } from "@/src/views/ScenicStudio";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

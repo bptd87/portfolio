@@ -1,6 +1,6 @@
 "use client";
 
-import { RoscoPaintCalculator } from "../../../src/pages/RoscoPaintCalculator";
+import { RoscoPaintCalculator } from "@/src/views/RoscoPaintCalculator";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Contact } from "../../../src/pages/Contact";
+import { Contact } from "@/src/views/Contact";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

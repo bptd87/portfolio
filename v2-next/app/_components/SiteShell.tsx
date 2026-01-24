@@ -2,14 +2,15 @@
 
 import type { ComponentType, ReactNode } from "react";
 import React, { useEffect, useState } from "react";
-import { DesktopNav } from "../../../src/components/DesktopNav";
-import { MobileNav } from "../../../src/components/MobileNav";
-import { Footer } from "../../../src/components/Footer";
-import { AnalyticsTracker } from "../../../src/components/AnalyticsTracker";
-import { RedirectHandler } from "../../../src/components/RedirectHandler";
-import { Toaster } from "sonner";
+import { DesktopNav } from "@/src/components/DesktopNav";
+import { MobileNav } from "@/src/components/MobileNav";
+import { Footer } from "@/src/components/Footer";
+import { AnalyticsTracker } from "@/src/components/AnalyticsTracker";
+import { RedirectHandler } from "@/src/components/RedirectHandler";
+// Temporarily disabled - was causing React context issues in server render
+// import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
-import { ThemeProvider } from "../../../src/components/ThemeProvider";
+import { ThemeProvider } from "@/src/components/ThemeProvider";
 
 // Dynamically loaded HelmetProvider - null until client-side
 let HelmetProviderCompat: ComponentType<{ children: ReactNode }> | null = null;
@@ -68,7 +69,7 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
             visibility: hidden !important;
           }
         `}</style>
-        <Toaster richColors />
+        {/* Toaster temporarily disabled - was causing React context issues in SSR */}
         <AnalyticsTracker currentPage={currentPage} slug={slug || undefined} />
         <RedirectHandler onNavigate={onNavigate} />
         <Analytics />

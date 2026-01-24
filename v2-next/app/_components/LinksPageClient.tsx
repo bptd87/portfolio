@@ -1,6 +1,6 @@
 "use client";
 
-import { Links } from "../../../src/pages/Links";
+import { Links } from "@/src/views/Links";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

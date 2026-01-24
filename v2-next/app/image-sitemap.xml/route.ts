@@ -1,8 +1,8 @@
-import { projectId, publicAnonKey } from "../../../src/utils/supabase/info";
-import { blogPosts } from "../../../src/data/blog-posts";
-import { newsItems } from "../../../src/data/news";
-import { TUTORIALS } from "../../../src/data/tutorials";
-import { resolveImageUrl } from "../../../src/utils/image";
+import { projectId, publicAnonKey } from "@/src/utils/supabase/info";
+import { blogPosts } from "@/src/data/blog-posts";
+import { newsItems } from "@/src/data/news";
+import { TUTORIALS } from "@/src/data/tutorials";
+import { resolveImageUrl } from "@/src/utils/image";
 
 const SITE_URL = "https://www.brandonptdavis.com";
 const SUPABASE_REST_URL = `https://${projectId}.supabase.co/rest/v1`;

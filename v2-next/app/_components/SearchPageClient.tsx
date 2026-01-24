@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "../../../src/pages/Search";
+import { Search } from "@/src/views/Search";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 import { useSearchParams } from "next/navigation";

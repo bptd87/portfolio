@@ -1,6 +1,6 @@
 "use client";
 
-import { Sitemap } from "../../../src/pages/Sitemap";
+import { Sitemap } from "@/src/views/Sitemap";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { CV } from "../../../src/pages/CV";
+import { CV } from "@/src/views/CV";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

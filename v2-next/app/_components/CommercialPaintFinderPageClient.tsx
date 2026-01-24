@@ -1,6 +1,6 @@
 "use client";
 
-import { CommercialPaintFinder } from "../../../src/pages/CommercialPaintFinder";
+import { CommercialPaintFinder } from "@/src/views/CommercialPaintFinder";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

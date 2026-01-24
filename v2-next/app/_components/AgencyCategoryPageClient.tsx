@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AgencyCategoryPage } from "../../../src/pages/AgencyCategoryPage";
+import { AgencyCategoryPage } from "@/src/views/AgencyCategoryPage";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

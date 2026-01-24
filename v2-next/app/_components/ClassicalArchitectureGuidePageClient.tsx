@@ -1,6 +1,6 @@
 "use client";
 
-import { ClassicalArchitectureGuide } from "../../../src/pages/ClassicalArchitectureGuide";
+import { ClassicalArchitectureGuide } from "@/src/views/ClassicalArchitectureGuide";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

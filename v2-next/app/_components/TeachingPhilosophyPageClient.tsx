@@ -1,6 +1,6 @@
 "use client";
 
-import { TeachingPhilosophy } from "../../../src/pages/TeachingPhilosophy";
+import { TeachingPhilosophy } from "@/src/views/TeachingPhilosophy";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

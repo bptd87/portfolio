@@ -1,6 +1,6 @@
 "use client";
 
-import { Collaborators } from "../../../src/pages/Collaborators";
+import { Collaborators } from "@/src/views/Collaborators";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

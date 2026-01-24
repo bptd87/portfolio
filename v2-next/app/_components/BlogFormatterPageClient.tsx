@@ -1,6 +1,6 @@
 "use client";
 
-import { BlogFormatter } from "../../../src/pages/BlogFormatter";
+import { BlogFormatter } from "@/src/views/BlogFormatter";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

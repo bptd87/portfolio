@@ -1,6 +1,6 @@
 "use client";
 
-import { NewsArticle } from "../../../src/pages/news/NewsArticle";
+import { NewsArticle } from "@/src/views/news/NewsArticle";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

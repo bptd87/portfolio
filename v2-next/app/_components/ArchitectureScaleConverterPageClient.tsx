@@ -1,6 +1,6 @@
 "use client";
 
-import { ArchitectureScaleConverter } from "../../../src/pages/ArchitectureScaleConverter";
+import { ArchitectureScaleConverter } from "@/src/views/ArchitectureScaleConverter";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

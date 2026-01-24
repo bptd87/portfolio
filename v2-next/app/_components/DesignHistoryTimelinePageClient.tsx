@@ -1,6 +1,6 @@
 "use client";
 
-import { DesignHistoryTimeline } from "../../../src/pages/DesignHistoryTimeline";
+import { DesignHistoryTimeline } from "@/src/views/DesignHistoryTimeline";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

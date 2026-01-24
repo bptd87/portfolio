@@ -1,6 +1,6 @@
 "use client";
 
-import { TermsOfUse } from "../../../src/pages/TermsOfUse";
+import { TermsOfUse } from "@/src/views/TermsOfUse";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

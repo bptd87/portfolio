@@ -1,6 +1,6 @@
 "use client";
 
-import { ModelReferenceScaler } from "../../../src/pages/ModelReferenceScaler";
+import { ModelReferenceScaler } from "@/src/views/ModelReferenceScaler";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

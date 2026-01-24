@@ -1,6 +1,6 @@
 "use client";
 
-import { Portfolio } from "../../../src/pages/Portfolio";
+import { Portfolio } from "@/src/views/Portfolio";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 import { useSearchParams } from "next/navigation";

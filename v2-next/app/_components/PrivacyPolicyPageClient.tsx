@@ -1,6 +1,6 @@
 "use client";
 
-import { PrivacyPolicy } from "../../../src/pages/PrivacyPolicy";
+import { PrivacyPolicy } from "@/src/views/PrivacyPolicy";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

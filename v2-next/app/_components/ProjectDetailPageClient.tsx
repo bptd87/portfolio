@@ -1,6 +1,6 @@
 "use client";
 
-import { ProjectDetailNew } from "../../../src/pages/ProjectDetailNew";
+import { ProjectDetailNew } from "@/src/views/ProjectDetailNew";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

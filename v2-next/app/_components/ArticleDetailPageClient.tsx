@@ -1,6 +1,6 @@
 "use client";
 
-import { DynamicArticle } from "../../../src/pages/scenic-insights/DynamicArticle";
+import { DynamicArticle } from "@/src/views/scenic-insights/DynamicArticle";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

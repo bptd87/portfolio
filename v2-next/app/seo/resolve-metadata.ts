@@ -8,13 +8,13 @@ import {
   generateTutorialMetadata,
   generateVaultItemMetadata,
   type PageMetadata,
-} from "../../../src/utils/seo/metadata";
-import { blogPosts } from "../../../src/data/blog-posts";
-import { newsItems } from "../../../src/data/news";
-import { TUTORIALS } from "../../../src/data/tutorials";
-import { FAQ_ITEMS } from "../../../src/data/faq";
-import { APP_STUDIO_TOOLS } from "../../../src/data/app-studio-tools";
-import { projects } from "../../../src/data/projects.deprecated";
+} from "@/src/utils/seo/metadata";
+import { blogPosts } from "@/src/data/blog-posts";
+import { newsItems } from "@/src/data/news";
+import { TUTORIALS } from "@/src/data/tutorials";
+import { FAQ_ITEMS } from "@/src/data/faq";
+import { APP_STUDIO_TOOLS } from "@/src/data/app-studio-tools";
+import { projects } from "@/src/data/projects.deprecated";
 import {
   generateArticleSchema,
   generateBreadcrumbSchema,
@@ -26,8 +26,8 @@ import {
   generatePersonSchema,
   generateVideoSchema,
   generateWebSiteSchema,
-} from "../../../src/utils/seo/structured-data";
-import { projectId, publicAnonKey } from "../../../src/utils/supabase/info";
+} from "@/src/utils/seo/structured-data";
+import { projectId, publicAnonKey } from "@/src/utils/supabase/info";
 
 const SITE_URL = DEFAULT_METADATA.siteUrl || "https://www.brandonptdavis.com";
 const SUPABASE_REST_URL = `https://${projectId}.supabase.co/rest/v1`;

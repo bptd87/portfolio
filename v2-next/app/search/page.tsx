@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import SearchPageClient from "../_components/SearchPageClient";
 import { resolveMetadataFromParams } from "../seo/resolve-metadata";
-import { PageLoader } from "../../../src/components/PageLoader";
+import { PageLoader } from "@/src/components/PageLoader";
 
 export async function generateMetadata({
   searchParams,

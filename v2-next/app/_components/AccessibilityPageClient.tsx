@@ -1,6 +1,6 @@
 "use client";
 
-import { Accessibility } from "../../../src/pages/Accessibility";
+import { Accessibility } from "@/src/views/Accessibility";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

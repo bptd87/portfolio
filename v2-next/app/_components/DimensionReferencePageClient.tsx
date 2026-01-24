@@ -1,6 +1,6 @@
 "use client";
 
-import { DimensionReferenceNewV2 } from "../../../src/pages/DimensionReferenceNewV2";
+import { DimensionReferenceNewV2 } from "@/src/views/DimensionReferenceNewV2";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

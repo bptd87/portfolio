@@ -1,6 +1,6 @@
 "use client";
 
-import { ScenicVault } from "../../../src/pages/ScenicVault";
+import { ScenicVault } from "@/src/views/ScenicVault";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

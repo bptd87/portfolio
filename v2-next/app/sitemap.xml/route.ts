@@ -1,4 +1,4 @@
-import { projectId, publicAnonKey } from "../../../src/utils/supabase/info";
+import { projectId, publicAnonKey } from "@/src/utils/supabase/info";
 
 const SITE_URL = "https://www.brandonptdavis.com";
 const SUPABASE_REST_URL = `https://${projectId}.supabase.co/rest/v1`;

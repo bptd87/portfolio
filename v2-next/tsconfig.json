@@ -23,100 +23,21 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./app/*",
-        "../src/*"
+        "./*"
       ],
-      "*": [
-        "./node_modules/*",
-        "../node_modules/*"
-      ],
-      "sonner": [
-        "./node_modules/sonner"
-      ],
-      "recharts": [
-        "./node_modules/recharts"
-      ],
-      "react": [
-        "./node_modules/react"
-      ],
-      "react-dom": [
-        "./node_modules/react-dom"
-      ],
-      "react-dom/client": [
-        "./node_modules/react-dom/client"
-      ],
-      "react-dom/server": [
-        "./node_modules/react-dom/server"
-      ],
-      "react/jsx-runtime": [
-        "./node_modules/react/jsx-runtime"
-      ],
-      "react/jsx-dev-runtime": [
-        "./node_modules/react/jsx-dev-runtime"
-      ],
-      "react-helmet-async": [
-        "./node_modules/react-helmet-async"
-      ],
-      "lucide-react": [
-        "./node_modules/lucide-react"
-      ],
-      "motion/react": [
-        "./node_modules/motion/react"
-      ],
-      "framer-motion": [
-        "./node_modules/framer-motion"
-      ],
-      "react-hook-form": [
-        "./node_modules/react-hook-form"
-      ],
-      "@hookform/resolvers/zod": [
-        "./node_modules/@hookform/resolvers/zod"
-      ],
-      "zod": [
-        "./node_modules/zod"
-      ],
-      "react-quill-new": [
-        "./node_modules/react-quill-new"
-      ],
-      "@tiptap/react": [
-        "./node_modules/@tiptap/react"
-      ],
-      "@tiptap/starter-kit": [
-        "./node_modules/@tiptap/starter-kit"
-      ],
-      "@tiptap/extension-placeholder": [
-        "./node_modules/@tiptap/extension-placeholder"
-      ],
-      "@tiptap/extension-text-align": [
-        "./node_modules/@tiptap/extension-text-align"
-      ],
-      "@tiptap/extension-image": [
-        "./node_modules/@tiptap/extension-image"
-      ],
-      "@tiptap/core": [
-        "./node_modules/@tiptap/core"
-      ],
-      "react-simple-maps": [
-        "./node_modules/react-simple-maps"
-      ],
-      "react-responsive-masonry": [
-        "./node_modules/react-responsive-masonry"
-      ],
-      "react-router-dom": [
-        "./node_modules/react-router-dom"
-      ],
-      "@vercel/speed-insights/react": [
-        "./node_modules/@vercel/speed-insights/react"
+      "@/src/*": [
+        "./src/*"
       ]
     },
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "strictNullChecks": true
   },
   "include": [
-    "../src/**/*",
+    "src/**/*",
     "app/**/*",
     "next-env.d.ts",
     ".next/types/**/*.ts",

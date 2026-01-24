@@ -1,6 +1,6 @@
 "use client";
 
-import { ScenicInsights } from "../../../src/pages/ScenicInsights";
+import { ScenicInsights } from "@/src/views/ScenicInsights";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

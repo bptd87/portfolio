@@ -1,6 +1,6 @@
 "use client";
 
-import { AppStudio } from "../../../src/pages/AppStudio";
+import { AppStudio } from "@/src/views/AppStudio";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 
