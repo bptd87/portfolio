@@ -67,19 +67,19 @@
       ],
       "react-quill-new": [
         "./node_modules/react-quill-new"
+      ],
+      "@tiptap/react": [
+        "./node_modules/@tiptap/react"
+      ],
+      "@tiptap/starter-kit": [
+        "./node_modules/@tiptap/starter-kit"
+      ],
+      "@tiptap/extension-placeholder": [
+        "./node_modules/@tiptap/extension-placeholder"
+      ],
+      "@tiptap/extension-text-align": [
+        "./node_modules/@tiptap/extension-text-align"
       ]
-        "@tiptap/react": [
-          "./node_modules/@tiptap/react"
-        ],
-        "@tiptap/starter-kit": [
-          "./node_modules/@tiptap/starter-kit"
-        ],
-        "@tiptap/extension-placeholder": [
-          "./node_modules/@tiptap/extension-placeholder"
-        ],
-        "@tiptap/extension-text-align": [
-          "./node_modules/@tiptap/extension-text-align"
-        ]
     },
     "plugins": [
       {
