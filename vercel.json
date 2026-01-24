@@ -1,5 +1,6 @@
 {
   "trailingSlash": false,
+  "installCommand": "npm install && npm --prefix v2-next install",
   "builds": [
     {
       "src": "v2-next/package.json",
