@@ -94,6 +94,7 @@ const AgencyCategoryPage = lazy(() => import('./pages/AgencyCategoryPage').then(
 type Page = 'home' | 'portfolio' | 'about' | 'creative-statement' | 'cv' | 'collaborators' | 'teaching-philosophy' | 'contact' | 'scenic-insights' | 'articles' | 'studio' | 'scenic-studio' | 'scenic-vault' | 'app-studio' | 'resources' | 'architecture-scale-converter' | 'dimension-reference' | 'model-reference-scaler' | 'design-history-timeline' | 'classical-architecture-guide' | 'rosco-paint-calculator' | 'commercial-paint-finder' | 'news' | 'news-article' | 'project' | 'project-new' | 'experiential-detail' | 'blog' | 'tutorial' | 'search' | 'admin' | 'links' | 'faq' | 'privacy-policy' | 'accessibility' | 'terms-of-use' | '404' | 'sitemap' | 'directory' | 'experiential-design' | 'rendering' | 'scenic-models';
 
 export default function App() {
+  const [helmetReady, setHelmetReady] = useState(false);
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [currentProjectSlug, setCurrentProjectSlug] = useState<string | null>(null);
   const [currentBlogSlug, setCurrentBlogSlug] = useState<string | null>(null);
@@ -104,6 +105,10 @@ export default function App() {
   const [scenicInsightsCategory, setScenicInsightsCategory] = useState<string | undefined>(undefined);
   const [scenicInsightsTag, setScenicInsightsTag] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    setHelmetReady(true);
+  }, []);
 
   useEffect(() => {
     if ('scrollRestoration' in history) {
@@ -596,8 +601,8 @@ export default function App() {
   const seoData = getSEOData();
   const pageKey = `${currentPage}-${currentProjectSlug}-${currentBlogSlug}-${currentTutorialSlug}-${currentNewsSlug}`;
 
-  return (
-    <HelmetProviderCompat>
+  const content = (
+    <>
       <style>{`
           .app-mobile-nav { display: block; }
           .app-desktop-nav { display: none; }
@@ -655,6 +660,14 @@ export default function App() {
           </div>
         )}
       </div>
+    </>
+  );
+
+  return helmetReady ? (
+    <HelmetProviderCompat>
+      {content}
     </HelmetProviderCompat>
+  ) : (
+    content
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentType } from "react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { DesktopNav } from "../../../src/components/DesktopNav";
 import { MobileNav } from "../../../src/components/MobileNav";
 import { Footer } from "../../../src/components/Footer";
@@ -22,6 +22,12 @@ interface SiteShellProps {
 }
 
 export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShellProps) {
+  const [helmetReady, setHelmetReady] = useState(false);
+
+  useEffect(() => {
+    setHelmetReady(true);
+  }, []);
+
   const hideChrome = currentPage === "admin" || currentPage === "links";
   const hideFooter = hideChrome || currentPage === "home";
   const forceBackground = [
@@ -44,9 +50,8 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
     "scenic-models",
   ].includes(currentPage);
 
-  return (
-    <ThemeProvider>
-      <HelmetProviderCompat>
+  const content = (
+      <>
         <style>{`
           .app-mobile-nav { display: block; }
           .app-desktop-nav { display: none; }
@@ -103,7 +108,18 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
             </div>
           )}
         </div>
-      </HelmetProviderCompat>
+      </>
+  );
+
+  return (
+    <ThemeProvider>
+      {helmetReady ? (
+        <HelmetProviderCompat>
+          {content}
+        </HelmetProviderCompat>
+      ) : (
+        content
+      )}
     </ThemeProvider>
   );
 }
