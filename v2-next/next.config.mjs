@@ -90,7 +90,7 @@ const nextConfig = {
       ),
       "@vercel/analytics/react": path.resolve(
         __dirname,
-        "./node_modules/@vercel/analytics/react",
+        "./node_modules/@vercel/analytics/dist/react",
       ),
       "tailwind-merge": path.resolve(
         __dirname,
