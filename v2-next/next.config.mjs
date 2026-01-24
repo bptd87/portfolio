@@ -53,6 +53,14 @@ const nextConfig = {
         __dirname,
         "./node_modules/@tiptap/extension-image",
       ),
+      "@tiptap/core": path.resolve(
+        __dirname,
+        "./node_modules/@tiptap/core",
+      ),
+      "react-simple-maps": path.resolve(
+        __dirname,
+        "./node_modules/react-simple-maps",
+      ),
       "next-themes@0.4.6": "next-themes",
       "lucide-react@0.487.0": "lucide-react",
       "lucide-react": path.resolve(
