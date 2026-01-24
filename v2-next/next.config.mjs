@@ -57,6 +57,11 @@ const nextConfig = {
         __dirname,
         "./node_modules/@tiptap/core",
       ),
+      "d3-scale": path.resolve(__dirname, "./node_modules/d3-scale"),
+      "react-syntax-highlighter": path.resolve(
+        __dirname,
+        "./node_modules/react-syntax-highlighter",
+      ),
       "react-simple-maps": path.resolve(
         __dirname,
         "./node_modules/react-simple-maps",
