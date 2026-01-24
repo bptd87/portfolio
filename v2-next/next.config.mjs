@@ -69,10 +69,15 @@ const nextConfig = {
         __dirname,
         "./node_modules/@radix-ui/react-dropdown-menu",
       ),
+      "@radix-ui/react-dialog": path.resolve(
+        __dirname,
+        "./node_modules/@radix-ui/react-dialog",
+      ),
       "@radix-ui/react-label": path.resolve(
         __dirname,
         "./node_modules/@radix-ui/react-label",
       ),
+      "recharts": path.resolve(__dirname, "./node_modules/recharts"),
       "@radix-ui/react-tabs": path.resolve(
         __dirname,
         "./node_modules/@radix-ui/react-tabs",
