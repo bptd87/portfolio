@@ -78,6 +78,14 @@ const nextConfig = {
         "./node_modules/@radix-ui/react-tabs",
       ),
       "clsx": path.resolve(__dirname, "./node_modules/clsx"),
+      "tailwind-merge": path.resolve(
+        __dirname,
+        "./node_modules/tailwind-merge",
+      ),
+      "phosphor-react": path.resolve(
+        __dirname,
+        "./node_modules/phosphor-react",
+      ),
       "d3-scale": path.resolve(__dirname, "./node_modules/d3-scale"),
       "react-syntax-highlighter": path.resolve(
         __dirname,
