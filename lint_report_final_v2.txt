@@ -1,4 +1,0 @@
-
-> brandonptdavis-com@0.1.0 lint
-> eslint .
-

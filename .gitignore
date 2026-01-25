@@ -1,60 +1,36 @@
-# Dependencies
+# dependencies
 node_modules
-.pnp
+/.pnp
 .pnp.js
 
-# Testing
-coverage
+# testing
+/coverage
 
-# Production build
-build
-dist
-*.local
+# next.js
+/.next/
+/out/
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# production
+/build
 
-# Logs
+# misc
+.DS_Store
+*.pem
+
+# debug
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-debug.log
-*.log
+ts-debug.log*
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-!.vscode/launch.json
-.idea
-.cursor
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# local env files
+.env*.local
 
-# Supabase
-.supabase
-
-# Temporary files
-*.tmp
-*.temp
-.cache
-
-# Vercel
+# vercel
 .vercel
-# api
-tsconfig.api.tsbuildinfo
 
-# Next.js
-.next/
-v2-next/.next/
-v2-next/node_modules/
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# backups
+_legacy_vite_backup

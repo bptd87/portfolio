@@ -32,16 +32,21 @@ export function useSocialLinks() {
                     setSocialLinks(mappedLinks);
                 } else {
                     // Database is empty, use static fallback
-                    console.log(
-                        "No social links in database, using static fallback",
-                    );
+                    // Debug only - don't spam console in production
+                    if (process.env.NODE_ENV === 'development') {
+                        console.debug("No social links in database, using static fallback");
+                    }
                     setSocialLinks(SOCIAL_LINKS);
                 }
             } catch (err) {
                 console.error("Failed to fetch social links:", err);
                 // Keep fallback to static links
             } finally {
-                setLoading(false);
+                if (window.location.hash !== '#no-loading') {
+                     setLoading(false);
+                } else {
+                     setLoading(false);
+                }
             }
         };
 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
-// @ts-ignore
-const SyntaxHighlighter = React.lazy(() => import('react-syntax-highlighter').then(m => ({ default: m.Prism }))) as any;
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ChevronDown, X, ZoomIn, Info, AlertTriangle, CheckCircle, XCircle, Download } from 'lucide-react';
 import { GalleryBlock } from './GalleryBlock';
+
+// Code block component that handles dynamic imports client-side only
+const CodeBlock = React.lazy(() => import('./CodeBlock'));
 
 export type BlockType = 'paragraph' | 'heading' | 'image' | 'quote' | 'list' | 'code' | 'gallery' | 'spacer' | 'video' | 'accordion' | 'callout' | 'divider' | 'file';
 
@@ -396,9 +396,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 <ScrollReveal key={block.id}>
                   <div className="my-10 text-sm rounded-xl overflow-hidden shadow-lg">
                     <React.Suspense fallback={<div className="p-4 bg-zinc-900 text-zinc-500 font-mono text-xs">Loading code snippet...</div>}>
-                      <SyntaxHighlighter language={block.metadata?.language || 'text'} style={atomDark}>
-                        {block.content}
-                      </SyntaxHighlighter>
+                      <CodeBlock language={block.metadata?.language || 'text'} code={block.content} />
                     </React.Suspense>
                   </div>
                 </ScrollReveal>

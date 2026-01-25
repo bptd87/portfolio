@@ -242,9 +242,9 @@ export function DesktopNav({ onNavigate, currentPage, forceBackground = false }:
                 title="Go to home"
               >
                 <div
-                  className={isNavDark ? 'text-white' : 'text-neutral-900'}
+                  className={`font-pixel ${isNavDark ? 'text-white' : 'text-neutral-900'}`}
                   style={{
-                    fontFamily: 'var(--font-pixel)',
+                    fontFamily: "'VT323', monospace",
                     fontSize: '3rem',
                     lineHeight: 1,
                     transform: 'translateY(4px)',

@@ -1,18 +1,60 @@
-/* stylelint-disable */
-/* Nothing-Inspired Design System for Brandon PT Davis */
-/* stylelint-disable */
-/* Nothing-Inspired Design System for Brandon PT Davis */
-/* Fonts loaded via next/font in layout.tsx */
+@import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
-:root {
+@theme {
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-pixel: var(--font-pixel), monospace;
+  --font-display: var(--font-display), serif;
+  
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* Section Accent Colors */
+  --color-accent-scenic: var(--accent-scenic);
+  --color-accent-rendering: var(--accent-rendering);
+  --color-accent-experiential: var(--accent-experiential);
+  --color-accent-news: var(--accent-news);
+  --color-accent-app: var(--accent-app);
+  --color-accent-default: var(--accent-default);
+  --color-accent-brand: var(--accent-brand);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+}
+
+
+@layer base {
+  :root {
   /* ============================================
      BRANDON PT DAVIS — NOTHING-INSPIRED SYSTEM
      Modern • Bold • Image-First
      ============================================ */
+    
+  /* Typography Variables defined in @theme but mirrored here if needed for legacy */
 
-  --font-sans: var(--font-sans);
   --font-pixel: var(--font-pixel);
   --font-display: var(--font-display);
 
@@ -243,7 +285,6 @@
     min-height: 100vh;
     /* stylelint-enable */
     /* stylelint-enable */
-    overflow: hidden; /* Fix for sticky scroll - container handles scrolling */
   }
 
   #root {
@@ -423,7 +464,21 @@
   span,
   div {
     font-family: var(--font-sans);
+    font-family: var(--font-sans);
   }
+}
+
+@keyframes marquee-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee-left {
+  animation: marquee-left 40s linear infinite;
+}
+
+.animate-marquee-left:hover {
+  animation-play-state: paused;
 }
 
 /**
@@ -1317,4 +1372,4 @@ html {
 .dark .carousel-gallery .slick-prev::before,
 .dark .carousel-gallery .slick-next::before {
   color: var(--foreground);
-}
+}}

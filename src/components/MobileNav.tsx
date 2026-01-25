@@ -15,7 +15,7 @@ function PixelBIcon({ className }: { className?: string }) {
   return (
     <span
       className={`${className} flex items-center justify-center font-pixel leading-none`}
-      style={{ fontSize: '2.0rem', transform: 'translateY(-2px)' }}
+      style={{ fontFamily: "'VT323', monospace", fontSize: '2.0rem', transform: 'translateY(-2px)' }}
     >
       B
     </span>

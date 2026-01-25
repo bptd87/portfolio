@@ -169,8 +169,12 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   const handleError = () => {
     // If we were trying the optimized source and it failed, try the raw source
     if (optimizedSrc && !retryWithRaw && optimizedSrc !== src) {
+      // Only warn if we haven't seen this specific error before and it's not a known flaky case
       if (src && !failedOptimizedWarnings.has(src)) {
-        console.warn('Optimized image failed, falling back to original:', src);
+        // Silently retry first, only log if critical or in dev
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('Optimized image failed, retrying with raw:', src);
+        }
         failedOptimizedWarnings.add(src);
       }
       setRetryWithRaw(true);

@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring, MotionProps } from 'motion/react';
+import { motion, useScroll, useTransform, useSpring, MotionProps } from 'framer-motion';
 import { optimizeSupabaseImage } from '../../utils/supabase-image-optimizer';
 
 // --- RevealText Component ---
@@ -11,7 +13,7 @@ interface RevealTextProps {
 }
 
 export function RevealText({ text, className = '', delay = 0, stagger = 0.05 }: RevealTextProps) {
-    const words = text.split(' ');
+    const words = (text || '').split(' ');
 
     const container = {
         hidden: { opacity: 0 },
@@ -68,7 +70,7 @@ export function RevealText({ text, className = '', delay = 0, stagger = 0.05 }: 
 
 // --- ParallaxImage Component ---
 interface ParallaxImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-    src: string;
+    src?: string;
     alt: string;
     className?: string;
     offset?: number; // How much the image moves (e.g., 50px)
@@ -108,7 +110,7 @@ export function ParallaxImageComponent({ src, alt, className = '', offset = 50, 
     // Try to optimize for a "card" size (large but not full raw 4k)
     // using 'cover' resize mode
     const optimizedSrc = React.useMemo(() => {
-        if (!src) return '';
+        if (!src) return undefined;
         // If we are retrying with raw, just return raw
         if (retryWithRaw) return src;
 
