@@ -19,6 +19,9 @@ import { ProjectSEOTools } from '../ProjectSEOTools';
 import { SEOImageFixer } from '../SEOImageFixer';
 import { GalleryEditor } from '../ProjectTemplateFields';
 import { YouTubeVideosEditor } from '../YouTubeVideosEditor';
+// Unused imports regarding previous editors have been removed
+// import { UnifiedPortfolioEditor } from '../UnifiedPortfolioEditor';
+// import { SimpleGalleryEditor } from '../SimpleGalleryEditor';
 import { supabase } from '../../../lib/supabase';
 
 import { CreditsManager } from '../CreditsManager'; // Relative to shared folder: ../CreditsManager
@@ -37,16 +40,17 @@ const unifiedSchema = z.object({
 
     // Details
     clientName: z.string().optional().nullable(),
+    venue: z.string().optional().nullable(), // Added Venue
     location: z.string().optional().nullable(),
     role: z.string().optional().nullable(),
     credits: z.array(z.object({ role: z.string(), name: z.string() })).optional(), // Data preservation
 
     // Narrative
-    projectOverview: z.string().optional().nullable(),
+    projectOverview: z.string().optional().nullable().or(z.literal('')),
     // Legacy fields (kept for read-only or compatibility if needed, but we focus on overview)
-    challenge: z.string().optional().nullable(),
-    solution: z.string().optional().nullable(),
-    designNotes: z.string().optional().nullable(),
+    challenge: z.string().optional().nullable().or(z.literal('')),
+    solution: z.string().optional().nullable().or(z.literal('')),
+    designNotes: z.string().optional().nullable().or(z.literal('')),
 
     // Publishing
     featured: z.boolean(),
@@ -113,7 +117,9 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
             month: initialData?.month || null,
             description: initialData?.description || '',
 
+
             clientName: initialData?.clientName || '',
+            venue: initialData?.venue || '', // Added initial data map
             location: initialData?.location || '',
             role: initialData?.role || '',
             credits: initialData?.credits || [],
@@ -128,7 +134,9 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
 
             challenge: initialData?.challenge || '',
             solution: initialData?.solution || '',
-            designNotes: initialData?.designNotes || '',
+            designNotes: Array.isArray(initialData?.designNotes)
+                ? initialData.designNotes.join('\n\n')
+                : (initialData?.designNotes || ''),
 
             featured: initialData?.featured || false,
             published: initialData?.published !== false, // Default true
@@ -164,7 +172,7 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
 
                 const merged = Array.from(new Set([...
                     DEFAULT_SUBCATEGORY_OPTIONS,
-                    ...existing
+                ...existing
                 ])).sort((a, b) => a.localeCompare(b));
 
                 setSubcategoryOptions(merged);
@@ -193,27 +201,22 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
                 slug,
                 category: category, // Enforce locked props (or use dynamic if needed, but simplistic for now)
                 subcategory: lockSubcategory ? subcategory : (formData.subcategory || subcategory),
-                year: formData.year,
-                month: formData.month || null,
+                year: parseInt(String(formData.year)) || new Date().getFullYear(),
+                month: formData.month ? parseInt(String(formData.month)) : null,
                 description: formData.description, // Short desc
 
                 client_name: formData.clientName,
                 location: formData.location,
-                venue: null, // Zero out 'venue' usually used for Scenic Plays. Wait, Scenic needs Venue?
-                // SCENIC FIX: If category is Scenic, we might want Venue. But 'location' field is used.
-                // Unified form maps 'location' input to 'location' DB.
-                // ScenicManager mapped 'venue' to 'venue' DB.
-                // We should probably map 'location' input to 'venue' for Scenic? Or just support both.
-                // For now, let's just save them as is. If Venue is needed, we should add it.
-                // Assuming 'location' covers it for now as "Venue / Location".
+                venue: formData.venue, // Use direct venue field
 
                 role: formData.role,
                 credits: formData.credits, // Save credits!
 
                 project_overview: formData.projectOverview, // New unified field
 
-                // Restored Design Notes as requested - must be an array for DB
-                design_notes: formData.designNotes ? [formData.designNotes] : [],
+                // Sync projectOverview to design_notesArray for legacy compatibility
+                // If projectOverview is set, use it. If not, empty array.
+                design_notes: formData.projectOverview ? [formData.projectOverview] : [],
 
                 // Legacy Field Satisfaction (Required by DB constraints)
                 content: [],
@@ -235,7 +238,7 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
                 // Unified Content
                 galleries: formData.galleries,
                 youtube_videos: formData.youtubeVideos,
-                production_photos: formData.productionPhotos,
+                // production_photos: formData.productionPhotos, // Removed: Column missing in DB schema. Saved via galleries.process instead.
 
                 // SEO & Tags
                 tags: formData.tags,
@@ -246,10 +249,16 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
 
             if (isNew) {
                 const { error } = await supabase.from('portfolio_projects').insert([dbPayload]);
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase Insert Error:', error);
+                    throw error;
+                }
             } else {
                 const { error } = await supabase.from('portfolio_projects').update(dbPayload).eq('id', editingId);
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase Update Error:', error);
+                    throw error;
+                }
             }
 
             toast.success('Project saved successfully!');
@@ -257,7 +266,10 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
             onClose();
         } catch (err: any) {
             console.error('Error saving:', err);
-            toast.error(`Failed to save: ${err.message}`);
+            // Enhanced error reporting
+            const msg = err.message || 'Unknown error';
+            const details = err.details || err.hint || '';
+            toast.error(`Failed to save: ${msg} ${details ? `(${details})` : ''}`);
         }
     };
 
@@ -334,7 +346,10 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Input name="clientName" label="Client / Brand" />
-                                <Input name="location" label="Location / Venue" />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Input name="venue" label="Venue" placeholder="Theater/Venue" />
+                                    <Input name="location" label="City/Location" placeholder="City, State" />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -391,7 +406,7 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
                             {/* Unified Gallery using GalleryEditor (mapped to 'hero' key for simplicity in Unified Schema) */}
                             <div className="space-y-4">
                                 <GalleryEditor
-                                    label="Renderings / Design Gallery"
+                                    label="Primary Gallery"
                                     images={methods.watch('galleries.hero') || []}
                                     captions={methods.watch('galleries.heroCaptions') || []}
                                     altTexts={methods.watch('galleries.heroAlt') || []}
@@ -407,14 +422,14 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
                                         }, { shouldDirty: true });
                                     }}
                                 />
-                                <p className="text-xs text-muted-foreground">Renderings and drafting images for the project gallery.</p>
+                                <p className="text-xs text-muted-foreground">Main project gallery (Renderings, Design, or primary photos).</p>
                             </div>
 
                             <div className="h-px bg-border" />
 
                             <div className="space-y-4">
                                 <GalleryEditor
-                                    label="Production Photos"
+                                    label="Secondary Gallery"
                                     images={methods.watch('galleries.process') || methods.watch('productionPhotos') || []}
                                     captions={methods.watch('galleries.processCaptions') || []}
                                     altTexts={methods.watch('galleries.processAlt') || []}
@@ -429,7 +444,7 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
                                         methods.setValue('productionPhotos', images, { shouldDirty: true });
                                     }}
                                 />
-                                <p className="text-xs text-muted-foreground">Live production photography. Saved to both process gallery and production photos for compatibility.</p>
+                                <p className="text-xs text-muted-foreground">Secondary gallery (Process, Production Photos, or additional angles).</p>
                             </div>
 
                             <div className="h-px bg-border" />
@@ -471,13 +486,8 @@ export function UnifiedProjectForm({ category, subcategory, lockSubcategory = fa
                                         }))}
                                         onChange={(c) => methods.setValue('credits', c, { shouldDirty: true })}
                                     />
-                                    <div className="h-px bg-border" />
-                                    <Textarea
-                                        name="designNotes"
-                                        label="Design Notes (Internal/Legacy)"
-                                        rows={4}
-                                        placeholder="Extra internal notes or specifications..."
-                                    />
+                                    {/* Design Notes UI removed as requested - consolidated into Project Overview */}
+                                    {/* Keeping logic for backward compatibility if needed, but hiding the field */}
                                 </div>
                             </div>
                         </div>

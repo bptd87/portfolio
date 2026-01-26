@@ -77,7 +77,7 @@ export function generateSitemap(): string {
   const resourcePages = [
     "/articles",
     "/studio",
-    "/scenic-studio",
+    "/tutorials",
     "/app-studio",
     "/scenic-vault",
     "/scenic-toolkit",

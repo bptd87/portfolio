@@ -1,8 +1,10 @@
 import type { ComponentType } from 'react';
 import React, { Suspense, lazy, useState } from 'react';
 import { Lock, Eye, EyeOff, Mail } from 'lucide-react';
+import { Toaster } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { AdminLayout } from '../components/admin/AdminLayout';
+import { AdminLogin } from '../components/admin/AdminLogin';
 import { AdminDashboard } from '../components/admin/AdminDashboard';
 import { SimpleErrorBoundary } from '../components/SimpleErrorBoundary';
 import { projectId } from '../utils/supabase/info';
@@ -34,12 +36,13 @@ const ExperientialManager = lazy(() => import('../components/admin/ExperientialM
 const RenderingManager = lazy(() => import('../components/admin/RenderingManager').then((m) => ({ default: m.RenderingManager })));
 
 const AdminComments = lazy(() => import('../components/admin/AdminComments').then((m) => ({ default: m.AdminComments })));
+const SearchIndexer = lazy(() => import('../components/admin/SearchIndexer').then((m) => ({ default: m.SearchIndexer })));
 
 interface AdminProps {
   onNavigate: (page: string) => void;
 }
 
-type ManagerView = 'dashboard' | 'articles' | 'scenic' | 'experiential' | 'rendering' | 'models' | 'vault' | 'news' | 'links' | 'directory' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'api-status' | 'analytics' | 'redirects' | 'media' | 'comments';
+type ManagerView = 'dashboard' | 'articles' | 'scenic' | 'experiential' | 'rendering' | 'models' | 'vault' | 'news' | 'links' | 'directory' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'api-status' | 'analytics' | 'redirects' | 'media' | 'comments' | 'search-index';
 
 const navItems = [
   { id: 'dashboard', title: 'Dashboard' },
@@ -183,83 +186,16 @@ export function Admin({ onNavigate }: AdminProps) {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-warm-500/10 border border-warm-500/30 rounded-3xl mb-4">
-              <Lock className="w-8 h-8 text-warm-400" />
-            </div>
-            <h1 className="text-3xl tracking-tight mb-2 text-white">ADMIN ACCESS</h1>
-            <p className="text-sm text-gray-400">Sign in with your email and password</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs tracking-wider uppercase text-gray-400 mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-14 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500 relative z-10"
-                  placeholder="admin@example.com"
-                  autoComplete="email"
-                  required
-                />
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none z-0" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs tracking-wider uppercase text-gray-400 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-14 pr-12 py-3 bg-gray-900 border border-gray-700 rounded-2xl focus:border-warm-500 focus:outline-none transition-colors text-white placeholder:text-gray-500"
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
-                  required
-                />
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none z-0" />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-white transition-colors z-10"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className="px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-3xl text-red-400 text-sm">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-6 py-3 bg-warm-600 text-white rounded-3xl text-xs tracking-wider uppercase hover:bg-warm-700 transition-colors disabled:opacity-50 shadow-lg shadow-warm-500/20"
-            >
-              {loading ? 'Authenticating...' : 'Login'}
-            </button>
-          </form>
-
-          <button
-            onClick={() => onNavigate('home')}
-            className="w-full mt-2 text-xs tracking-wider uppercase text-gray-500 hover:text-gray-300 transition-colors"
-          >
-            ← Back to Site
-          </button>
-        </div>
-      </div>
+      <AdminLogin
+        onLogin={handleLogin}
+        loading={loading}
+        error={error}
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        onNavigate={onNavigate}
+      />
     );
   }
 
@@ -316,6 +252,8 @@ export function Admin({ onNavigate }: AdminProps) {
 
       case 'comments':
         return <AdminComments />;
+      case 'search-index':
+        return <SearchIndexer />;
       default:
         return <AdminDashboard onSelectManager={setActiveView} />;
     }
@@ -323,6 +261,7 @@ export function Admin({ onNavigate }: AdminProps) {
 
   return (
     <SimpleErrorBoundaryCompat>
+      <Toaster position="top-right" richColors theme="dark" />
       <AdminLayout
         activeView={activeView}
         onNavigate={(view) => {

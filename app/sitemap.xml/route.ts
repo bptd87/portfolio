@@ -21,7 +21,7 @@ const STATIC_ROUTES = [
   "/resources",
   "/articles",
   "/studio",
-  "/scenic-studio",
+  "/tutorials",
   "/scenic-vault",
   "/app-studio",
   "/experiential-design",
@@ -133,7 +133,7 @@ export async function GET() {
   tutorials.forEach((item) => {
     const slug = item.slug || item.id;
     if (!slug) return;
-    addUrl(`/scenic-studio/${slug}`, "0.6", "monthly", item.updated_at);
+    addUrl(`/tutorials/${slug}`, "0.6", "monthly", item.updated_at);
   });
 
   news.forEach((item) => {

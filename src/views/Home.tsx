@@ -212,9 +212,18 @@ export function Home({ onNavigate }: HomeProps) {
       <section
         key={`project-${project.id}`}
         data-nav="dark"
-        className={`sticky top-0 h-screen w-full flex items-center justify-center bg-black p-8 md:p-12 lg:p-20 ${navigatingProject?.id === project.id ? 'z-[100]' : ''}`}
+        className={`sticky top-0 h-screen w-full flex items-center justify-center bg-black p-8 md:p-12 lg:p-20 focus:outline-none focus-within:ring-2 focus-within:ring-white/20 ${navigatingProject?.id === project.id ? 'z-[100]' : ''}`}
         style={{ zIndex }}
         onClick={() => handleProjectClick(project)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleProjectClick(project);
+          }
+        }}
+        tabIndex={0}
+        role="button"
+        aria-label={`View case study: ${project.title}`}
       >
         <div
           className={`relative w-full h-full rounded-[3rem] overflow-hidden shadow-2xl transition-transform duration-700 ease-out cursor-pointer group isolation-isolate transform-gpu border border-white/5 ${navigatingProject?.id === project.id ? 'scale-105' : 'hover:scale-[1.01]'}`}
@@ -228,7 +237,7 @@ export function Home({ onNavigate }: HomeProps) {
             <ParallaxImage
               src={optimizeSupabaseImage(project.cardImage, { width: 1280 }) || ''}
               width={1280}
-              alt={project.title}
+              alt={`Scenic design for ${project.title} - ${project.venue || 'Theatrical Production'}`}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
               style={{
                 objectPosition: project.focusPoint
@@ -291,7 +300,7 @@ export function Home({ onNavigate }: HomeProps) {
                   src={optimizeSupabaseImage(project.cardImage, { width: 1200 }) ?? undefined}
                   className="w-full h-full object-cover opacity-90"
                   style={{ objectPosition: `${project.focusPoint?.x}% ${project.focusPoint?.y}%` }}
-                  alt=""
+                  alt={`Hero background showing ${project.title}`}
                   loading={index === 0 ? "eager" : "lazy"}
                 />
               </div>
@@ -326,32 +335,48 @@ export function Home({ onNavigate }: HomeProps) {
         let pIdx = 0;
         let currentZ = 10;
 
-        // Add first projects
-        if (pIdx < featuredProjects.length) sections.push(renderProject(featuredProjects[pIdx++], pIdx, currentZ++));
-        if (pIdx < featuredProjects.length) sections.push(renderProject(featuredProjects[pIdx++], pIdx, currentZ++));
-
-        // News Section
+        // 1. News Section (First)
         if (latestNews.length > 0) {
           const featuredNews = latestNews[0];
-          sections.splice(1, 0, (
+          sections.push(
             <section key="news" data-nav="dark" className="sticky top-0 min-h-screen w-full bg-black overflow-hidden flex flex-col shadow-2xl" style={{ zIndex: currentZ++ }}>
               <div className="flex-1 flex flex-col justify-center px-6 md:px-12 pt-24 pb-8 gap-8">
-                <div onClick={() => onNavigate?.(`news/${featuredNews.slug || featuredNews.id}`)} className="w-full relative cursor-pointer rounded-2xl overflow-hidden bg-[#1c1c1e] flex-1 aspect-video">
-                  <img src={optimizeSupabaseImage(featuredNews.coverImage, { width: 1000 }) ?? "/images/studio/history-abstract.webp"} className="absolute inset-0 w-full h-full object-cover transition-transform hover:scale-105" alt={featuredNews.title} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-                  <div className="absolute bottom-0 left-0 p-8">
+                {/* Featured News - Reduced Height */}
+                <div onClick={() => onNavigate?.(`news/${featuredNews.slug || featuredNews.id}`)} className="w-full relative cursor-pointer rounded-2xl overflow-hidden bg-[#1c1c1e] h-[40vh] md:h-[50vh]">
+                  <img src={optimizeSupabaseImage(featuredNews.coverImage, { width: 1000 }) ?? "/images/studio/history-abstract.webp"} className="absolute inset-0 w-full h-full object-cover transition-transform hover:scale-105" alt={`Featured news item: ${featuredNews.title}`} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 p-8 max-w-2xl">
                     <span className="font-pixel text-[10px] text-orange-400 uppercase tracking-widest block mb-2">{featuredNews.category}</span>
-                    <h2 className="font-display text-white text-3xl md:text-5xl italic leading-none">{featuredNews.title}</h2>
+                    <h2 className="font-display text-white text-3xl md:text-5xl italic leading-none mb-4">{featuredNews.title}</h2>
+                    {featuredNews.excerpt && (
+                      <p className="text-white/80 line-clamp-2 md:line-clamp-3 font-sans text-sm md:text-base">{featuredNews.excerpt}</p>
+                    )}
                   </div>
                 </div>
-                <div className="relative overflow-hidden min-h-[200px]">
-                  <div className="flex animate-marquee-left gap-4 whitespace-nowrap">
+
+                {/* Horizontal Scroll List - "Smaller Cards" with Marquee */}
+                <div className="relative w-full overflow-hidden group/marquee">
+                  <div className="flex gap-6 animate-marquee-left group-hover/marquee:paused whitespace-nowrap px-8 md:px-12">
                     {[...latestNews, ...latestNews].map((news, i) => (
-                      <div key={`${news.id}-${i}`} onClick={() => onNavigate?.(`news/${news.slug || news.id}`)} className="flex-shrink-0 w-[300px] h-[180px] relative rounded-xl overflow-hidden bg-[#1c1c1e] cursor-pointer">
-                        <img src={optimizeSupabaseImage(news.coverImage, { width: 600 }) ?? undefined} className="absolute inset-0 w-full h-full object-cover opacity-60" alt="" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+                      <div
+                        key={`${news.id}-${i}`}
+                        onClick={() => news.slug ? onNavigate?.(`news/${news.slug}`) : null}
+                        className="flex-shrink-0 w-[240px] aspect-[4/3] relative rounded-xl overflow-hidden bg-[#1c1c1e] cursor-pointer border border-white/5 hover:border-white/20 transition-colors whitespace-normal"
+                        role="button"
+                        aria-label={`Read news: ${news.title}`}
+                      >
+                        <img
+                          src={optimizeSupabaseImage(news.coverImage, { width: 400 }) ?? undefined}
+                          className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                          alt={`News coverage for ${news.title}`}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
                         <div className="absolute bottom-0 p-4">
-                          <h3 className="font-display text-white italic text-lg leading-tight whitespace-normal">{news.title}</h3>
+                          <span className="font-pixel text-[8px] text-white/60 uppercase tracking-widest block mb-1">{news.category}</span>
+                          <h3 className="font-display text-white italic text-lg leading-tight mb-2 line-clamp-2">{news.title}</h3>
+                          {news.excerpt && (
+                            <p className="text-white/60 text-xs line-clamp-2 font-sans">{news.excerpt}</p>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -359,28 +384,43 @@ export function Home({ onNavigate }: HomeProps) {
                 </div>
               </div>
             </section>
-          ));
+          );
         }
 
-        // Knowledge Section
+        // 2. First Two Projects
+        if (pIdx < featuredProjects.length) sections.push(renderProject(featuredProjects[pIdx++], pIdx, currentZ++));
+        if (pIdx < featuredProjects.length) sections.push(renderProject(featuredProjects[pIdx++], pIdx, currentZ++));
+
+        // 3. Knowledge Section (Articles + Studio)
+        // Changed to relative so it scrolls fully without sticky overlap issues
         sections.push(
-          <section key="knowledge" className="sticky top-0 h-auto md:h-screen w-full bg-black overflow-hidden flex flex-col justify-center px-6 md:px-12 gap-8 py-12 md:py-0" style={{ zIndex: currentZ++ }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-purple-900/20 to-black opacity-100" />
-            <div className="relative z-10 flex flex-col gap-4">
-              <h2 className="font-display text-white text-3xl md:text-5xl italic">Articles</h2>
-              <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar">
+          <section key="knowledge" className="relative min-h-screen w-full bg-black overflow-hidden flex flex-col justify-center px-6 md:px-12 gap-16 py-24" style={{ zIndex: currentZ++ }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-purple-900/20 to-black opacity-100 pointer-events-none" />
+
+            {/* Articles */}
+            <div className="relative z-10 flex flex-col gap-8">
+              <h2 className="font-display text-white text-4xl md:text-6xl italic">Articles</h2>
+              <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar px-8 md:px-12 -mx-8 md:-mx-12">
                 {latestArticles.map(a => (
-                  <div key={a.id} onClick={() => onNavigate?.(`articles/${a.slug || a.id}`)} className="flex-shrink-0 w-[280px] md:w-[350px] aspect-[4/5] relative rounded-xl overflow-hidden bg-[#1c1c1e] cursor-pointer">
-                    <img src={a.coverImage ?? "/images/studio/classics-abstract.webp"} className="absolute inset-0 w-full h-full object-cover opacity-80" alt="" />
+                  <div
+                    key={a.id}
+                    onClick={() => a.slug ? onNavigate?.(`articles/${a.slug}`) : null}
+                    className="flex-shrink-0 w-[280px] md:w-[350px] aspect-[4/5] relative rounded-xl overflow-hidden bg-[#1c1c1e] cursor-pointer border border-white/10 hover:border-white/30 transition-all hover:scale-[1.01]"
+                    role="button"
+                    aria-label={`Read article: ${a.title}`}
+                  >
+                    <img src={a.coverImage ?? "/images/studio/classics-abstract.webp"} className="absolute inset-0 w-full h-full object-cover opacity-80" alt={`Article: ${a.title}`} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-                    <div className="absolute bottom-0 p-6"><h3 className="font-display text-2xl text-white italic">{a.title}</h3></div>
+                    <div className="absolute bottom-0 p-8"><h3 className="font-display text-2xl text-white italic leading-tight">{a.title}</h3></div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="relative z-10 flex flex-col gap-4">
-              <h2 className="font-display text-white text-3xl md:text-5xl italic">Studio</h2>
-              <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar">
+
+            {/* Studio */}
+            <div className="relative z-10 flex flex-col gap-8">
+              <h2 className="font-display text-white text-4xl md:text-6xl italic">Studio</h2>
+              <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar px-8 md:px-12 -mx-8 md:-mx-12">
                 {[
                   ...APP_STUDIO_TOOLS.slice(0, 4).map(t => ({
                     id: `app-studio/${t.route}`,
@@ -396,8 +436,14 @@ export function Home({ onNavigate }: HomeProps) {
                   })),
                   { id: 'app-studio', title: 'All Tools', desc: 'Browse Apps', img: '/images/studio/app-studio.webp' }
                 ].map(t => (
-                  <div key={t.id} onClick={() => onNavigate?.(t.id)} className="flex-shrink-0 w-[240px] md:w-[320px] aspect-[4/3] relative rounded-xl overflow-hidden bg-[#1c1c1e] cursor-pointer border border-white/5 hover:border-white/20 transition-all hover:scale-[1.02]">
-                    <img src={t.img ?? undefined} className="absolute inset-0 w-full h-full object-cover opacity-50" alt="" />
+                  <div
+                    key={t.id}
+                    onClick={() => onNavigate?.(t.id)}
+                    className="flex-shrink-0 w-[240px] md:w-[320px] aspect-[4/3] relative rounded-xl overflow-hidden bg-[#1c1c1e] cursor-pointer border border-white/5 hover:border-white/20 transition-all hover:scale-[1.02]"
+                    role="button"
+                    aria-label={`Open studio tool: ${t.title}`}
+                  >
+                    <img src={t.img ?? undefined} className="absolute inset-0 w-full h-full object-cover opacity-50" alt={`Studio tool: ${t.title}`} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                     <div className="absolute bottom-0 p-6">
                       <h3 className="font-display text-xl text-white italic line-clamp-2">{t.title}</h3>
@@ -410,30 +456,33 @@ export function Home({ onNavigate }: HomeProps) {
           </section>
         );
 
-        // Interleave remaining projects
+        // 4. Third Project
         if (pIdx < featuredProjects.length) sections.push(renderProject(featuredProjects[pIdx++], pIdx, currentZ++));
 
-        // About Section
+        // 5. About Section
         sections.push(
-          <section key="about" className="sticky top-0 h-screen w-full bg-black overflow-hidden flex flex-col md:flex-row shadow-2xl" style={{ zIndex: currentZ++ }}>
-            <div className="relative flex-1 h-2/5 md:h-full">
-              {settings.profileImageUrl ? <img src={settings.profileImageUrl} className="w-full h-full object-cover object-top" alt="Profile" /> : <div className="w-full h-full bg-neutral-900" />}
+          <section key="about" className="sticky top-0 min-h-screen w-full bg-black overflow-hidden flex flex-col md:flex-row shadow-2xl" style={{ zIndex: currentZ++ }}>
+            <div className="relative flex-1 h-[40vh] md:h-full">
+              {settings.profileImageUrl ? <img src={settings.profileImageUrl} className="w-full h-full object-cover object-top" alt="Brandon PT Davis - Portrait" /> : <div className="w-full h-full bg-neutral-900" />}
+              <div className="absolute inset-0 bg-black/10" />
             </div>
-            <div className="relative flex-1 h-3/5 md:h-full flex flex-col justify-center p-8 md:p-12 bg-neutral-50 dark:bg-neutral-950">
-              <h2 className="font-display text-black dark:text-white text-6xl md:text-8xl italic mb-6">About</h2>
-              <p className="font-sans text-neutral-600 dark:text-white/60 text-lg mb-8 max-w-md">{settings.bioText || 'Scenic and experiential designer.'}</p>
-              <button onClick={() => onNavigate?.('about')} className="font-pixel text-[10px] uppercase tracking-widest text-black dark:text-white border-b border-black/20 pb-1 w-fit">READ STORY</button>
+            <div className="relative flex-1 h-[60vh] md:h-full flex flex-col justify-center p-8 md:p-12 lg:p-20 bg-neutral-50 dark:bg-neutral-950">
+              <span className="font-pixel text-xs text-neutral-500 uppercase tracking-widest mb-4">The Designer</span>
+              <h2 className="font-display text-black dark:text-white text-5xl md:text-7xl lg:text-8xl italic mb-8 leading-[0.9]">About</h2>
+              <p className="font-sans text-neutral-600 dark:text-neutral-400 text-lg md:text-xl leading-relaxed mb-12 max-w-lg">{settings.bioText || 'Scenic and experiential designer working across theatre and live environments.'}</p>
+              <button onClick={() => onNavigate?.('about')} className="font-pixel text-xs uppercase tracking-[0.2em] text-black dark:text-white border-b-2 border-black/10 dark:border-white/20 pb-2 w-fit hover:border-black dark:hover:border-white transition-colors">READ FULL STORY</button>
             </div>
           </section>
         );
 
+        // 6. Remaining Projects
         while (pIdx < featuredProjects.length) {
           sections.push(renderProject(featuredProjects[pIdx++], pIdx, currentZ++));
         }
 
-        // Archive CTA Section
+        // 7. Archive CTA Section
         sections.push(
-          <section key="cta" className="sticky top-0 h-screen w-full bg-black overflow-hidden flex items-center justify-center p-8 shadow-2xl" style={{ zIndex: currentZ++ }}>
+          <section key="cta" className="sticky top-0 min-h-screen w-full bg-black overflow-hidden flex items-center justify-center p-8 shadow-2xl" style={{ zIndex: currentZ++ }}>
             <style>{`
                 @keyframes float-cards {
                   0% { transform: translateY(0px) rotate(var(--rot)); }
@@ -442,57 +491,66 @@ export function Home({ onNavigate }: HomeProps) {
                 }
             `}</style>
 
-            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-              {(allProjectImages.length > 0 ? allProjectImages : featuredProjects.flatMap(p => p.cardImage ? [{ url: p.cardImage, focus: p.focusPoint || { x: 50, y: 50 } }] : []))
-                .sort(() => 0.5 - Math.random())
-                .slice(0, 24)
-                .map((item, i) => {
-                  const r1 = (i * 239 + 17) % 100;
-                  const r2 = (i * 347 + 23) % 100;
-                  const r3 = (i * 199 + 7) % 100;
+            {/* Wall of Work - Vertical Marquees */}
+            <div className="absolute inset-x-0 -top-20 -bottom-20 overflow-hidden bg-black grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 opacity-40">
 
-                  let xPos = r1;
-                  let yPos = r2;
-                  if (xPos > 30 && xPos < 70 && yPos > 30 && yPos < 70) {
-                    if (r3 % 2 === 0) xPos = xPos < 50 ? (xPos % 25) : (75 + xPos % 20);
-                    else yPos = yPos < 50 ? (yPos % 25) : (75 + yPos % 20);
-                  }
-
-                  const rot = (r3 % 40) - 20;
-                  const scale = 0.8 + (r2 % 30) / 100;
-
-                  return (
-                    <div
-                      key={`scatter-${i}`}
-                      className="absolute w-40 md:w-56 aspect-video bg-neutral-800 rounded shadow-2xl overflow-hidden opacity-90 transition-all duration-700 grayscale-0 pointer-events-auto hover:opacity-100 hover:scale-110 hover:z-40"
-                      style={{
-                        left: `${xPos}%`,
-                        top: `${yPos}%`,
-                        transform: `translate(-50%, -50%) scale(${scale})`,
-                        zIndex: Math.floor(scale * 10),
-                        '--rot': `${rot}deg`,
-                        animation: `float-cards ${10 + (i % 8)}s ease-in-out infinite`,
-                        animationDelay: `${i * -0.5}s`
-                      } as any}
-                    >
+              {/* Column 1 - Up */}
+              <div className="relative h-full overflow-hidden">
+                <div className="animate-marquee-up flex flex-col gap-8">
+                  {[...allProjectImages, ...allProjectImages].slice(0, 10).map((img, i) => (
+                    <div key={`col1-${i}`} className="w-full aspect-[3/2] rounded-xl overflow-hidden bg-neutral-900 border border-white/10">
                       <img
-                        src={optimizeSupabaseImage(item.url, { width: 400 }) ?? undefined}
+                        src={img.url}
                         className="w-full h-full object-cover"
-                        style={{ objectPosition: `${item.focus.x}% ${item.focus.y}%` }}
-                        alt=""
+                        style={{ objectPosition: `${img.focus?.x || 50}% ${img.focus?.y || 50}%` }}
+                        alt="Scenic design production sample"
                       />
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+
+              {/* Column 2 - Down */}
+              <div className="relative h-full overflow-hidden hidden md:block mt-[-50px]">
+                <div className="animate-marquee-down flex flex-col gap-8">
+                  {[...allProjectImages, ...allProjectImages].slice(10, 20).map((img, i) => (
+                    <div key={`col2-${i}`} className="w-full aspect-[3/2] rounded-xl overflow-hidden bg-neutral-900 border border-white/10">
+                      <img
+                        src={img.url}
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: `${img.focus?.x || 50}% ${img.focus?.y || 50}%` }}
+                        alt="Scenic design production sample"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Column 3 - Up */}
+              <div className="relative h-full overflow-hidden">
+                <div className="animate-marquee-up flex flex-col gap-8" style={{ animationDuration: '70s' }}>
+                  {[...allProjectImages, ...allProjectImages].slice(20, 30).map((img, i) => (
+                    <div key={`col3-${i}`} className="w-full aspect-[3/2] rounded-xl overflow-hidden bg-neutral-900 border border-white/10">
+                      <img
+                        src={img.url}
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: `${img.focus?.x || 50}% ${img.focus?.y || 50}%` }}
+                        alt="Scenic design production sample"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
 
-            <div className="relative z-30 backdrop-blur-3xl bg-black/60 p-12 md:p-20 rounded-[3rem] border border-white/10 text-center shadow-2xl">
-              <h2 className="font-display text-white text-6xl md:text-8xl italic mb-8">Portfolio</h2>
+            <div className="relative z-30 backdrop-blur-md bg-black/40 p-12 md:p-20 rounded-[3rem] border border-white/10 text-center shadow-2xl max-w-2xl mx-6">
+              <h2 className="font-display text-white text-6xl md:text-8xl italic mb-8 drop-shadow-lg">Portfolio</h2>
               <button
                 onClick={() => onNavigate?.('portfolio')}
-                className="px-12 py-4 bg-white text-black font-sans font-bold text-xs tracking-widest rounded-full hover:bg-orange-500 hover:text-white transition-all transform hover:scale-105"
+                className="px-12 py-4 bg-white text-black font-sans font-bold text-xs tracking-widest rounded-full hover:bg-orange-500 hover:text-white transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
               >
-                VIEW ALL
+                VIEW FULL ARCHIVE
               </button>
             </div>
           </section>

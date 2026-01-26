@@ -1,6 +1,6 @@
 "use client";
 
-import { ScenicStudio } from "@/src/views/ScenicStudio";
+import { Tutorials } from "@/src/views/Tutorials";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 
@@ -9,7 +9,7 @@ export default function TutorialPageClient() {
 
   return (
     <SiteShell currentPage="tutorial" onNavigate={onNavigate}>
-      <ScenicStudio onNavigate={onNavigate} />
+      <Tutorials onNavigate={onNavigate} />
     </SiteShell>
   );
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Play, Clock, ExternalLink } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
+import { ExpandableText } from '../../components/shared/ExpandableText';
 
 interface Resource {
   name: string;
@@ -44,7 +45,7 @@ export function WalkthroughTemplate({ walkthrough, onNavigate }: WalkthroughTemp
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm opacity-40 mb-8 tracking-wider">
             <button
-              onClick={() => onNavigate('scenic-studio')}
+              onClick={() => onNavigate('tutorials')}
               className="hover:opacity-100 transition-opacity"
             >
               SCENIC DESIGN STUDIO
@@ -85,6 +86,11 @@ export function WalkthroughTemplate({ walkthrough, onNavigate }: WalkthroughTemp
           {/* Main Content */}
           <div className="lg:col-span-8">
             <div className="prose-custom max-w-none">
+              <ExpandableText
+                text={walkthrough.description}
+                maxLines={5}
+                className="text-lg md:text-xl text-black/70 dark:text-white/70 mb-12 leading-relaxed"
+              />
               {walkthrough.content}
             </div>
 
@@ -136,7 +142,7 @@ export function WalkthroughTemplate({ walkthrough, onNavigate }: WalkthroughTemp
                   {walkthrough.relatedWalkthroughs.map((related) => (
                     <button
                       key={related.slug}
-                      onClick={() => onNavigate(`scenic-studio/${related.slug}`)}
+                      onClick={() => onNavigate(`tutorials/${related.slug}`)}
                       className="group text-left w-full"
                     >
                       <div className="relative aspect-video bg-black mb-3 overflow-hidden border border-black/10 dark:border-white/10">

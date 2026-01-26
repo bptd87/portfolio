@@ -10,6 +10,7 @@ import { RedirectHandler } from "@/src/components/RedirectHandler";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/src/components/ThemeProvider";
+import { SearchOverlay } from "@/src/components/SearchOverlay";
 
 // Dynamically loaded HelmetProvider - null until client-side
 let HelmetProviderCompat: ComponentType<{ children: ReactNode }> | null = null;
@@ -23,6 +24,7 @@ interface SiteShellProps {
 
 export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShellProps) {
   const [helmetReady, setHelmetReady] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     // Dynamically import react-helmet-async only on client
@@ -41,7 +43,7 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
     "scenic-insights",
     "news-article",
     "portfolio",
-    "scenic-studio",
+    "tutorials",
     "scenic-vault",
     "app-studio",
     "directory",
@@ -76,7 +78,11 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
       {!hideChrome && (
         <>
           <div className="app-mobile-nav">
-            <MobileNav currentPage={currentPage} onNavigate={onNavigate} />
+            <MobileNav
+              currentPage={currentPage}
+              onNavigate={onNavigate}
+              onSearch={() => setSearchOpen(true)}
+            />
           </div>
           <div className="app-desktop-nav">
             <DesktopNav
@@ -88,15 +94,22 @@ export function SiteShell({ currentPage, onNavigate, slug, children }: SiteShell
                     : currentPage === "scenic-insights"
                       ? "articles"
                       : currentPage === "tutorial"
-                        ? "scenic-studio"
+                        ? "tutorials"
                         : currentPage
               }
               onNavigate={onNavigate}
+              onSearch={() => setSearchOpen(true)}
               forceBackground={forceBackground}
             />
           </div>
         </>
       )}
+
+      <SearchOverlay
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onNavigate={onNavigate}
+      />
 
       <div
         className={`transition-colors duration-300 w-full overflow-x-hidden min-h-screen`}

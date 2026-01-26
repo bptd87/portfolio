@@ -7,6 +7,7 @@ import { NAVIGATION } from '../data/navigation';
 
 interface MobileNavProps {
   onNavigate: (page: string, slug?: string) => void;
+  onSearch?: () => void;
   currentPage?: string;
 }
 
@@ -22,7 +23,7 @@ function PixelBIcon({ className }: { className?: string }) {
   );
 }
 
-export function MobileNav({ onNavigate, currentPage }: MobileNavProps) {
+export function MobileNav({ onNavigate, onSearch, currentPage }: MobileNavProps) {
   const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export function MobileNav({ onNavigate, currentPage }: MobileNavProps) {
 
   const isWorkActive = currentPage === 'portfolio' || currentPage === 'project';
   const isNewsActive = currentPage === 'news' || currentPage === 'news-article';
-  const isStudioActive = currentPage === 'studio' || currentPage === 'scenic-studio' || currentPage === 'app-studio' || currentPage === 'scenic-vault' || currentPage === 'directory' || currentPage === 'tutorial';
+  const isStudioActive = currentPage === 'studio' || currentPage === 'tutorials' || currentPage === 'app-studio' || currentPage === 'scenic-vault' || currentPage === 'directory' || currentPage === 'tutorial';
   const isAboutActive = currentPage === 'about' || currentPage === 'bio' || currentPage === 'cv' || currentPage === 'collaborators' || currentPage === 'teaching-philosophy' || currentPage === 'creative-statement';
   const isHomeActive = currentPage === 'home';
 
@@ -127,7 +128,10 @@ export function MobileNav({ onNavigate, currentPage }: MobileNavProps) {
                 <nav className="space-y-6">
                   {/* SEARCH (Always First) */}
                   <button
-                    onClick={() => handleNavClick('search')}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onSearch?.();
+                    }}
                     className="flex items-center gap-4 w-full font-display text-3xl text-black dark:text-white hover:text-black/70 dark:hover:text-white/80 transition-all opacity-80 hover:opacity-100 mb-8"
                   >
                     <Search className="w-6 h-6" />

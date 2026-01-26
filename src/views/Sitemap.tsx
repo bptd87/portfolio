@@ -91,7 +91,7 @@ export function Sitemap({ onNavigate }: SitemapProps) {
       items: [
         { title: 'Latest News', page: 'news' },
         { title: 'Articles (Scenic Insights)', page: 'articles' },
-        { title: 'Video Tutorials', page: 'scenic-studio' },
+        { title: 'Video Tutorials', page: 'tutorials' },
         { title: 'Teaching Philosophy', page: 'teaching-philosophy' },
         { title: 'Collaborators', page: 'collaborators' },
         { title: 'Resources', page: 'resources' },

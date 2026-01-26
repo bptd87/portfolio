@@ -11,8 +11,8 @@ interface Redirect {
 const DEFAULT_REDIRECTS: Redirect[] = [
   { source: '/feed', destination: '/portfolio', permanent: true },
   { source: '/work', destination: '/portfolio', permanent: true },
-  { source: '/privacy', destination: '/privacy-policy', permanent: true },
-  { source: '/terms', destination: '/terms-of-use', permanent: true },
+  { source: '/privacy-policy', destination: '/privacy', permanent: true },
+  { source: '/terms-of-use', destination: '/terms', permanent: true },
   { source: '/rss', destination: '/feed.xml', permanent: false },
 ];
 

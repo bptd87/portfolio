@@ -6,11 +6,11 @@ import { getAllTutorials } from '../data/tutorials';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 import { useTheme } from '../hooks/useTheme';
 
-interface ScenicStudioProps {
+interface TutorialsProps {
   onNavigate: (page: string) => void;
 }
 
-export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
+export function Tutorials({ onNavigate }: TutorialsProps) {
   const { theme } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -163,8 +163,8 @@ export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
                   transition={{ delay: 0.4 + index * 0.05 }}
                   onClick={() => setSelectedCategory(category.id)}
                   className={`flex items-center gap-2 px-5 py-3 backdrop-blur-xl border rounded-3xl transition-all whitespace-nowrap ${isActive
-                      ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
-                      : 'bg-neutral-200/60 dark:bg-neutral-900/60 border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30'
+                    ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
+                    : 'bg-neutral-200/60 dark:bg-neutral-900/60 border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30'
                     }`}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
@@ -211,7 +211,7 @@ export function ScenicStudio({ onNavigate }: ScenicStudioProps) {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 + index * 0.1, duration: 0.6 }}
-                  onClick={() => onNavigate(`scenic-studio/${tutorial.slug}`)}
+                  onClick={() => onNavigate(`tutorials/${tutorial.slug}`)}
                   className="group text-left cursor-pointer"
                   whileHover={{ y: -4 }}
                 >

@@ -136,14 +136,14 @@ export function ImageSlideshow({ images, captions, onImageClick, autoPlay = true
         </div>
 
         {showControls && (
-          <div className="flex items-center justify-center gap-2 mt-4">
+          <div className="flex items-center justify-center gap-2 mt-6 mb-2">
             {images.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-2 h-2 border border-black/20 dark:border-white/20 transition-all ${index === currentIndex
-                  ? 'bg-accent-brand border-accent-brand w-6'
-                  : 'bg-transparent hover:bg-black/10 dark:hover:bg-white/10'
+                className={`transition-all duration-300 rounded-full ${index === currentIndex
+                  ? 'bg-black dark:bg-white w-2 h-2'
+                  : 'bg-black/20 dark:bg-white/20 hover:bg-black/40 dark:hover:bg-white/40 w-1.5 h-1.5'
                   }`}
                 aria-label={`Go to image ${index + 1}`}
               />
@@ -214,16 +214,15 @@ export function ImageSlideshow({ images, captions, onImageClick, autoPlay = true
         </div>
       </div>
 
-      {/* Dots navigation */}
       {showControls && (
-        <div className="flex items-center justify-center gap-2 mt-4">
+        <div className="flex items-center justify-center gap-2 mt-6 mb-2">
           {images.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-2 h-2 border border-black/20 dark:border-white/20 transition-all ${index === currentIndex
-                ? 'bg-accent-brand border-accent-brand w-6'
-                : 'bg-transparent hover:bg-black/10 dark:hover:bg-white/10'
+              className={`transition-all duration-300 rounded-full ${index === currentIndex
+                ? 'bg-black dark:bg-white w-2 h-2'
+                : 'bg-black/20 dark:bg-white/20 hover:bg-black/40 dark:hover:bg-white/40 w-1.5 h-1.5'
                 }`}
               aria-label={`Go to image ${index + 1}`}
             />

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import ArticlesPageClient from "../_components/ArticlesPageClient";
 import { resolveMetadataFromParams } from "../seo/resolve-metadata";
-import { PageLoader } from "@/src/components/PageLoader";
+import { SkeletonArticleGrid } from "@/src/components/skeletons/SkeletonArticleGrid";
 
 export async function generateMetadata({
   searchParams,
@@ -13,7 +13,7 @@ export async function generateMetadata({
 
 export default function ArticlesPage() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<SkeletonArticleGrid />}>
       <ArticlesPageClient />
     </Suspense>
   );

@@ -15,7 +15,7 @@ const staticPages = [
   { title: 'Scenic Design', description: 'Theatrical scenic designs for stage and opera', category: 'Pages', route: 'portfolio?filter=scenic', keywords: 'theatre theater scenic design stage opera performance' },
   { title: 'Experiential Design', description: 'Immersive installations and experiences', category: 'Pages', route: 'portfolio?filter=experiential', keywords: 'installation immersive experiential themed entertainment' },
   { title: 'Rendering & Visualization', description: '3D rendered designs and visualizations', category: 'Pages', route: 'portfolio?filter=rendering', keywords: '3d visualization rendering cg computer graphics models' },
-  { title: 'Scenic Studio', description: 'Video tutorials on Vectorworks, 3D modeling, workflow, and project walkthroughs', category: 'Pages', route: 'scenic-studio', keywords: 'tutorials vectorworks video 3d modeling workflow' },
+  { title: 'Tutorials', description: 'Video tutorials on Vectorworks, 3D modeling, workflow, and project walkthroughs', category: 'Pages', route: 'tutorials', keywords: 'tutorials vectorworks video 3d modeling workflow' },
   { title: 'App Studio', description: 'Free web-based tools for scenic designers', category: 'Pages', route: 'app-studio', keywords: 'apps tools calculator utilities scenic design' },
   { title: 'Scenic Insights', description: 'Articles and guides on scenic design', category: 'Pages', route: 'scenic-insights', keywords: 'articles blog guides insights design' },
   { title: 'Scenic Vault', description: 'Free downloadable assets for scenic designers', category: 'Pages', route: 'scenic-vault', keywords: 'assets downloads free resources models textures' },
@@ -157,7 +157,7 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
               title: tutorial.title,
               description: tutorial.description || 'Video tutorial',
               category: 'Tutorials',
-              route: `scenic-studio/${tutorial.slug || tutorial.id}`,
+              route: `tutorials/${tutorial.slug || tutorial.id}`,
               keywords: `${tutorial.tags?.join(' ') || ''} tutorial video`,
               image: tutorial.thumbnail_url
             });
@@ -407,7 +407,7 @@ export function Search({ onNavigate, initialQuery = '' }: SearchProps) {
                 { label: 'Projects', route: 'portfolio', icon: <Folder className="w-5 h-5" /> },
                 { label: 'Articles', route: 'scenic-insights', icon: <FileText className="w-5 h-5" /> },
                 { label: 'News', route: 'news', icon: <Newspaper className="w-5 h-5" /> },
-                { label: 'Tutorials', route: 'scenic-studio', icon: <FileText className="w-5 h-5" /> },
+                { label: 'Tutorials', route: 'tutorials', icon: <FileText className="w-5 h-5" /> },
                 { label: 'Vault Assets', route: 'scenic-vault', icon: <Package className="w-5 h-5" /> },
                 { label: 'Tools', route: 'app-studio', icon: <Wrench className="w-5 h-5" /> },
               ].map((item) => (

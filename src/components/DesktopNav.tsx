@@ -5,11 +5,12 @@ import { NAVIGATION } from '../data/navigation';
 
 interface DesktopNavProps {
   onNavigate: (page: string, filter?: string) => void;
+  onSearch?: () => void;
   currentPage?: string;
   forceBackground?: boolean;
 }
 
-export function DesktopNav({ onNavigate, currentPage, forceBackground = false }: DesktopNavProps) {
+export function DesktopNav({ onNavigate, onSearch, currentPage, forceBackground = false }: DesktopNavProps) {
   // 1. Get THEME from Global Context
   const { theme, toggleTheme } = useTheme();
 
@@ -337,7 +338,7 @@ export function DesktopNav({ onNavigate, currentPage, forceBackground = false }:
                 </div>
                 <button
                   ref={searchBtnRef}
-                  onClick={() => setSearchOpen((s) => !s)}
+                  onClick={() => onSearch ? onSearch() : setSearchOpen((s) => !s)}
                   className="p-1 hover:opacity-70 transition-opacity"
                   aria-label="Toggle search"
                 >

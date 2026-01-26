@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowLeft, Calendar, Clock, ExternalLink, PlayCircle, FileText, Download, Grid, CheckCircle, Lightbulb, AlertCircle, BookOpen, Target } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
+import { ExpandableText } from '../../components/shared/ExpandableText';
 
 interface Resource {
   name: string;
@@ -27,6 +28,7 @@ interface Tutorial {
   content: React.ReactNode;
   resources: Resource[];
   relatedTutorials: RelatedTutorial[];
+  learningObjectives?: string[];
 }
 
 interface TutorialTemplateProps {
@@ -42,12 +44,12 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300 pt-32 pb-24">
-      
+
       {/* Hero Section */}
       <section className="px-6 lg:px-12 pb-16">
         <div className="max-w-[1800px] mx-auto">
           <motion.button
-            onClick={() => onNavigate('scenic-studio')}
+            onClick={() => onNavigate('tutorials')}
             className="flex items-center gap-2 text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-colors mb-8"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -83,9 +85,11 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
               <h1 className="font-display text-black dark:text-white text-5xl md:text-6xl lg:text-7xl mb-6 leading-[0.95] italic">
                 {tutorial.title}
               </h1>
-              <p className="text-xl md:text-2xl text-black/70 dark:text-white/70 max-w-4xl leading-relaxed">
-                {tutorial.description}
-              </p>
+              <ExpandableText
+                text={tutorial.description}
+                maxLines={3}
+                className="text-xl md:text-2xl text-black/70 dark:text-white/70 max-w-4xl leading-relaxed"
+              />
             </div>
           </motion.div>
         </div>
@@ -94,7 +98,7 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
       {/* Main Content */}
       <section className="px-6 lg:px-12">
         <div className="max-w-[1800px] mx-auto space-y-8">
-          
+
           {/* Video Player - Glass Card */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -124,22 +128,22 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
               {/* Tab Navigation */}
               <div className="border-b border-black/10 dark:border-white/10 px-6">
                 <TabsList className="w-full justify-start bg-transparent p-0 h-auto gap-0">
-                  <TabsTrigger 
-                    value="overview" 
+                  <TabsTrigger
+                    value="overview"
                     className="data-[state=active]:bg-black/5 dark:data-[state=active]:bg-white/5 data-[state=active]:border-b-2 data-[state=active]:border-black dark:data-[state=active]:border-white px-6 py-4 font-pixel text-[10px] tracking-[0.2em] rounded-none border-0"
                   >
                     OVERVIEW
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="tutorial" 
+                  <TabsTrigger
+                    value="tutorial"
                     className="data-[state=active]:bg-black/5 dark:data-[state=active]:bg-white/5 data-[state=active]:border-b-2 data-[state=active]:border-black dark:data-[state=active]:border-white px-6 py-4 font-pixel text-[10px] tracking-[0.2em] rounded-none border-0"
                   >
                     <FileText className="w-3.5 h-3.5 mr-2" />
                     TUTORIAL
                   </TabsTrigger>
                   {tutorial.resources && tutorial.resources.length > 0 && (
-                    <TabsTrigger 
-                      value="resources" 
+                    <TabsTrigger
+                      value="resources"
                       className="data-[state=active]:bg-black/5 dark:data-[state=active]:bg-white/5 data-[state=active]:border-b-2 data-[state=active]:border-black dark:data-[state=active]:border-white px-6 py-4 font-pixel text-[10px] tracking-[0.2em] rounded-none border-0"
                     >
                       <Download className="w-3.5 h-3.5 mr-2" />
@@ -147,8 +151,8 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
                     </TabsTrigger>
                   )}
                   {tutorial.relatedTutorials && tutorial.relatedTutorials.length > 0 && (
-                    <TabsTrigger 
-                      value="related" 
+                    <TabsTrigger
+                      value="related"
                       className="data-[state=active]:bg-black/5 dark:data-[state=active]:bg-white/5 data-[state=active]:border-b-2 data-[state=active]:border-black dark:data-[state=active]:border-white px-6 py-4 font-pixel text-[10px] tracking-[0.2em] rounded-none border-0"
                     >
                       <Grid className="w-3.5 h-3.5 mr-2" />
@@ -165,11 +169,13 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
                   <div className="space-y-8">
                     <div>
                       <h2 className="text-2xl md:text-3xl mb-4">What You'll Learn</h2>
-                      <p className="text-lg md:text-xl text-black/70 dark:text-white/70 leading-relaxed">
-                        {tutorial.description}
-                      </p>
+                      <ExpandableText
+                        text={tutorial.description}
+                        maxLines={4}
+                        className="text-lg md:text-xl text-black/70 dark:text-white/70 leading-relaxed"
+                      />
                     </div>
-                    
+
                     <div className="grid md:grid-cols-3 gap-6 pt-8 border-t border-black/10 dark:border-white/10">
                       <div>
                         <div className="font-pixel text-[10px] tracking-[0.3em] text-black/40 dark:text-white/40 mb-2">DURATION</div>
@@ -200,118 +206,28 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
                         <h2 className="text-2xl">What You'll Learn</h2>
                       </div>
                       <div className="grid md:grid-cols-2 gap-4">
-                        {/* These would come from tutorial.learningObjectives in real data */}
-                        <div className="flex items-start gap-3 p-4 bg-accent-brand/5 border-l-2 border-accent-brand">
-                          <CheckCircle className="w-5 h-5 text-accent-brand flex-shrink-0 mt-0.5" />
-                          <p className="text-muted-foreground leading-relaxed">
-                            Master core Vectorworks techniques for scenic design
-                          </p>
-                        </div>
-                        <div className="flex items-start gap-3 p-4 bg-accent-brand/5 border-l-2 border-accent-brand">
-                          <CheckCircle className="w-5 h-5 text-accent-brand flex-shrink-0 mt-0.5" />
-                          <p className="text-muted-foreground leading-relaxed">
-                            Create professional 2D drafting from 3D models
-                          </p>
-                        </div>
-                        <div className="flex items-start gap-3 p-4 bg-accent-brand/5 border-l-2 border-accent-brand">
-                          <CheckCircle className="w-5 h-5 text-accent-brand flex-shrink-0 mt-0.5" />
-                          <p className="text-muted-foreground leading-relaxed">
-                            Optimize your workflow with keyboard shortcuts
-                          </p>
-                        </div>
-                        <div className="flex items-start gap-3 p-4 bg-accent-brand/5 border-l-2 border-accent-brand">
-                          <CheckCircle className="w-5 h-5 text-accent-brand flex-shrink-0 mt-0.5" />
-                          <p className="text-muted-foreground leading-relaxed">
-                            Export production-ready technical drawings
-                          </p>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Main Tutorial Content - Blog Style with Enhanced Callouts */}
-                    <div className="article-content space-y-8">
-                      {tutorial.content}
-                      
-                      {/* Example of enhanced tutorial sections with callout boxes */}
-                      <div className="not-prose my-12">
-                        {/* Pro Tip Callout */}
-                        <div className="flex gap-4 p-6 bg-accent-brand/5 border border-accent-brand/20 mb-8">
-                          <Lightbulb className="w-6 h-6 text-accent-brand flex-shrink-0 mt-1" />
-                          <div>
-                            <h4 className="mb-2 flex items-center gap-2">
-                              <span className="text-sm uppercase tracking-wider text-accent-brand">Pro Tip</span>
-                            </h4>
-                            <p className="text-muted-foreground leading-relaxed">
-                              Use keyboard shortcuts extensively to speed up your workflow. The time you invest in learning them pays dividends across every project.
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Important Note */}
-                        <div className="flex gap-4 p-6 border-l-2 border-accent-brand bg-secondary/30 mb-8">
-                          <AlertCircle className="w-6 h-6 text-accent-brand flex-shrink-0 mt-1" />
-                          <div>
-                            <h4 className="mb-2 flex items-center gap-2">
-                              <span className="text-sm uppercase tracking-wider text-muted-foreground">Important</span>
-                            </h4>
-                            <p className="text-muted-foreground leading-relaxed">
-                              Always save your work before running complex operations. Create backup files of your drawing at key milestones.
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Key Concept Box */}
-                        <div className="p-8 bg-accent-brand text-accent-brand-foreground mb-8">
-                          <div className="flex items-start gap-4">
-                            <BookOpen className="w-7 h-7 flex-shrink-0 mt-1" />
-                            <div>
-                              <h3 className="mb-4 text-accent-brand-foreground">Key Concept: Viewports</h3>
-                              <p className="leading-relaxed opacity-90 text-accent-brand-foreground">
-                                Viewports are windows into your 3D model that allow you to create multiple 2D views on your sheet layers. Think of them as cameras positioned around your model, each capturing a specific angle or view that becomes part of your technical drawings.
+                        {tutorial.learningObjectives && tutorial.learningObjectives.length > 0 ? (
+                          tutorial.learningObjectives.map((obj: string, i: number) => (
+                            <div key={i} className="flex items-start gap-3 p-4 bg-accent-brand/5 border-l-2 border-accent-brand">
+                              <CheckCircle className="w-5 h-5 text-accent-brand flex-shrink-0 mt-0.5" />
+                              <p className="text-muted-foreground leading-relaxed">
+                                {obj}
                               </p>
                             </div>
-                          </div>
-                        </div>
+                          ))
+                        ) : (
+                          <div className="col-span-2 text-muted-foreground italic">No specific learning objectives listed.</div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Quick Reference Section */}
-                    <div className="mt-16 pt-12 border-t border-black/10 dark:border-white/10">
-                      <h3 className="mb-6">Quick Reference</h3>
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className="border border-black/10 dark:border-white/10 p-6">
-                          <h4 className="mb-4 text-sm uppercase tracking-wider text-muted-foreground">Essential Shortcuts</h4>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center gap-4">
-                              <span className="text-muted-foreground">Create Viewport</span>
-                              <code className="px-2 py-1 bg-secondary text-sm border border-black/10 dark:border-white/10 whitespace-nowrap">Cmd/Ctrl + '</code>
-                            </div>
-                            <div className="flex justify-between items-center gap-4">
-                              <span className="text-muted-foreground">Toggle to 3D</span>
-                              <code className="px-2 py-1 bg-secondary text-sm border border-black/10 dark:border-white/10 whitespace-nowrap">Shift + C</code>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="border border-black/10 dark:border-white/10 p-6">
-                          <h4 className="mb-4 text-sm uppercase tracking-wider text-muted-foreground">Common Pitfalls</h4>
-                          <ul className="space-y-3 text-muted-foreground">
-                            <li className="flex items-start gap-2">
-                              <span className="text-accent-brand mt-1">•</span>
-                              <span>Forgetting to update viewports after model changes</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-accent-brand mt-1">•</span>
-                              <span>Using incorrect scale settings for sheet layers</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-accent-brand mt-1">•</span>
-                              <span>Not organizing classes and layers properly</span>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
+                    {/* Main Tutorial Content - Blog Style */}
+                    <div className="article-content space-y-8">
+                      {tutorial.content}
                     </div>
+
+
 
                     {/* Keep Learning CTA */}
                     {tutorial.relatedTutorials && tutorial.relatedTutorials.length > 0 && (
@@ -320,7 +236,7 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
                         <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
                           Build on what you've learned with related tutorials that expand these core concepts.
                         </p>
-                        <button 
+                        <button
                           onClick={() => {
                             const tabButtons = document.querySelectorAll('[role="tab"]');
                             tabButtons.forEach((btn) => {
@@ -385,7 +301,7 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
                         {tutorial.relatedTutorials.map((related, index) => (
                           <button
                             key={index}
-                            onClick={() => onNavigate(`scenic-studio/${related.slug}`)}
+                            onClick={() => onNavigate(`tutorials/${related.slug}`)}
                             className="group text-left"
                           >
                             <div className="aspect-video bg-secondary mb-4 overflow-hidden border border-black/10 dark:border-white/10 group-hover:border-accent-brand transition-all relative">
@@ -423,7 +339,7 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
             className="text-center"
           >
             <button
-              onClick={() => onNavigate('scenic-studio')}
+              onClick={() => onNavigate('tutorials')}
               className="px-8 py-4 bg-foreground text-background hover:opacity-90 transition-opacity"
             >
               VIEW ALL TUTORIALS

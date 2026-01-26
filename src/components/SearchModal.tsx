@@ -87,7 +87,7 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
       id: '8',
       title: 'Scenic Studio',
       type: 'page',
-      page: 'scenic-studio',
+      page: 'tutorials',
       description: 'Access design tools and resources',
     },
     {
@@ -171,24 +171,21 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
       {/* Modal */}
       <div className="fixed inset-0 z-[61] flex items-start justify-center pt-20 px-4">
         <div
-          className={`w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 ${
-            isDark
+          className={`w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 ${isDark
               ? 'bg-neutral-900 border border-neutral-800/50'
               : 'bg-white border border-neutral-200/50'
-          }`}
+            }`}
         >
           {/* Search Input */}
           <div
-            className={`flex items-center gap-3 px-6 py-4 border-b ${
-              isDark
+            className={`flex items-center gap-3 px-6 py-4 border-b ${isDark
                 ? 'border-neutral-800/30'
                 : 'border-neutral-200/30'
-            }`}
+              }`}
           >
             <SearchIcon
-              className={`w-5 h-5 flex-shrink-0 ${
-                isDark ? 'text-white/40' : 'text-neutral-400'
-              }`}
+              className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-white/40' : 'text-neutral-400'
+                }`}
             />
             <input
               ref={inputRef}
@@ -196,17 +193,15 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
               placeholder="Search articles, projects, pages..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`flex-1 bg-transparent outline-none font-pixel text-sm tracking-[0.08em] placeholder-opacity-50 ${
-                isDark
+              className={`flex-1 bg-transparent outline-none font-pixel text-sm tracking-[0.08em] placeholder-opacity-50 ${isDark
                   ? 'text-white placeholder-white/40'
                   : 'text-neutral-900 placeholder-neutral-400'
-              }`}
+                }`}
             />
             <button
               onClick={onClose}
-              className={`p-1 hover:opacity-70 transition-opacity ${
-                isDark ? 'text-white/60' : 'text-neutral-600'
-              }`}
+              className={`p-1 hover:opacity-70 transition-opacity ${isDark ? 'text-white/60' : 'text-neutral-600'
+                }`}
               title="Close search"
               aria-label="Close search"
             >
@@ -225,38 +220,35 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
                       onNavigate(result.page, result.filter);
                       onClose();
                     }}
-                    className={`w-full px-4 py-3 rounded-lg text-left transition-all duration-150 font-pixel text-sm ${
-                      index === selectedIndex
+                    className={`w-full px-4 py-3 rounded-lg text-left transition-all duration-150 font-pixel text-sm ${index === selectedIndex
                         ? isDark
                           ? 'bg-white/20 text-white'
                           : 'bg-neutral-800/20 text-neutral-900'
                         : isDark
-                        ? 'text-white/80 hover:text-white hover:bg-white/10'
-                        : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-800/10'
-                    }`}
+                          ? 'text-white/80 hover:text-white hover:bg-white/10'
+                          : 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-800/10'
+                      }`}
                   >
                     <div className="flex items-start gap-3">
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        result.type === 'article'
+                      <span className={`text-xs px-2 py-1 rounded ${result.type === 'article'
                           ? isDark
                             ? 'bg-blue-900/40 text-blue-300'
                             : 'bg-blue-100 text-blue-700'
                           : result.type === 'project'
-                          ? isDark
-                            ? 'bg-purple-900/40 text-purple-300'
-                            : 'bg-purple-100 text-purple-700'
-                          : isDark
-                          ? 'bg-green-900/40 text-green-300'
-                          : 'bg-green-100 text-green-700'
-                      }`}>
+                            ? isDark
+                              ? 'bg-purple-900/40 text-purple-300'
+                              : 'bg-purple-100 text-purple-700'
+                            : isDark
+                              ? 'bg-green-900/40 text-green-300'
+                              : 'bg-green-100 text-green-700'
+                        }`}>
                         {result.type.toUpperCase()}
                       </span>
                       <div className="flex-1">
                         <div className="font-semibold">{result.title}</div>
                         {result.description && (
-                          <div className={`text-xs mt-1 ${
-                            isDark ? 'text-white/50' : 'text-neutral-500'
-                          }`}>
+                          <div className={`text-xs mt-1 ${isDark ? 'text-white/50' : 'text-neutral-500'
+                            }`}>
                             {result.description}
                           </div>
                         )}
@@ -266,15 +258,13 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
                 ))}
               </div>
             ) : searchQuery ? (
-              <div className={`px-6 py-8 text-center ${
-                isDark ? 'text-white/50' : 'text-neutral-500'
-              }`}>
+              <div className={`px-6 py-8 text-center ${isDark ? 'text-white/50' : 'text-neutral-500'
+                }`}>
                 <p className="font-pixel text-sm">No results found for "{searchQuery}"</p>
               </div>
             ) : (
-              <div className={`px-6 py-8 text-center ${
-                isDark ? 'text-white/50' : 'text-neutral-500'
-              }`}>
+              <div className={`px-6 py-8 text-center ${isDark ? 'text-white/50' : 'text-neutral-500'
+                }`}>
                 <p className="font-pixel text-sm mb-4">Start typing to search</p>
                 <div className="space-y-2 text-xs">
                   <p>Try searching for:</p>
@@ -290,11 +280,10 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
 
           {/* Footer */}
           {results.length > 0 && (
-            <div className={`px-6 py-3 border-t text-xs text-center font-pixel tracking-[0.08em] ${
-              isDark
+            <div className={`px-6 py-3 border-t text-xs text-center font-pixel tracking-[0.08em] ${isDark
                 ? 'border-neutral-800/30 text-white/40'
                 : 'border-neutral-200/30 text-neutral-500'
-            }`}>
+              }`}>
               ↑↓ NAVIGATE • ENTER SELECT • ESC CLOSE
             </div>
           )}

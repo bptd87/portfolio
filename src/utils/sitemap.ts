@@ -13,7 +13,7 @@ const staticRoutes = [
     { path: "/teaching-philosophy", priority: "0.7", changefreq: "monthly" },
     { path: "/faq", priority: "0.6", changefreq: "monthly" },
     { path: "/resources", priority: "0.8", changefreq: "weekly" },
-    { path: "/scenic-studio", priority: "0.7", changefreq: "weekly" },
+    { path: "/tutorials", priority: "0.7", changefreq: "weekly" },
     { path: "/scenic-vault", priority: "0.7", changefreq: "weekly" },
 ];
 

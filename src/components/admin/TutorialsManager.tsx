@@ -276,46 +276,50 @@ export function TutorialsManager() {
         return;
       }
 
-      const payload = {
-        ...formData,
-        // Ensure complex fields are present
-        tutorialContent: formData.tutorialContent || [],
-        learningObjectives: formData.learningObjectives || [],
-        keyShortcuts: formData.keyShortcuts || [],
-        keyConcepts: formData.keyConcepts || [],
-        commonPitfalls: formData.commonPitfalls || [],
-        proTips: formData.proTips || [],
-        resources: formData.resources || [],
-        // relatedTutorials: formData.relatedTutorials || [], // Removed manual related tutorials
-      };
-
-      const token = sessionStorage.getItem('admin_token');
-      if (!token) {
+      // Check session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
         setError('Authentication session expired. Please refresh and log in.');
         return;
       }
 
+      const payload = {
+        title: formData.title,
+        slug: formData.slug,
+        description: formData.description,
+        video_url: formData.videoUrl,
+        thumbnail_url: formData.thumbnail,
+        category: formData.category,
+        publish_date: formData.publishDate,
+        content: {
+          blocks: formData.tutorialContent || [],
+          duration: formData.duration, // Saved in content instead of missing column
+          learningObjectives: formData.learningObjectives || [],
+          keyShortcuts: formData.keyShortcuts || [],
+          commonPitfalls: formData.commonPitfalls || [],
+          proTips: formData.proTips || [],
+          resources: formData.resources || [],
+          // relatedTutorials: [], 
+          keyConcepts: formData.keyConcepts || []
+        },
+        updated_at: new Date().toISOString()
+      };
+
       if (isAdding) {
-        // Create new via API
-        const { data, error } = await supabase.functions.invoke('make-server-74296234/api/admin/tutorials', {
-          method: 'POST',
-          headers: { 'X-Admin-Token': token },
-          body: payload
-        });
+        // Create new via DB
+        const { error } = await supabase
+          .from('tutorials')
+          .insert([payload]);
 
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
-
       } else {
-        // Update existing via API
-        const { data, error } = await supabase.functions.invoke(`make-server-74296234/api/admin/tutorials/${editingId}`, {
-          method: 'PUT',
-          headers: { 'X-Admin-Token': token },
-          body: payload
-        });
+        // Update existing via DB
+        const { error } = await supabase
+          .from('tutorials')
+          .update(payload)
+          .eq('id', editingId);
 
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
       }
 
       setSuccess(isAdding ? 'Tutorial added successfully!' : 'Tutorial updated successfully!');
@@ -325,7 +329,7 @@ export function TutorialsManager() {
 
     } catch (err: any) {
       console.error('Save error:', err);
-      setError(err.message || 'Failed to save tutorial. Check console/permissions.');
+      setError(err.message || 'Failed to save tutorial.');
     }
   };
 
@@ -335,19 +339,18 @@ export function TutorialsManager() {
     }
 
     try {
-      const token = sessionStorage.getItem('admin_token');
-      if (!token) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
         setError('Authentication session expired. Please refresh and log in.');
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke(`make-server-74296234/api/admin/tutorials/${id}`, {
-        method: 'DELETE',
-        headers: { 'X-Admin-Token': token }
-      });
+      const { error } = await supabase
+        .from('tutorials')
+        .delete()
+        .eq('id', id);
 
       if (error) throw error;
-      if (data && data.error) throw new Error(data.error);
 
       setSuccess('Tutorial deleted successfully');
       setTutorials(prev => prev.filter(t => t.id !== id));

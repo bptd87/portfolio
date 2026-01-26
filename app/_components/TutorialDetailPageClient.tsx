@@ -1,6 +1,6 @@
 "use client";
 
-import { DynamicTutorial } from "@/src/views/scenic-studio/DynamicTutorial";
+import { DynamicTutorial } from "@/src/views/tutorials/DynamicTutorial";
 import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 

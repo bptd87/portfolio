@@ -67,7 +67,7 @@ export function Footer({ onNavigate }: FooterProps) {
               <div className="space-y-6">
                 <h3 className="font-mono text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest">Selected Work</h3>
                 <ul className="space-y-3 font-sans text-sm">
-                  <li><button onClick={() => onNavigate('portfolio')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100 flex items-center gap-1 group">All Projects <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" /></button></li>
+                  <li><button onClick={() => onNavigate('portfolio')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100 flex items-center gap-1 group">Scenic Design <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" /></button></li>
                   <li><button onClick={() => onNavigate('experiential-design')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Experiential</button></li>
                   <li><button onClick={() => onNavigate('rendering')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Rendering</button></li>
                   <li><button onClick={() => onNavigate('scenic-models')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Scenic Models</button></li>
@@ -76,7 +76,7 @@ export function Footer({ onNavigate }: FooterProps) {
 
               {/* Group 2 */}
               <div className="space-y-6">
-                <h3 className="font-mono text-xs text-white uppercase tracking-widest">Studio</h3>
+                <h3 className="font-mono text-xs text-green-600 dark:text-green-400 uppercase tracking-widest">Studio</h3>
                 <ul className="space-y-3 font-sans text-sm">
                   <li><button onClick={() => onNavigate('scenic-insights')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Articles</button></li>
                   <li><button onClick={() => onNavigate('scenic-vault')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">The Vault</button></li>
@@ -140,8 +140,9 @@ export function Footer({ onNavigate }: FooterProps) {
             © {currentYear} Brandon PT Davis. All Rights Reserved.
           </div>
           <div className="flex gap-8 font-mono text-[10px] uppercase opacity-40">
-            <button onClick={() => onNavigate('privacy-policy')} className="hover:opacity-100 hover:text-red-500 transition-colors">Privacy</button>
-            <button onClick={() => onNavigate('terms-of-use')} className="hover:opacity-100 hover:text-red-500 transition-colors">Terms</button>
+            <button onClick={() => onNavigate('privacy')} className="hover:opacity-100 hover:text-red-500 transition-colors">Privacy</button>
+            <button onClick={() => onNavigate('terms')} className="hover:opacity-100 hover:text-red-500 transition-colors">Terms</button>
+            <button onClick={() => onNavigate('faq')} className="hover:opacity-100 hover:text-red-500 transition-colors">FAQ</button>
             <button onClick={() => onNavigate('accessibility')} className="hover:opacity-100 hover:text-red-500 transition-colors">Accessibility</button>
             <button onClick={() => onNavigate('sitemap')} className="hover:opacity-100 hover:text-red-500 transition-colors">Sitemap</button>
             <button onClick={() => onNavigate('admin')} className="hover:opacity-100 hover:text-red-500 transition-colors">Admin</button>

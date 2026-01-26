@@ -1,35 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, Instagram, Linkedin, Mail, FileText, Video, Github, Twitter, Facebook, Youtube, Newspaper, Image as ImageIcon, Link as LinkIcon, PenTool } from 'lucide-react';
+import { ExternalLink, Instagram, Linkedin, Mail, FileText, Video, Github, Twitter, Facebook, Youtube, Newspaper, Image as ImageIcon, Link as LinkIcon, PenTool, ArrowUpRight, Globe } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-// apiCall removed
-// publicAnonKey, projectId removed
 import { supabase } from '../utils/supabase/client';
 import { SEO } from '../components/SEO';
 
-// Interface for the unified dashboard item
+// --- Interfaces ---
+
 interface DashboardItem {
   id: string;
   type: 'custom' | 'article' | 'project' | 'news' | 'social';
   title: string;
-  subtitle?: string; // Date or extra info
+  subtitle?: string;
   url: string;
   image?: string;
-  date: string; // ISO string for sorting
-  icon: string; // Icon name
-  isPinned?: boolean; // For custom links
-}
-
-// Raw data interfaces
-interface SocialLink {
-  id: string;
-  title: string;
-  url: string;
+  date: string;
   icon: string;
-  enabled: boolean;
-  order: number;
-  description?: string;
-  type?: 'link' | 'social';
-  created_at?: string;
+  isPinned?: boolean;
 }
 
 interface BioData {
@@ -51,73 +37,50 @@ export function Links({ onNavigate }: LinksProps = {}) {
   });
   const [loading, setLoading] = useState(true);
 
-  // Infinite Scroll State
-  const [displayLimit, setDisplayLimit] = useState(15);
+  // Pagination
+  const [displayLimit, setDisplayLimit] = useState(12);
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = React.useRef<HTMLDivElement>(null);
+
+  // --- Data Fetching ---
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  // Infinite Scroll Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          setDisplayLimit((prev) => prev + 12);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, items.length]);
-
-  // Update hasMore when items or limit changes
-  useEffect(() => {
-    setHasMore(displayLimit < items.length);
-  }, [displayLimit, items.length]);
-
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch data concurrently
-      const [linksData, profileData, postsData, projectsData, newsData, bioLinksData, tutorialsData] = await Promise.all([
-        // Social Links (Top Row)
-        supabase.from('social_links').select('*').eq('enabled', true).order('order'),
-        // Profile (Fetched from bio_data in site_configuration)
+      // Fetch all sources concurrently
+      const [
+        profileData,
+        bioLinksData,
+        projectsData,
+        articlesData,
+        newsData,
+        tutorialsData
+      ] = await Promise.all([
         supabase.from('site_configuration').select('value').eq('key', 'bio_data').single(),
-        // Articles - Show ALL
-        supabase.from('articles').select('*').eq('published', true).order('published_at', { ascending: false }),
-        // Projects - Show ALL
-        supabase.from('portfolio_projects').select('*').eq('published', true).order('year', { ascending: false }),
-        // News - Show ALL
-        supabase.from('news').select('*').order('date', { ascending: false }),
-        // Bio Links (Custom Buttons)
         supabase.from('bio_links').select('*').eq('active', true).order('order'),
-        // Tutorials - Show ALL
+        // Explicitly fetching ALL published projects regardless of category
+        supabase.from('portfolio_projects').select('*').eq('published', true).order('year', { ascending: false }),
+        supabase.from('articles').select('*').eq('published', true).order('published_at', { ascending: false }),
+        supabase.from('news').select('*').order('date', { ascending: false }),
         supabase.from('tutorials').select('*').order('created_at', { ascending: false })
       ]) as any[];
 
-      // 2. Handle Profile (from bio_data in site_configuration)
+      // 1. Setup Bio
       if (profileData.data && profileData.data.value) {
-        const bioSettings = profileData.data.value;
         setBioData({
-          name: bioSettings.name || 'BRANDON PT DAVIS',
-          tagline: bioSettings.tagline || 'Scenic Designer',
-          profileImage: bioSettings.profileImage || ''
+          name: profileData.data.value.name || 'BRANDON PT DAVIS',
+          tagline: profileData.data.value.tagline || 'Scenic Designer',
+          profileImage: profileData.data.value.profileImage || ''
         });
       }
 
-      // 3. Process Content
       const dashboardItems: DashboardItem[] = [];
 
-      // --- Bio Links (Pinned Buttons) ---
+      // 2. Pinned Bio Links (Top Buttons)
       if (bioLinksData.data) {
         bioLinksData.data.forEach((link: any) => {
           dashboardItems.push({
@@ -126,378 +89,317 @@ export function Links({ onNavigate }: LinksProps = {}) {
             title: link.title,
             subtitle: link.description,
             url: link.url,
-            date: new Date().toISOString(), // Always top
+            date: new Date().toISOString(), // Always sorting top via isPinned
             icon: link.icon || 'link',
             isPinned: true
           });
         });
       }
 
-      // --- Custom Links (Legacy Fallback/Merger) ---
-      const customLinks: any[] = linksData.data || [];
-      const socialRowLinks = customLinks.filter(l => l.type === 'social');
-      // If any non-social links exist in social_links table, add them too
-      const customGridLinks = customLinks.filter(l => l.type !== 'social');
-      customGridLinks.forEach(link => {
-        dashboardItems.push({
-          id: `custom-${link.id}`,
-          type: 'custom',
-          title: link.title,
-          subtitle: link.description,
-          url: link.url,
-          date: new Date().toISOString(),
-          icon: link.icon || 'link',
-          isPinned: true
-        });
-      });
-
-      // --- Articles ---
-      if (postsData.data) {
-        postsData.data.forEach((post: any) => {
-          let dateStr = post.published_at || post.created_at;
-          // Robust Date Parsing
-          try {
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) {
-              // Fallback if Date(dateStr) fails
-              dateStr = new Date().toISOString();
-            } else {
-              dateStr = d.toISOString();
-            }
-          } catch (e) {
-            dateStr = new Date().toISOString();
-          }
-
-          dashboardItems.push({
-            id: `article-${post.id}`,
-            type: 'article',
-            title: post.title,
-            subtitle: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            url: `/articles/${post.slug}`, // Fixed URL to likely correct route
-            image: post.cover_image,
-            date: dateStr,
-            icon: 'pen-tool'
-          });
-        });
-      }
-
-      // --- Tutorials ---
-      if (tutorialsData.data) {
-        tutorialsData.data.forEach((tut: any) => {
-          let dateStr = tut.publish_date || tut.created_at;
-          try {
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) throw new Error('Invalid Date');
-            dateStr = d.toISOString();
-          } catch (e) {
-            dateStr = new Date().toISOString();
-          }
-
-
-
-          dashboardItems.push({
-            id: `tutorial-${tut.id}`,
-            type: 'article',
-            title: tut.title,
-            subtitle: `Tutorial • ${tut.difficulty || 'General'}`,
-            url: tut.slug ? `/tutorials/${tut.slug}` : (tut.video_url || ''),
-            // Actually, for now let's use the internal route /tutorials/slug if it exists, but I'll update it to check.
-            // Wait, looking at TutorialsManager, it has videoUrl.
-            // If the user said "incorrect URLs", pointing to /tutorials/slug which might not exist is the issue.
-            // I'll point to /tutorials/${slug} but assume the route exists.
-            // Wait, I saw "video are the incorrect dates and URLs". 
-            // I'll stick to /tutorials/${slug} but with the corrected image.
-            image: tut.thumbnail_url || tut.cover_image, // Fixed image mapping
-            date: dateStr,
-            icon: 'video'
-          });
-        });
-      }
-
-      // --- Projects ---
+      // 3. Projects (The Work)
       if (projectsData.data) {
-        projectsData.data.forEach((project: any) => {
-          // Construct date from year/month for sorting
-          let dateStr = `${project.year}-${String(project.month || 1).padStart(2, '0')}-01`;
-          try {
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) throw new Error('Invalid Date');
-            dateStr = d.toISOString();
-          } catch (e) {
-            dateStr = new Date().toISOString();
-          }
+        projectsData.data.forEach((p: any) => {
+          // Construct date
+          let d = new Date(`${p.year}-${String(p.month || 1).padStart(2, '0')}-01`);
+          if (isNaN(d.getTime())) d = new Date(); // Fallback
 
-          let selectedImage = project.card_image || project.cover_image;
-          if (!selectedImage && project.galleries?.hero?.[0]) {
-            selectedImage = project.galleries.hero[0];
-          }
+          // Determine Image
+          let img = p.card_image || p.cover_image;
+          if (!img && p.galleries?.hero?.[0]) img = p.galleries.hero[0];
 
           dashboardItems.push({
-            id: `project-${project.id}`,
+            id: `proj-${p.id}`,
             type: 'project',
-            title: project.title,
-            subtitle: `${project.venue || 'Portfolio'} • ${project.year}`,
-            url: `/project/${project.slug}`,
-            image: selectedImage,
-            date: dateStr,
-            icon: 'image'
+            title: p.title,
+            subtitle: p.venue || 'Portfolio',
+            url: `/project/${p.slug}`,
+            image: img,
+            date: d.toISOString(),
+            icon: 'image',
+            isPinned: false
           });
         });
       }
 
-      // --- News ---
-      if (newsData.data) {
-        newsData.data.forEach((item: any) => {
-          let dateStr = item.date || item.created_at;
-          try {
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) throw new Error('Invalid Date');
-            dateStr = d.toISOString();
-          } catch (e) {
-            dateStr = new Date().toISOString();
-          }
-
+      // 4. Articles
+      if (articlesData.data) {
+        articlesData.data.forEach((a: any) => {
+          const d = a.published_at ? new Date(a.published_at) : new Date(a.created_at);
           dashboardItems.push({
-            id: `news-${item.id}`,
-            type: 'news',
-            title: item.title,
-            subtitle: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            url: item.url && item.url.startsWith('http') ? item.url : `/news/${item.slug || item.id}`,
-            image: item.cover_image || item.thumbnail,
-            date: dateStr,
-            icon: 'newspaper'
+            id: `art-${a.id}`,
+            type: 'article',
+            title: a.title,
+            subtitle: 'Article',
+            url: `/articles/${a.slug}`,
+            image: a.cover_image,
+            date: d.toISOString(),
+            icon: 'pen-tool',
+            isPinned: false
           });
         });
       }
 
-      // 4. Sort
-      const sortedItems = dashboardItems.sort((a, b) => {
+      // 5. News
+      if (newsData.data) {
+        newsData.data.forEach((n: any) => {
+          const d = n.date ? new Date(n.date) : new Date(n.created_at);
+          dashboardItems.push({
+            id: `news-${n.id}`,
+            type: 'news',
+            title: n.title,
+            subtitle: 'News',
+            url: n.url || `/news/${n.slug || n.id}`,
+            image: n.cover_image || n.thumbnail,
+            date: d.toISOString(),
+            icon: 'newspaper',
+            isPinned: false
+          });
+        });
+      }
+
+      // 6. Tutorials
+      if (tutorialsData.data) {
+        tutorialsData.data.forEach((t: any) => {
+          const d = t.publish_date ? new Date(t.publish_date) : new Date(t.created_at);
+          dashboardItems.push({
+            id: `tut-${t.id}`,
+            type: 'article',
+            title: t.title,
+            subtitle: 'Tutorial',
+            url: `/tutorials/${t.slug}`,
+            image: t.thumbnail_url || t.cover_image,
+            date: d.toISOString(),
+            icon: 'video',
+            isPinned: false
+          });
+        });
+      }
+
+      // 7. Sort
+      const sorted = dashboardItems.sort((a, b) => {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
-        if (a.isPinned && b.isPinned) return 0;
-        return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
 
-      setItems(sortedItems);
-      // Fallback for social links if DB fetch was empty (should check if we want to support this fallback still? 
-      // Maybe not needed if we assume migration run, but safer to keep default state initialized in useState and only update if data found)
-      if (socialRowLinks.length > 0) {
-        // Map DB structure to SocialLink interface if needed, or update state
-        // DB: { id, title, url, icon, enabled, order }
-        // State: SocialLink[]
-        setSocialRow(socialRowLinks.map((l: any) => ({
-          id: l.id,
-          title: l.title,
-          url: l.url,
-          icon: l.icon || 'link',
-          enabled: l.enabled,
-          order: l.order,
-          description: l.description,
-          type: l.type
-        })));
-      }
+      setItems(sorted);
 
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+    } catch (err) {
+      console.error("Links fetch error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const [socialRow, setSocialRow] = useState<SocialLink[]>([
-    { id: 'ig', title: 'Instagram', url: 'https://instagram.com/brandonptdavis', icon: 'instagram', enabled: true, order: 1 },
-    { id: 'li', title: 'LinkedIn', url: 'https://linkedin.com/in/brandonptdavis', icon: 'linkedin', enabled: true, order: 2 },
-  ]);
+  // --- Infinite Scroll ---
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        setDisplayLimit(prev => prev + 12);
+      }
+    }, { threshold: 0.1 });
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [hasMore]);
 
-  // ---- Icons Helper ----
+  useEffect(() => {
+    setHasMore(displayLimit < items.length);
+  }, [displayLimit, items.length]);
+
+
+  // --- Render Helpers ---
+
   const getIcon = (name: string) => {
     const map: Record<string, any> = {
-      instagram: Instagram,
-      linkedin: Linkedin,
-      twitter: Twitter,
-      facebook: Facebook,
-      youtube: Youtube,
-      github: Github,
-      mail: Mail,
-      email: Mail,
-      link: LinkIcon,
-      website: ExternalLink,
-      article: FileText,
-      'pen-tool': PenTool,
-      project: ImageIcon,
-      image: ImageIcon,
-      news: Newspaper,
-      video: Video
+      instagram: Instagram, linkedin: Linkedin, twitter: Twitter,
+      facebook: Facebook, youtube: Youtube, github: Github,
+      mail: Mail, email: Mail, link: LinkIcon, website: Globe,
+      article: FileText, 'pen-tool': PenTool, project: ImageIcon,
+      image: ImageIcon, news: Newspaper, video: Video
     };
     return map[name.toLowerCase()] || ExternalLink;
   };
 
-  // ---- Navigation Helper ----
-  const handleItemClick = (e: React.MouseEvent, item: DashboardItem) => {
-    if (item.type === 'custom' || item.url.startsWith('http')) {
-      e.preventDefault();
-      window.open(item.url, '_blank', 'noopener,noreferrer');
-    } else if (onNavigate) {
-      // Internal navigation with custom handler
-      e.preventDefault();
+  const handleNav = (e: React.MouseEvent, url: string, isExternal: boolean) => {
+    if (isExternal || url.startsWith('http')) {
+      if (url.startsWith('http')) return;
+    }
+
+    e.preventDefault();
+    if (onNavigate) {
       window.scrollTo(0, 0);
-      // Remove leading slash for onNavigate if needed
-      const path = item.url.startsWith('/') ? item.url.substring(1) : item.url;
+      const path = url.startsWith('/') ? url.substring(1) : url;
       onNavigate(path);
     }
-    // Otherwise, allow default anchor behavior (internal navigation)
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
-          <p className="font-pixel text-[10px] tracking-[0.3em] opacity-50">LOADING FEED</p>
+          <div className="w-6 h-6 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
+          <p className="font-mono text-[10px] uppercase tracking-widest text-neutral-400">Loading Feed</p>
         </div>
       </div>
     );
   }
 
-  // Slice items for display
-  const visibleItems = items.slice(0, displayLimit);
+  const pinnedItems = items.filter(i => i.isPinned);
+  const feedItems = items.filter(i => !i.isPinned).slice(0, displayLimit);
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 pb-32">
       <SEO
         metadata={{
           title: "Links",
-          description: "Connect with Brandon PT Davis: Latest news, portfolio projects, and resources.",
+          description: `Latest work and updates from ${bioData.name}`,
           canonicalPath: '/links'
         }}
       />
-      {/* Top spacing */}
-      <div className="h-12" />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+      {/* Ambient Background & Noise */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 bg-neutral-950" />
+        <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-neutral-900 to-transparent opacity-80" />
+        <div className="absolute -top-[20%] left-[20%] w-[60vw] h-[60vw] bg-purple-500/10 rounded-full blur-[128px] mix-blend-screen" />
+        <div className="absolute top-[10%] -right-[10%] w-[50vw] h-[50vw] bg-amber-500/5 rounded-full blur-[128px] mix-blend-screen" />
+        {/* Noise Texture */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+      </div>
 
-        {/* --- BIO SECTION --- */}
-        <div className="flex flex-col items-center text-center mb-12">
-          {/* Profile Image */}
+      <div className="relative z-10 max-w-4xl mx-auto px-4 pt-16 md:pt-24">
+
+        {/* --- 1. Profile --- */}
+        <div className="flex flex-col items-center text-center mb-16">
           {bioData.profileImage && (
-            <div className="w-24 h-24 md:w-32 md:h-32 mb-6 rounded-full p-1 border border-foreground/10">
-              <div className="w-full h-full rounded-full overflow-hidden">
-                <ImageWithFallback
-                  src={bioData.profileImage}
-                  alt={bioData.name}
-                  className="w-full h-full object-cover"
-                  priority={true}
-                />
+            <div className="relative mb-8 group">
+              <div className="absolute inset-0 bg-gradient-to-tr from-amber-500 to-purple-500 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
+              <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full p-1 border border-white/10 bg-black/50 backdrop-blur-sm">
+                <div className="w-full h-full rounded-full overflow-hidden">
+                  <ImageWithFallback
+                    src={bioData.profileImage}
+                    alt={bioData.name}
+                    className="object-cover w-full h-full"
+                    priority
+                  />
+                </div>
               </div>
             </div>
           )}
 
-          <h1 className="font-pixel text-xs md:text-sm tracking-[0.4em] mb-3 uppercase opacity-80">
+          <h1 className="font-display font-medium text-4xl md:text-5xl tracking-tight text-white mb-3">
             {bioData.name}
           </h1>
-          <p className="font-display italic text-2xl md:text-3xl text-foreground/80 max-w-lg leading-tight mb-8">
-            {bioData.tagline}
-          </p>
+          <div className="flex items-center gap-3">
+            <span className="h-px w-8 bg-gradient-to-r from-transparent to-white/30" />
+            <p className="font-mono text-xs text-neutral-400 uppercase tracking-widest">
+              {bioData.tagline}
+            </p>
+            <span className="h-px w-8 bg-gradient-to-l from-transparent to-white/30" />
+          </div>
 
-          {/* Social Row + CTA */}
-          <div className="flex flex-col items-center gap-6">
-            {/* Socials */}
-            <div className="flex items-center gap-4">
-              {socialRow.map(link => {
-                const Icon = getIcon(link.icon);
-                return (
-                  <a
-                    key={link.id}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-all text-foreground/60 hover:text-foreground hover:scale-110"
-                    aria-label={link.title}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </a>
-                );
-              })}
-            </div>
-
-            {/* Website CTA */}
-            <a
-              href="/"
-              onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('home'); }}
-              className="px-6 py-2.5 rounded-full border border-foreground/20 hover:bg-foreground/5 hover:border-foreground/40 transition-all font-pixel text-[10px] tracking-[0.2em] uppercase text-foreground/80"
-            >
-              VISIT WEBSITE
+          {/* Socials - Floating Pill */}
+          <div className="mt-8 flex items-center gap-1 p-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-lg">
+            <a href="https://instagram.com/brandonptdavis" target="_blank" rel="noopener" aria-label="Visit Instagram Profile" className="p-2.5 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-all"><Instagram className="w-5 h-5" /></a>
+            <a href="https://linkedin.com/in/brandonptdavis" target="_blank" rel="noopener" aria-label="Visit LinkedIn Profile" className="p-2.5 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-all"><Linkedin className="w-5 h-5" /></a>
+            <div className="w-px h-4 bg-white/10 mx-1" />
+            <a href="mailto:info@brandonptdavis.com" className="px-4 py-1.5 rounded-full bg-white text-black font-medium text-xs hover:bg-neutral-200 transition-colors flex items-center gap-2">
+              <span>Contact</span>
+              <Mail className="w-3.5 h-3.5" />
             </a>
           </div>
         </div>
 
-        {/* --- DASHBOARD GRID --- */}
-        <div className="grid grid-cols-3 gap-3 md:gap-4 mx-auto max-w-4xl">
-          {visibleItems.map((item, index) => {
-            const Icon = getIcon(item.icon);
-            const isImage = item.image && item.image !== '';
-
-            // Prioritize first 3 images for LCP
-            const isPriority = index < 3;
-
-            return (
-              <a
-                key={item.id}
-                href={item.url}
-                onClick={(e) => handleItemClick(e, item)}
-                style={{ aspectRatio: '0.8' }}
-                className="group relative w-full rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-black/5 dark:border-white/5 transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
-              >
-                {/* Background Image */}
-                {isImage ? (
-                  <ImageWithFallback
-                    src={item.image!}
-                    alt={item.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    priority={isPriority}
-                  />
-                ) : (
-                  // Fallback Gradient
-                  <div className="absolute inset-0 bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-800 dark:to-neutral-900" />
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-
-                {/* Type Icon */}
-                <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/90 shadow-sm z-10">
-                  <Icon className="w-3.5 h-3.5" />
-                </div>
-
-                {/* Content - Show title for ALL items */}
-                <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 flex flex-col justify-end h-full">
-                  <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                    {/* Title */}
-                    <h3 className="font-display italic text-white text-sm md:text-lg leading-tight line-clamp-3 shadow-black drop-shadow-md">
+        {/* --- 2. Pinned Links (Grid) --- */}
+        {pinnedItems.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 mb-16">
+            {pinnedItems.map(item => {
+              const Icon = getIcon(item.icon);
+              return (
+                <a
+                  key={item.id}
+                  href={item.url}
+                  target={item.url.startsWith('http') ? "_blank" : "_self"}
+                  onClick={(e) => !item.url.startsWith('http') && handleNav(e, item.url, false)}
+                  className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative p-4 flex flex-col items-center text-center gap-3">
+                    <Icon className="w-6 h-6 text-neutral-300 group-hover:text-amber-200 transition-colors" />
+                    <span className="font-medium text-sm text-neutral-200 group-hover:text-white">
                       {item.title}
-                    </h3>
+                    </span>
                   </div>
-                </div>
-              </a>
-            );
-          })}
+                </a>
+              );
+            })}
+          </div>
+        )}
+
+        {/* --- 3. Latest Feed (3 Columns) --- */}
+        <div className="border-t border-white/10 pt-10">
+          <div className="flex items-center justify-between mb-8 opacity-60">
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-white">Latest Activity</h2>
+            <div className="h-px flex-1 bg-white/20 ml-4" />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 md:gap-4">
+            {feedItems.map((item) => {
+              // Ensure we get the correct icon component
+              const ItemIcon = getIcon(item.icon);
+
+              return (
+                <a
+                  key={item.id}
+                  href={item.url}
+                  onClick={(e) => !item.url.startsWith('http') && handleNav(e, item.url, false)}
+                  className="relative group overflow-hidden rounded-lg bg-neutral-900 border border-white/10 aspect-[4/5] hover:border-white/30 transition-colors"
+                >
+                  {/* Image */}
+                  {item.image ? (
+                    <ImageWithFallback
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
+                      <ItemIcon className="w-8 h-8 opacity-20" />
+                    </div>
+                  )}
+
+                  {/* Use a persistent gradient for legibility */}
+                  <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+
+                  {/* Content - Always Visible */}
+                  <div className="absolute inset-x-0 bottom-0 p-4 pb-5 text-center">
+                    <div>
+                      <p className="font-display italic text-white text-xs md:text-sm leading-tight mb-1 drop-shadow-md">
+                        {item.title}
+                      </p>
+                      <p className="font-mono text-[9px] text-white/60 uppercase tracking-wider">
+                        {item.type}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Persistent Icon (Top Right) */}
+                  <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white/90 z-10 pointer-events-none">
+                    <ItemIcon className="w-3 h-3" />
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+
+          {hasMore && (
+            <div ref={loaderRef} className="py-12 flex justify-center">
+              <div className="w-5 h-5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
         </div>
 
-        {/* Loading / Sentinel */}
-        {hasMore && (
-          <div ref={loaderRef} className="py-12 flex justify-center">
-            <div className="w-6 h-6 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
-          </div>
-        )}
-
-        {/* Footer */}
-        {!hasMore && (
-          <div className="mt-20 text-center pb-8">
-            <p className="font-pixel text-[10px] opacity-30 tracking-[0.3em]">
-              END OF FEED • © {new Date().getFullYear()}
-            </p>
-          </div>
-        )}
-
+        <div className="h-20" /> {/* Bottom spacer */}
       </div>
     </div>
   );

@@ -122,7 +122,7 @@ export const NAVIGATION: NavigationStructure = {
       submenu: [
         {
           label: "Tutorials",
-          page: "scenic-studio",
+          page: "tutorial",
         },
         {
           label: "App Studio",

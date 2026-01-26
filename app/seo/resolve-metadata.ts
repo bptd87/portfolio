@@ -229,12 +229,12 @@ const resolveDynamicMetadata = async (path: string) => {
   }
 
   if (
-    path.startsWith("/scenic-studio/") ||
+    path.startsWith("/tutorials/") ||
     path.startsWith("/studio/tutorial/") ||
     path.startsWith("/tutorial/")
   ) {
     const slug = path
-      .replace("/scenic-studio/", "")
+      .replace("/tutorials/", "")
       .replace("/studio/tutorial/", "")
       .replace("/tutorial/", "");
     const supabaseTutorial = await fetchSupabaseRow("tutorials", slug);
@@ -560,12 +560,12 @@ export const resolveStructuredData = async (
   }
 
   if (
-    path.startsWith("/scenic-studio/") ||
+    path.startsWith("/tutorials/") ||
     path.startsWith("/studio/tutorial/") ||
     path.startsWith("/tutorial/")
   ) {
     const slug = path
-      .replace("/scenic-studio/", "")
+      .replace("/tutorials/", "")
       .replace("/studio/tutorial/", "")
       .replace("/tutorial/", "");
     const tutorial = (await fetchSupabaseRow("tutorials", slug)) ||

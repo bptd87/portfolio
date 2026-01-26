@@ -118,55 +118,9 @@ export function ImageUploader({ value, onChange, label, bucketName = 'blog', cla
         return; // Success! Exit function.
 
       } catch (directError) {
-        console.warn('Direct upload failed, trying server endpoint:', directError);
-        // Fallthrough to server endpoint
+        console.warn('Direct upload failed:', directError);
+        throw directError;
       }
-
-      // 3. Fallback: Server Endpoint (Legacy) with retry
-      setProgress(50);
-      const adminToken = sessionStorage.getItem('admin_token');
-      if (!adminToken) throw new Error('Not authenticated - please login again');
-
-      await retryWithBackoff(async () => {
-        const formData = new FormData();
-        formData.append('file', optimizedFile);
-        formData.append('bucket', bucketName);
-
-        const response = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-74296234/api/admin/upload`,
-          {
-            method: 'POST',
-            headers: {
-              'X-Admin-Token': adminToken,
-              'Authorization': `Bearer ${publicAnonKey}`,
-            },
-            body: formData,
-          }
-        );
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorMsg = 'Upload failed';
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMsg = errorData.error || errorMsg;
-          } catch {
-            errorMsg = errorText || errorMsg;
-          }
-          throw new Error(errorMsg);
-        }
-
-        const data = await response.json();
-        if (!data.url) throw new Error('No URL returned from server');
-
-        setProgress(90);
-        onChange(data.url);
-        setProgress(100);
-      }, 3, 1000);
-
-      toast.success('Image uploaded successfully!', { id: toastId });
-      setRetryCount(0);
-      setLastFile(null);
 
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : 'Upload failed';

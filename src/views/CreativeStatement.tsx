@@ -4,6 +4,7 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { TabbedGallery } from '../components/shared/TabbedGallery';
 import { SEO } from '../components/SEO';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { ExpandableText } from '../components/shared/ExpandableText';
 
 interface CreativeStatementProps {
     onNavigate?: (page: string) => void;
@@ -169,9 +170,11 @@ export function CreativeStatement({ onNavigate }: CreativeStatementProps) {
                                         {activeProject.year && ` • ${activeProject.year}`}
                                     </p>
                                     {activeProject.description && (
-                                        <p className="text-base md:text-lg text-black/70 dark:text-white/70 leading-relaxed">
-                                            {activeProject.description}
-                                        </p>
+                                        <ExpandableText
+                                            text={activeProject.description}
+                                            maxLines={3}
+                                            className="text-base md:text-lg text-black/70 dark:text-white/70 leading-relaxed"
+                                        />
                                     )}
                                 </div>
                             );
@@ -289,9 +292,11 @@ export function CreativeStatement({ onNavigate }: CreativeStatementProps) {
                                         {activeProject.year && ` • ${activeProject.year}`}
                                     </p>
                                     {activeProject.description && (
-                                        <p className="text-base md:text-lg text-black/70 dark:text-white/70 leading-relaxed">
-                                            {activeProject.description}
-                                        </p>
+                                        <ExpandableText
+                                            text={activeProject.description}
+                                            maxLines={3}
+                                            className="text-base md:text-lg text-black/70 dark:text-white/70 leading-relaxed"
+                                        />
                                     )}
                                 </div>
                             );

@@ -14,7 +14,7 @@ const MAIN_SECTIONS = [
     title: 'Tutorials',
     description: 'Video walkthroughs on Vectorworks, 3D modeling, and project breakdowns.',
     image: '/images/studio/tutorials.webp',
-    route: 'scenic-studio',
+    route: 'tutorials',
     comingSoon: false,
   },
   {

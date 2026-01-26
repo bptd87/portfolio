@@ -5,6 +5,7 @@ import { supabase } from '../utils/supabase/client';
 import { Calendar, ArrowRight } from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
 import { useTheme } from '../hooks/useTheme';
+import { SkeletonNews } from '../components/skeletons/SkeletonNews';
 
 interface NewsItem {
   id: string;
@@ -122,23 +123,7 @@ export function News({ onNavigate }: NewsProps) {
 
 
   if (loading) {
-    return (
-      <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 lg:px-12">
-        <div className="max-w-[1400px] mx-auto mb-12">
-          <Skeleton variant="text" width="200px" height="1rem" className="mb-4" />
-          <Skeleton variant="text" width="400px" height="2.5rem" className="mb-6" />
-        </div>
-        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="space-y-4">
-              <Skeleton variant="rectangular" width="100%" height="300px" className="rounded-2xl" />
-              <Skeleton variant="text" width="60%" height="1.5rem" />
-              <Skeleton variant="text" width="90%" height="1rem" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <SkeletonNews />;
   }
 
   return (

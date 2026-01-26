@@ -214,7 +214,7 @@ export async function GET() {
 
       return `
   <url>
-    <loc>${escapeXml(`${SITE_URL}/scenic-studio/${slug}`)}</loc>${images}
+    <loc>${escapeXml(`${SITE_URL}/tutorials/${slug}`)}</loc>${images}
   </url>`;
     }),
     ...TUTORIALS.map((tutorial) => {
@@ -234,7 +234,7 @@ export async function GET() {
 
       return `
   <url>
-    <loc>${escapeXml(`${SITE_URL}/scenic-studio/${slug}`)}</loc>${images}
+    <loc>${escapeXml(`${SITE_URL}/tutorials/${slug}`)}</loc>${images}
   </url>`;
     }),
     ...news.map((item) => {

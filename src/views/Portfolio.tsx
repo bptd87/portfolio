@@ -331,7 +331,16 @@ export function Portfolio({ onNavigate, initialFilter, initialTag }: PortfolioPr
                       transition={{ duration: 0.5, ease: "easeOut", delay: index * 0.05 }}
                       onMouseEnter={() => prefetchProject(project)}
                       onClick={() => handleProjectInteraction(project)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleProjectInteraction(project);
+                        }
+                      }}
                       className="cursor-pointer group relative overflow-hidden rounded-2xl bg-neutral-900 aspect-[3/2] min-w-0"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View project details for ${project.title}`}
                     >
                       <motion.div
                         layoutId={`project-image-${project.id}`}
@@ -339,7 +348,7 @@ export function Portfolio({ onNavigate, initialFilter, initialTag }: PortfolioPr
                       >
                         <ImageWithFallback
                           src={project.cardImage || project.coverImage || ''}
-                          alt={project.title}
+                          alt={`Scenic design for ${project.title} - ${project.venue || (project.subcategory || 'Production')}`}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           optimize="card"
                           lazy

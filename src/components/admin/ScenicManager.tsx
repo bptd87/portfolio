@@ -32,7 +32,8 @@ export function ScenicManager() {
                 ...p,
                 // Unified Schema Mapping
                 clientName: p.client_name, // Scenic usually doesn't use this but we map it just in case
-                location: p.venue ? `${p.venue}, ${p.location || ''}` : p.location, // Concatenate Venue + Location to preserve data in unified field
+                venue: p.venue, // Pass raw venue
+                location: p.location, // Pass raw location
                 cardImage: p.card_image,
                 cardImageAlt: p.card_image_alt,
                 focusPoint: p.focus_point,

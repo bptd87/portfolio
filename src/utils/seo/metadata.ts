@@ -324,19 +324,7 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     canonicalPath: "/studio",
   },
 
-  "scenic-studio": {
-    title: "Studio | Tutorials",
-    description:
-      "Video tutorials on Vectorworks, 3D modeling, workflow optimization, and real-world project walkthroughs for scenic designers.",
-    keywords: [
-      "vectorworks tutorials",
-      "scenic design tutorials",
-      "3D modeling",
-      "design workflow",
-    ],
-    ogType: "website",
-    canonicalPath: "/scenic-studio",
-  },
+
 
   "vectorworks-vault": {
     title: "Vectorworks Vault | Free 3D Models & Venue Files",

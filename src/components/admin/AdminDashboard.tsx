@@ -21,12 +21,13 @@ import {
   Zap,
   Monitor,
   Clapperboard,
-  Cuboid
+  Cuboid,
+  Search
 } from 'lucide-react';
 import { supabase } from '../../utils/supabase/client';
 import { toast } from 'sonner';
 
-type ManagerType = 'articles' | 'scenic' | 'experiential' | 'rendering' | 'models' | 'vault' | 'news' | 'links' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'analytics' | 'redirects' | 'media' | 'directory' | 'comments';
+type ManagerType = 'articles' | 'scenic' | 'experiential' | 'rendering' | 'models' | 'vault' | 'news' | 'links' | 'tutorials' | 'collaborators' | 'categories' | 'settings' | 'about' | 'resume' | 'analytics' | 'redirects' | 'media' | 'directory' | 'comments' | 'search-index';
 
 interface DashboardCard {
   id: ManagerType;
@@ -292,6 +293,14 @@ export function AdminDashboard({ onSelectManager }: AdminDashboardProps) {
       title: 'Analytics',
       icon: BarChart3,
       description: 'Site traffic and insights',
+      category: 'analytics',
+      enabled: true,
+    },
+    {
+      id: 'search-index' as any,
+      title: 'Search Indexer',
+      icon: Search,
+      description: 'Generate AI search embeddings',
       category: 'analytics',
       enabled: true,
     },

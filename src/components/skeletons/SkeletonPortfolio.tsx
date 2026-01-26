@@ -18,52 +18,21 @@ export function SkeletonPortfolio() {
                 ))}
             </div>
 
-            {/* Bento Grid */}
+            {/* Uniform 3-Column Grid */}
             <div className="max-w-[1800px] mx-auto pb-24">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:auto-rows-[280px]">
-                    {/* 1. Large 2x2 */}
-                    <div className="col-span-1 lg:col-span-2 lg:row-span-2 min-h-[300px] lg:min-h-auto rounded-3xl overflow-hidden relative">
-                        <Skeleton className="w-full h-full bg-neutral-900" />
-                        <div className="absolute bottom-6 left-6 right-6 space-y-3">
-                            <Skeleton className="h-3 w-24 bg-white/20" />
-                            <Skeleton className="h-8 w-3/4 bg-white/20" />
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({ length: 9 }).map((_, i) => (
+                        <div key={i} className="aspect-[3/2] rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 relative">
+                            {/* Image Placeholder */}
+                            <Skeleton className="w-full h-full bg-neutral-200/50 dark:bg-neutral-800/50" />
 
-                    {/* 2. Small 1x1 */}
-                    <div className="col-span-1 min-h-[250px] lg:min-h-auto rounded-3xl overflow-hidden relative">
-                        <Skeleton className="w-full h-full bg-neutral-900" />
-                        <div className="absolute bottom-6 left-6 right-6 space-y-3">
-                            <Skeleton className="h-3 w-16 bg-white/20" />
-                            <Skeleton className="h-6 w-2/3 bg-white/20" />
+                            {/* Content Placeholder */}
+                            <div className="absolute bottom-6 left-6 right-6 space-y-3">
+                                <Skeleton className="h-3 w-24 bg-white/20" />
+                                <Skeleton className="h-8 w-3/4 bg-white/20" />
+                            </div>
                         </div>
-                    </div>
-
-                    {/* 3. Small 1x1 */}
-                    <div className="col-span-1 min-h-[250px] lg:min-h-auto rounded-3xl overflow-hidden relative">
-                        <Skeleton className="w-full h-full bg-neutral-900" />
-                        <div className="absolute bottom-6 left-6 right-6 space-y-3">
-                            <Skeleton className="h-3 w-16 bg-white/20" />
-                            <Skeleton className="h-6 w-2/3 bg-white/20" />
-                        </div>
-                    </div>
-
-                    {/* 4. Small 1x1 */}
-                    <div className="col-span-1 min-h-[250px] lg:min-h-auto rounded-3xl overflow-hidden relative">
-                        <Skeleton className="w-full h-full bg-neutral-900" />
-                        <div className="absolute bottom-6 left-6 right-6 space-y-3">
-                            <Skeleton className="h-3 w-16 bg-white/20" />
-                            <Skeleton className="h-6 w-2/3 bg-white/20" />
-                        </div>
-                    </div>
-                    {/* 5. Small 1x1 */}
-                    <div className="col-span-1 min-h-[250px] lg:min-h-auto rounded-3xl overflow-hidden relative">
-                        <Skeleton className="w-full h-full bg-neutral-900" />
-                        <div className="absolute bottom-6 left-6 right-6 space-y-3">
-                            <Skeleton className="h-3 w-16 bg-white/20" />
-                            <Skeleton className="h-6 w-2/3 bg-white/20" />
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
 

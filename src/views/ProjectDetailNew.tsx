@@ -17,6 +17,7 @@ import { RelatedProjectsAdvanced } from '../components/shared/RelatedProjectsAdv
 import { ImageSlideshow } from '../components/shared/ImageSlideshow';
 import { SkeletonProjectDetail } from '../components/skeletons/SkeletonProjectDetail';
 import { ParallaxImage } from '../components/shared/ParallaxImage';
+import { ExpandableText } from '../components/shared/ExpandableText';
 
 interface ProjectDetailNewProps {
   slug: string;
@@ -621,46 +622,35 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
             </div>
           </motion.div>
 
-          {project.designNotes && project.designNotes.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <button
-                onClick={() => toggleSection('notes')}
-                className="w-full backdrop-blur-xl bg-neutral-900/60 rounded-3xl border border-white/10 p-6 text-left hover:bg-neutral-800/80 transition-all shadow-none"
+
+
+          {/* Unified Project Overview / Narrative Section */}
+          {(() => {
+            // Determine content: prefer projectOverview, fallback to designNotes (legacy array joined)
+            const narrative = project.projectOverview ||
+              (Array.isArray(project.designNotes) ? project.designNotes.join('\n\n') : project.designNotes);
+
+            if (!narrative) return null;
+
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="backdrop-blur-xl bg-neutral-900/60 rounded-3xl border border-white/10 p-8 shadow-none"
               >
-                <div className="flex items-center justify-between">
-                  <div className="font-pixel text-xs text-white/60 tracking-[0.3em]">
-                    DESIGN NOTES
-                  </div>
-                  <ChevronDown className={`w-5 h-5 text-white/60 transition-transform ${expandedSections.has('notes') ? 'rotate-180' : ''}`} />
+                <div className="font-pixel text-xs text-white/60 tracking-[0.3em] mb-6">
+                  PROJECT OVERVIEW
                 </div>
-                {!expandedSections.has('notes') && (
-                  <p className="text-white/80 mt-4 line-clamp-2">
-                    {project.designNotes[0]}
-                  </p>
-                )}
-              </button>
-              <AnimatePresence>
-                {expandedSections.has('notes') && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="backdrop-blur-xl bg-neutral-900/60 rounded-3xl border border-white/10 p-6 mt-2 shadow-none"
-                  >
-                    <div className="space-y-4 text-white/80 leading-relaxed text-justify">
-                      {project.designNotes.map((note: string, index: number) => (
-                        <p key={index} className="text-justify">{note}</p>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          )}
+                <ExpandableText
+                  text={narrative}
+                  maxLines={6}
+                  className="text-white/80 leading-relaxed whitespace-pre-line text-lg"
+                />
+              </motion.div>
+            );
+          })()}
+
 
           {((project.productionPhotos && project.productionPhotos.length > 0) || (project.youtubeVideos && project.youtubeVideos.length > 0)) && (
             <motion.div
@@ -749,6 +739,56 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
                   mode="cover"
                 />
               </div>
+            </motion.div>
+          )}
+
+          {project.credits && project.credits.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <button
+                onClick={() => toggleSection('team')}
+                className="w-full backdrop-blur-xl bg-neutral-900/60 rounded-3xl border border-white/10 p-6 text-left hover:bg-neutral-800/80 transition-all shadow-none"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="font-pixel text-xs text-white/60 tracking-[0.3em]">
+                    CREATIVE TEAM
+                  </div>
+                  <ChevronDown className={`w-5 h-5 text-white/60 transition-transform ${expandedSections.has('team') ? 'rotate-180' : ''}`} />
+                </div>
+                {!expandedSections.has('team') && (
+                  <div className="mt-4 text-sm text-white/80">
+                    {project.credits.slice(0, 2).map((credit: any, i: number) => (
+                      <span key={i}>
+                        <span className="opacity-60">{credit.role}:</span> {credit.name}
+                        {i < Math.min(project.credits.length, 2) - 1 && <span className="mx-2 opacity-40">|</span>}
+                      </span>
+                    ))}
+                    {project.credits.length > 2 && <span className="opacity-40 ml-2">+{project.credits.length - 2} more</span>}
+                  </div>
+                )}
+              </button>
+              <AnimatePresence>
+                {expandedSections.has('team') && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="backdrop-blur-xl bg-neutral-900/60 rounded-3xl border border-white/10 p-6 mt-2 shadow-none"
+                  >
+                    <div className="space-y-4">
+                      {project.credits.map((credit: any, index: number) => (
+                        <div key={index} className="flex flex-col md:flex-row md:justify-between md:items-baseline border-b border-white/5 pb-2 last:border-0 last:pb-0 gap-1 md:gap-4">
+                          <span className="font-pixel text-[10px] tracking-wider text-white/40 uppercase">{credit.role}</span>
+                          <span className="text-sm text-white/90 md:text-right">{credit.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
