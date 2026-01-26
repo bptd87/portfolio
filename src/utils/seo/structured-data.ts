@@ -78,7 +78,9 @@ export function generateArticleSchema(article: {
   image?: string;
   datePublished: string;
   dateModified?: string;
-  author: string;
+  datePublished: string;
+  dateModified?: string;
+  author: string | { name: string; url?: string; image?: string };
   url: string;
   publisher?: {
     name: string;
@@ -93,10 +95,14 @@ export function generateArticleSchema(article: {
     image: article.image,
     datePublished: article.datePublished,
     dateModified: article.dateModified || article.datePublished,
-    author: {
-      '@type': 'Person',
-      name: article.author,
-    },
+    author: typeof article.author === 'string' 
+      ? { '@type': 'Person', name: article.author }
+      : {
+          '@type': 'Person',
+          name: article.author.name,
+          url: article.author.url,
+          image: article.author.image
+        },
     publisher: article.publisher ? {
       '@type': 'Organization',
       name: article.publisher.name,

@@ -94,7 +94,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     skeletonClassName,
     optimize,
     focusPoint,
-    responsive = false,
+    responsive = true,
     priority, // Destructure priority so it's not in rest
     onLoad,
     ...rest

@@ -268,6 +268,7 @@ export function ImageUploaderWithFocalPoint({
                 type="number"
                 min={0}
                 max={100}
+                step="any"
                 value={localFocalPoint.x}
                 onChange={(e) => updateFocalPoint({ x: Number(e.target.value), y: localFocalPoint.y })}
                 className="mt-1 w-full px-2 py-1 bg-zinc-900 border border-zinc-700 rounded text-xs"
@@ -279,6 +280,7 @@ export function ImageUploaderWithFocalPoint({
                 type="number"
                 min={0}
                 max={100}
+                step="any"
                 value={localFocalPoint.y}
                 onChange={(e) => updateFocalPoint({ x: localFocalPoint.x, y: Number(e.target.value) })}
                 className="mt-1 w-full px-2 py-1 bg-zinc-900 border border-zinc-700 rounded text-xs"

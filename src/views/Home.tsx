@@ -17,9 +17,8 @@ import { APP_STUDIO_TOOLS } from '../data/app-studio-tools';
 import { TUTORIALS } from '../data/tutorials';
 
 // Constants
-const heroStyle: React.CSSProperties = {
-  left: 0,
-};
+// heroStyle removed
+
 
 const STUDIO_IMAGE_MAP: Record<string, string> = {
   'dimension-reference': 'dimension-abstract.webp',
@@ -235,7 +234,7 @@ export function Home({ onNavigate }: HomeProps) {
           {/* Image */}
           <div className="absolute inset-0 rounded-[3rem] overflow-hidden">
             <ParallaxImage
-              src={optimizeSupabaseImage(project.cardImage, { width: 1280 }) || ''}
+              src={project.cardImage || ''}
               width={1280}
               alt={`Scenic design for ${project.title} - ${project.venue || 'Theatrical Production'}`}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
@@ -483,14 +482,6 @@ export function Home({ onNavigate }: HomeProps) {
         // 7. Archive CTA Section
         sections.push(
           <section key="cta" className="sticky top-0 min-h-screen w-full bg-black overflow-hidden flex items-center justify-center p-8 shadow-2xl" style={{ zIndex: currentZ++ }}>
-            <style>{`
-                @keyframes float-cards {
-                  0% { transform: translateY(0px) rotate(var(--rot)); }
-                  50% { transform: translateY(-20px) rotate(calc(var(--rot) + 2deg)); }
-                  100% { transform: translateY(0px) rotate(var(--rot)); }
-                }
-            `}</style>
-
             {/* Wall of Work - Vertical Marquees */}
             <div className="absolute inset-x-0 -top-20 -bottom-20 overflow-hidden bg-black grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 opacity-40">
 
@@ -528,7 +519,7 @@ export function Home({ onNavigate }: HomeProps) {
 
               {/* Column 3 - Up */}
               <div className="relative h-full overflow-hidden">
-                <div className="animate-marquee-up flex flex-col gap-8" style={{ animationDuration: '70s' }}>
+                <div className="flex flex-col gap-8 animate-[marquee-up_70s_linear_infinite]">
                   {[...allProjectImages, ...allProjectImages].slice(20, 30).map((img, i) => (
                     <div key={`col3-${i}`} className="w-full aspect-[3/2] rounded-xl overflow-hidden bg-neutral-900 border border-white/10">
                       <img

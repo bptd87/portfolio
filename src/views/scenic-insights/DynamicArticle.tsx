@@ -14,6 +14,7 @@ import { Eye } from 'lucide-react';
 import { SEO } from '../../components/SEO';
 import { generateArticleMetadata, PAGE_METADATA } from '../../utils/seo/metadata';
 import { generateVideoSchema, generateArticleSchema } from '../../utils/seo/structured-data';
+import { AuthorProfile } from '../../components/shared/AuthorProfile';
 // Lazy load comments to speed up initial article render
 const CommentsSection = React.lazy(() => import('../../components/shared/CommentsSection').then(m => ({ default: m.CommentsSection })));
 const authorImageSrc = '/images/author-brandon.png';
@@ -554,14 +555,19 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
             date: article.date,
             id: article.id,
             slug: article.slug,
-            tags: article.tags
+            tags: article.tags,
+            author: {
+              name: "Brandon PT Davis",
+              url: "https://www.brandonptdavis.com/about",
+              image: "https://www.brandonptdavis.com/images/author-brandon.png"
+            }
           })}
         />
       )}
       {/* Reading Progress Bar */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-accent-brand z-50 origin-left"
-        style={{ scaleX: scrollYProgress }}
+        className="fixed top-0 left-0 right-0 h-1 z-50 origin-left"
+        style={{ scaleX: scrollYProgress, backgroundColor: article.categoryColor || 'var(--accent-brand)' }}
       />
 
       {article.coverImage && article.coverImage.trim() !== '' ? (
@@ -570,12 +576,12 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
           <section className="relative w-full pt-16 md:pt-24 pb-12 px-6 md:px-12 bg-background">
             <div className="max-w-screen-xl mx-auto flex flex-col items-center">
 
-              {/* 1. Image (Top, Centered, Constrained) */}
+              {/* 1. Image (Top, Centered, Constrained to match text) */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.98, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 1, ease: [0.2, 0, 0.2, 1] }}
-                className="w-full max-w-5xl relative aspect-[16/9] md:aspect-[2/1] rounded-lg overflow-hidden shadow-sm mb-12"
+                className="w-full max-w-3xl relative aspect-[16/9] md:aspect-[2/1] rounded-lg overflow-hidden shadow-sm mb-12"
               >
                 <ImageWithFallback
                   src={article.coverImage}
@@ -597,7 +603,10 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="flex items-center gap-3 mb-6"
                 >
-                  <span className="font-bold text-xs tracking-widest uppercase text-accent-brand">
+                  <span
+                    className="font-bold text-xs tracking-widest uppercase"
+                    style={{ color: article.categoryColor || 'var(--accent-brand)' }}
+                  >
                     {article.category}
                   </span>
                   <span className="text-foreground/20">|</span>
@@ -634,24 +643,19 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                   transition={{ delay: 0.5 }}
                   className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8 mb-4 text-sm text-foreground/60 font-medium w-full border-t border-foreground/10 pt-6"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-foreground/10 overflow-hidden flex items-center justify-center border border-foreground/5">
-                      <img
-                        src={authorImageSrc}
-                        alt="Brandon PT Davis"
-                        className="w-full h-full object-cover grayscale"
-                      />
-                    </div>
-                    <div className="flex flex-col items-start leading-tight gap-0.5">
-                      <span className="text-foreground text-xs uppercase tracking-wider font-bold">By Brandon PT Davis</span>
-                      <span className="text-foreground/60 text-[10px] uppercase tracking-widest font-medium">Scenic + Experiential Designer</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-6 ml-auto">
+                  <div className="flex flex-wrap items-center justify-between gap-6 w-full border-t border-foreground/10 pt-6">
                     <div className="flex items-center gap-3">
-                      <LikeButton projectId={article.id} type="post" initialLikes={likes} size="sm" />
-                      <ShareButton title={article.title} url={typeof window !== 'undefined' ? window.location.href : ''} size="sm" />
+                      <div className="flex flex-col items-start leading-tight gap-0.5">
+                        <span className="text-foreground text-xs uppercase tracking-wider font-bold">By Brandon PT Davis</span>
+                        <span className="text-foreground/60 text-[10px] uppercase tracking-widest font-medium">Scenic + Experiential Designer</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6 ml-auto">
+                      <div className="flex items-center gap-3">
+                        <LikeButton projectId={article.id} type="post" initialLikes={likes} size="sm" />
+                        <ShareButton title={article.title} url={typeof window !== 'undefined' ? window.location.href : ''} size="sm" />
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -676,7 +680,10 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                 transition={{ duration: 0.6 }}
                 className="flex flex-col items-center gap-6"
               >
-                <span className="font-pixel text-xs tracking-[0.3em] uppercase text-accent-brand bg-foreground/[0.03] px-4 py-2 rounded-full border border-foreground/[0.05]">
+                <span
+                  className="font-pixel text-xs tracking-[0.3em] uppercase bg-foreground/[0.03] px-4 py-2 rounded-full border border-foreground/[0.05]"
+                  style={{ color: article.categoryColor || 'var(--accent-brand)' }}
+                >
                   {article.category}
                 </span>
 
@@ -707,15 +714,15 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
 
         {/* Tags */}
         {article.tags && article.tags.length > 0 && (
-          <div className="pt-12 pb-16 border-t border-foreground/5">
+          <div className="py-12 border-t border-foreground/5">
             <div className="flex flex-col gap-6">
               <span className="font-pixel text-[9px] tracking-[0.3em] text-foreground/40 uppercase">Tagged</span>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {article.tags.map((tag) => (
                   <button
                     key={tag}
                     onClick={() => handleTagClick(tag)}
-                    className="px-4 py-2 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.06] hover:border-foreground/10 rounded-full transition-all text-xs tracking-wide"
+                    className="px-3 py-1.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.06] hover:border-foreground/10 rounded-md transition-all text-xs tracking-wide opacity-70 hover:opacity-100"
                   >
                     {tag}
                   </button>
@@ -725,20 +732,14 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
           </div>
         )}
 
-        {/* Comments Section */}
-        <div className="pt-12 pb-16 border-t border-foreground/5">
-          {article.id && (
-            <React.Suspense fallback={<div className="h-24 flex(items-center justify-center opacity-40">Loading comments...</div>}>
-              <CommentsSection articleId={article.id} />
-            </React.Suspense>
-          )}
-        </div>
-
         {/* Author Section */}
+        <div className="py-12 border-t border-foreground/5">
+          <AuthorProfile />
+        </div>
 
         {/* Related Articles Section */}
         {relatedPosts.length > 0 && (
-          <div className="mt-12 pt-12 border-t border-black/10 dark:border-white/10">
+          <div className="py-12 border-t border-foreground/5">
             <div className="mb-10">
               <h2 className="font-display text-3xl md:text-4xl italic mb-2">Related Articles</h2>
               <p className="font-pixel text-[10px] tracking-[0.2em] opacity-60 uppercase">Continue Reading</p>
@@ -758,10 +759,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                     category={post.category}
                     readTime={post.readTime}
                     image={post.coverImage}
-                    onClick={() => {
-                      window.scrollTo(0, 0);
-                      onNavigate(`articles/${post.slug}`);
-                    }}
+                    href={`/articles/${post.slug}`}
                     variant="nothing"
                     index={index}
                   />
@@ -770,6 +768,15 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
             </div>
           </div>
         )}
+
+        {/* Comments Section */}
+        <div className="py-12 border-t border-foreground/5">
+          {article.id && (
+            <React.Suspense fallback={<div className="h-24 flex items-center justify-center opacity-40">Loading comments...</div>}>
+              <CommentsSection articleId={article.id} />
+            </React.Suspense>
+          )}
+        </div>
       </article>
 
       {/* Table of Contents - Fixed sidebar */}

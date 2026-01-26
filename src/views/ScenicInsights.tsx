@@ -187,28 +187,32 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {filteredArticles.map((article, index) => (
-              <motion.div
-                key={article.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="aspect-[3/4] w-full"
-              >
-                <BlogCard
-                  title={article.title}
-                  excerpt={article.excerpt}
-                  date={new Date(article.date).toLocaleDateString()}
-                  category={article.category}
-                  readTime={article.readTime}
-                  image={article.coverImage}
-                  focusPoint={article.coverImageFocalPoint}
-                  onClick={() => onNavigate(`articles/${article.slug || article.id}`)}
-                  index={index}
-                  variant="nothing"
-                />
-              </motion.div>
-            ))}
+            {filteredArticles.map((article, index) => {
+              const categoryColor = categories.find(c => c.name === article.category)?.color;
+              return (
+                <motion.div
+                  key={article.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  className="aspect-[3/4] w-full"
+                >
+                  <BlogCard
+                    title={article.title}
+                    excerpt={article.excerpt}
+                    date={new Date(article.date).toLocaleDateString()}
+                    category={article.category}
+                    readTime={article.readTime}
+                    image={article.coverImage}
+                    focusPoint={article.coverImageFocalPoint}
+                    onClick={() => onNavigate(`articles/${article.slug || article.id}`)}
+                    index={index}
+                    variant="nothing"
+                    color={categoryColor}
+                  />
+                </motion.div>
+              )
+            })}
           </div>
         )}
       </div>

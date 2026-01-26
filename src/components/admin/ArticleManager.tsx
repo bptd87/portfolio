@@ -534,13 +534,11 @@ export function ArticleManager() {
           <form
             data-article-form
             onSubmit={methods.handleSubmit(onSubmit)}
-            className="flex flex-col h-full fixed inset-0 overflow-hidden admin-force-dark"
-            style={{ zIndex: 99999, backgroundColor: '#09090b' }}
+            className="flex flex-col h-full fixed inset-0 overflow-hidden admin-force-dark z-[99999] bg-[#09090b]"
           >
             {/* Header */}
-            <div 
-              className="shrink-0 border-b border-zinc-800 relative"
-              style={{ backgroundColor: '#09090b', zIndex: 10001 }}
+            <div
+              className="shrink-0 border-b border-zinc-800 relative z-[10001] bg-[#09090b]"
             >
               <div className="flex items-center justify-between px-6 py-4">
                 <div className="flex items-center gap-4">
@@ -576,11 +574,10 @@ export function ArticleManager() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                      activeTab === tab.id
+                    className={`pb-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
                         ? 'text-white border-white'
                         : 'text-zinc-500 border-transparent hover:text-zinc-300'
-                    }`}
+                      }`}
                   >
                     {tab.label}
                   </button>
@@ -591,7 +588,7 @@ export function ArticleManager() {
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto bg-[#09090b]">
               <div className="max-w-4xl mx-auto p-8">
-                
+
                 {/* WRITE TAB */}
                 <div className={activeTab === 'write' ? 'block' : 'hidden'}>
                   <div className="space-y-8">
@@ -611,7 +608,7 @@ export function ArticleManager() {
                         />
                       </div>
                     </div>
-                    
+
                     <div className="min-h-[500px]">
                       <ProArticleEditor
                         initialBlocks={(() => {
@@ -621,7 +618,7 @@ export function ArticleManager() {
                         onChange={(blocks, html) => {
                           methods.setValue('content', blocks || [], { shouldDirty: true, shouldTouch: true });
                           methods.setValue('contentHtml' as any, html, { shouldDirty: true, shouldTouch: true });
-                          
+
                           // Auto-estimate read time
                           const excerpt = methods.getValues('excerpt') || '';
                           const estimated = estimateReadTime(blocks || [], excerpt);
@@ -637,81 +634,81 @@ export function ArticleManager() {
 
                 {/* PUBLISHING TAB */}
                 <div className={activeTab === 'publishing' ? 'block space-y-8' : 'hidden'}>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-4">
-                        <h4 className="text-lg font-medium text-white">Status & Date</h4>
-                        
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm text-zinc-400 mb-1">Status</label>
-                            <select
-                              className="w-full bg-zinc-950 border border-zinc-700 text-white rounded-lg px-3 py-2 outline-none focus:border-zinc-500"
-                              {...methods.register('status')}
-                            >
-                              <option value="draft">Draft</option>
-                              <option value="published">Published</option>
-                            </select>
-                          </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-4">
+                      <h4 className="text-lg font-medium text-white">Status & Date</h4>
 
-                          <Input name="date" type="date" label="Publish Date" className="bg-zinc-950" />
-                          
-                          <div className="pt-2">
-                             <Checkbox name="featured" label="Featured Article" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-4">
-                        <h4 className="text-lg font-medium text-white">Organization</h4>
-                        <div className="space-y-4">
-                           <Select name="category" label="Category">
-                              {categories.articles.map(cat => (
-                                <option key={cat.id} value={cat.name}>{cat.name}</option>
-                              ))}
-                            </Select>
-                            
-                            <div className="space-y-2">
-                              <label className="text-sm text-zinc-400">Tags</label>
-                              <TagInput
-                                value={methods.watch('tags') || []}
-                                onChange={(tags) => methods.setValue('tags', tags)}
-                              />
-                            </div>
-                        </div>
-                      </div>
-                   </div>
-
-                   <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-4">
-                      <div className="flex items-center justify-between">
+                      <div className="space-y-4">
                         <div>
-                          <h4 className="text-lg font-medium text-white">Excerpt</h4>
-                          <p className="text-sm text-zinc-400">A short summary used on title cards and SEO.</p>
+                          <label className="block text-sm text-zinc-400 mb-1">Status</label>
+                          <select
+                            className="w-full bg-zinc-950 border border-zinc-700 text-white rounded-lg px-3 py-2 outline-none focus:border-zinc-500"
+                            {...methods.register('status')}
+                          >
+                            <option value="draft">Draft</option>
+                            <option value="published">Published</option>
+                          </select>
                         </div>
-                        <AIExcerptGenerator
-                          title={methods.watch('title') || ''}
-                          content={(() => {
-                             const content = methods.watch('content');
-                             return Array.isArray(content) ? content : [];
-                          })()}
-                          onExcerptGenerated={(excerpt) => methods.setValue('excerpt', excerpt, { shouldDirty: true, shouldTouch: true })}
-                        />
+
+                        <Input name="date" type="date" label="Publish Date" className="bg-zinc-950" />
+
+                        <div className="pt-2">
+                          <Checkbox name="featured" label="Featured Article" />
+                        </div>
                       </div>
-                      <Textarea 
-                         name="excerpt" 
-                         label=""
-                         rows={4} 
-                         className="bg-zinc-950 mt-2" 
-                         placeholder="Write a short summary..."
+                    </div>
+
+                    <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-4">
+                      <h4 className="text-lg font-medium text-white">Organization</h4>
+                      <div className="space-y-4">
+                        <Select name="category" label="Category">
+                          {categories.articles.map(cat => (
+                            <option key={cat.id} value={cat.name}>{cat.name}</option>
+                          ))}
+                        </Select>
+
+                        <div className="space-y-2">
+                          <label className="text-sm text-zinc-400">Tags</label>
+                          <TagInput
+                            value={methods.watch('tags') || []}
+                            onChange={(tags) => methods.setValue('tags', tags)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-lg font-medium text-white">Excerpt</h4>
+                        <p className="text-sm text-zinc-400">A short summary used on title cards and SEO.</p>
+                      </div>
+                      <AIExcerptGenerator
+                        title={methods.watch('title') || ''}
+                        content={(() => {
+                          const content = methods.watch('content');
+                          return Array.isArray(content) ? content : [];
+                        })()}
+                        onExcerptGenerated={(excerpt) => methods.setValue('excerpt', excerpt, { shouldDirty: true, shouldTouch: true })}
                       />
-                       <p className="text-xs text-zinc-500 mt-2">
-                        {((methods.watch('excerpt') || '') as string).length} characters · Aim for 140–170
-                       </p>
-                   </div>
+                    </div>
+                    <Textarea
+                      name="excerpt"
+                      label=""
+                      rows={4}
+                      className="bg-zinc-950 mt-2"
+                      placeholder="Write a short summary..."
+                    />
+                    <p className="text-xs text-zinc-500 mt-2">
+                      {((methods.watch('excerpt') || '') as string).length} characters · Aim for 140–170
+                    </p>
+                  </div>
                 </div>
 
                 {/* MEDIA TAB */}
                 <div className={activeTab === 'media' ? 'block space-y-8' : 'hidden'}>
-                   <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6">
+                  <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6">
                     <h4 className="text-lg font-medium text-white">Featured Image</h4>
                     <ImageUploaderWithFocalPoint
                       label="Cover Image"
@@ -730,39 +727,39 @@ export function ArticleManager() {
                       }}
                       bucketName="blog"
                     />
-                   </div>
+                  </div>
 
-                   <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6">
+                  <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6">
                     <h4 className="text-lg font-medium text-white">Gallery</h4>
                     <ImageGalleryManager
                       label="Gallery Images"
                       images={methods.watch('images') || []}
                       onChange={(images) => methods.setValue('images', images)}
                     />
-                   </div>
+                  </div>
                 </div>
 
                 {/* SEO TAB */}
                 <div className={activeTab === 'seo' ? 'block space-y-8' : 'hidden'}>
-                   <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6">
-                      <h4 className="text-lg font-medium text-white">SEO Settings</h4>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Input name="seoTitle" label="Meta Title" placeholder={methods.watch('title')} />
-                        <Input name="readTime" label="Read Time" />
-                      </div>
-                      <Textarea name="seoDescription" label="Meta Description" rows={3} />
-                      <p className="text-xs text-zinc-500">
-                        {((methods.watch('seoDescription') || '') as string).length} characters · Aim for 140–170
-                      </p>
-                   </div>
+                  <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800 space-y-6">
+                    <h4 className="text-lg font-medium text-white">SEO Settings</h4>
 
-                   <ArticleSEOTools
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Input name="seoTitle" label="Meta Title" placeholder={methods.watch('title')} />
+                      <Input name="readTime" label="Read Time" />
+                    </div>
+                    <Textarea name="seoDescription" label="Meta Description" rows={3} />
+                    <p className="text-xs text-zinc-500">
+                      {((methods.watch('seoDescription') || '') as string).length} characters · Aim for 140–170
+                    </p>
+                  </div>
+
+                  <ArticleSEOTools
                     title={methods.watch('title') || ''}
                     excerpt={methods.watch('excerpt') || ''}
                     content={(() => {
-                       const content = methods.watch('content');
-                       return Array.isArray(content) ? content : [];
+                      const content = methods.watch('content');
+                      return Array.isArray(content) ? content : [];
                     })()}
                     currentTags={methods.watch('tags') || []}
                     currentDescription={methods.watch('seoDescription') || ''}
@@ -777,7 +774,7 @@ export function ArticleManager() {
             </div>
           </form>
         </FormProvider>
-      , document.body)}
+        , document.body)}
     </div>
   );
 }

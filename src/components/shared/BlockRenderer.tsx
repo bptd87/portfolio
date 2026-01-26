@@ -232,7 +232,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 return (
                   <ScrollReveal key={block.id}>
                     <p
-                      className={`leading-[1.8] mb-8 text-foreground/90 text-[18px] md:text-[20px] font-sans text-left`}
+                      className={`leading-[1.8] mb-8 text-foreground/90 text-[18px] md:text-[20px] font-sans text-left ${isFirstParagraph ? 'drop-cap' : ''}`}
                     >
                       {parseFormattedText(block.content)}
                     </p>
@@ -247,8 +247,8 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               const headingStyles =
                 level === 1 ? 'text-5xl md:text-6xl font-display italic leading-[1.1] mt-16 mb-8' :
                   level === 2 ? 'text-3xl md:text-4xl font-display italic leading-[1.15] mt-12 mb-6' :
-                    level === 3 ? 'text-xl md:text-2xl font-sans tracking-tight leading-[1.2] mt-10 mb-5' :
-                      'text-lg md:text-xl font-sans tracking-tight leading-[1.25] mt-8 mb-4';
+                    level === 3 ? 'text-xl md:text-2xl font-display font-medium tracking-wide leading-[1.2] mt-10 mb-5' :
+                      'text-lg md:text-xl font-display font-medium tracking-wide leading-[1.25] mt-8 mb-4';
 
               return (
                 <ScrollReveal key={block.id}>
@@ -349,9 +349,11 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               return (
                 <ScrollReveal key={block.id}>
                   <blockquote
-                    className="my-10 mx-auto max-w-[90%] py-6 text-center"
+                    className="my-14 mx-auto w-full py-8 px-8 text-center border-y border-border/40 bg-foreground/[0.02] relative overflow-hidden"
                   >
-                    <p className="text-xl md:text-[1.35rem] leading-relaxed font-display italic text-foreground/65">{block.content}</p>
+                    <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: 'var(--accent-color)' }} />
+                    <div className="absolute top-0 right-0 w-1 h-full" style={{ backgroundColor: 'var(--accent-color)' }} />
+                    <p className="text-2xl md:text-3xl leading-snug font-display italic text-foreground/80 relative z-10">"{block.content}"</p>
                   </blockquote>
                 </ScrollReveal>
               );
@@ -367,7 +369,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 return (
                   <ol
                     key={block.id}
-                    className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-serif list-decimal marker:text-accent-brand opacity-90"
+                    className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-sans list-decimal marker:text-[var(--accent-color)] opacity-90"
                   >
                     {listItems.map((item, i) => (
                       <li key={i} className="leading-[1.8] pl-3">
@@ -381,7 +383,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               return (
                 <ul
                   key={block.id}
-                  className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-serif list-disc marker:text-accent-brand opacity-90"
+                  className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-sans list-disc marker:text-[var(--accent-color)] opacity-90"
                 >
                   {listItems.map((item, i) => (
                     <li key={i} className="leading-[1.8] pl-3">
@@ -462,7 +464,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 <div key={block.id} className={`my-10 p-6 ${calloutStyle.bg} border-l-4 ${calloutStyle.border} rounded-r-xl`}>
                   <div className="flex items-start gap-4">
                     <CalloutIcon className={`w-6 h-6 ${calloutStyle.text} flex-shrink-0 mt-1`} />
-                    <div className={`flex-1 text-lg font-serif leading-[1.8] ${calloutStyle.text}`}>
+                    <div className={`flex-1 text-lg font-sans leading-[1.8] ${calloutStyle.text}`}>
                       <div dangerouslySetInnerHTML={{ __html: block.content }} />
                     </div>
                   </div>
@@ -471,11 +473,11 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
             case 'divider':
               return (
-                <hr
-                  key={block.id}
-                  className="my-12 border-t border-border/50"
-                  style={{ borderColor: `${accent}33` }}
-                />
+                <div className="my-16 flex items-center justify-center gap-4 opacity-40">
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                </div>
               );
 
             case 'file':
@@ -484,7 +486,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                   key={block.id}
                   href={block.content}
                   download
-                  className="my-10 flex items-center gap-4 p-6 bg-foreground/5 border border-border rounded-xl hover:border-accent-brand transition-all duration-300 group"
+                  className="my-10 flex items-center gap-4 p-6 bg-foreground/5 border border-border rounded-xl hover:border-[var(--accent-color)] transition-all duration-300 group"
                 >
                   <div
                     className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
@@ -557,13 +559,14 @@ function AccordionItem({ question, answer }: { question: string; answer: string 
       >
         <span className="text-xl font-sans pr-4">{question}</span>
         <ChevronDown
-          className={`w-5 h-5 text-accent-brand transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--accent-color)' }}
         />
       </button>
       <div
         className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <div className="px-8 pb-6 text-lg font-serif leading-[1.8] opacity-90">
+        <div className="px-8 pb-6 text-lg font-sans leading-[1.8] opacity-90">
           {answer}
         </div>
       </div>

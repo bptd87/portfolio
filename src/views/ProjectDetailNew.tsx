@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Eye, Calendar, MapPin, ChevronDown, X } from 'lucide-react';
+import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { YouTubeEmbed } from '../components/shared/YouTubeEmbed';
@@ -536,23 +537,23 @@ export function ProjectDetailNew({ slug, onNavigate }: ProjectDetailNewProps) {
       )}
 
       {prevProject && (
-        <button
-          onClick={() => onNavigate(`project/${prevProject.slug}`)}
+        <Link
+          href={`/project/${prevProject.slug}`}
           className="fixed left-6 top-1/2 -translate-y-1/2 z-30 p-4 backdrop-blur-xl bg-neutral-900/40 rounded-full border border-white/10 hover:bg-neutral-900/80 transition-all hidden md:block group"
           aria-label={`Previous project: ${prevProject.title}`}
         >
           <ChevronLeft className="w-6 h-6 text-white/50 group-hover:text-white transition-colors" />
-        </button>
+        </Link>
       )}
 
       {nextProject && (
-        <button
-          onClick={() => onNavigate(`project/${nextProject.slug}`)}
+        <Link
+          href={`/project/${nextProject.slug}`}
           className="fixed right-6 top-1/2 -translate-y-1/2 z-30 p-4 backdrop-blur-xl bg-neutral-900/40 rounded-full border border-white/10 hover:bg-neutral-900/80 transition-all hidden md:block group"
           aria-label={`Next project: ${nextProject.title}`}
         >
           <ChevronRight className="w-6 h-6 text-white/50 group-hover:text-white transition-colors" />
-        </button>
+        </Link>
       )}
 
       <div

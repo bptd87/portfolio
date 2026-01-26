@@ -703,6 +703,26 @@ html {
   letter-spacing: -0.02em !important;
 }
 
+/* Magazine Drop Cap */
+.drop-cap:first-letter {
+  float: left;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 5.5rem;
+  line-height: 0.8;
+  margin-right: 0.75rem;
+  margin-top: 0.25rem;
+  margin-bottom: -0.25rem;
+  color: var(--drop-cap-color, var(--foreground));
+  text-transform: uppercase;
+}
+
+/* Magazine Justification */
+.prose-custom-wrapper {
+  text-align: justify;
+  hyphens: auto;
+}
+
 /* ============================================
    SECTION ACCENT UTILITIES
    Color-coded by content type
@@ -1372,4 +1392,11 @@ html {
 .dark .carousel-gallery .slick-prev::before,
 .dark .carousel-gallery .slick-next::before {
   color: var(--foreground);
-}}
+}
+
+@keyframes float-cards {
+  0% { transform: translateY(0px) rotate(var(--rot)); }
+  50% { transform: translateY(-20px) rotate(calc(var(--rot) + 2deg)); }
+  100% { transform: translateY(0px) rotate(var(--rot)); }
+}
+}

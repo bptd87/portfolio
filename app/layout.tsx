@@ -67,6 +67,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className={`${vt323.variable} ${playfair.variable} ${dmSans.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://zuycsuajiuqsvopiioer.supabase.co" />
+        <link rel="preconnect" href="https://img.youtube.com" />
+      </head>
       {/* Force background color to avoid white flash in dark mode */}
       <body className="bg-background text-foreground antialiased">{children}</body>
     </html>

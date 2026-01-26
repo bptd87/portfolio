@@ -593,7 +593,7 @@ export function generateArticleMetadata(article: {
   coverImage?: string;
   category: string;
   date: string;
-  author?: string;
+  author?: string | { name: string; url?: string; image?: string };
   id: string;
   slug?: string;
   tags?: string[];
@@ -634,7 +634,7 @@ export function generateArticleMetadata(article: {
     ogType: "article",
     twitterCard: "summary_large_image",
     canonicalPath: `/articles/${pathId}`,
-    author: article.author || DEFAULT_METADATA.author,
+    author: typeof article.author === 'object' ? article.author.name : (article.author || DEFAULT_METADATA.author),
     publishedTime: article.date,
     modifiedTime: article.updatedAt,
   };

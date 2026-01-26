@@ -120,7 +120,7 @@ export function CommentsSection({ articleId }: CommentsSectionProps) {
   if (!articleId) return null; // Return null if no articleId
 
   return (
-    <div className="w-full max-w-3xl mx-auto mt-24 mb-16 px-6"> {/* Updated wrapper styling */}
+    <div className="w-full max-w-3xl mx-auto px-6"> {/* Updated wrapper styling - removed margins */}
       {!isExpanded ? (
         <button
           onClick={() => setIsExpanded(true)}

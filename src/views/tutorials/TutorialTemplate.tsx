@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, ExternalLink, PlayCircle, FileText, Download, Grid, CheckCircle, Lightbulb, AlertCircle, BookOpen, Target } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
@@ -48,16 +49,20 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
       {/* Hero Section */}
       <section className="px-6 lg:px-12 pb-16">
         <div className="max-w-[1800px] mx-auto">
-          <motion.button
-            onClick={() => onNavigate('tutorials')}
-            className="flex items-center gap-2 text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-colors mb-8"
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
+            className="mb-8"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="font-pixel text-[10px] tracking-[0.3em]">BACK TO SCENIC STUDIO</span>
-          </motion.button>
+            <Link
+              href="/tutorials"
+              className="flex items-center gap-2 text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-colors inline-block"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-pixel text-[10px] tracking-[0.3em]">BACK TO SCENIC STUDIO</span>
+            </Link>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -299,10 +304,10 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
                       </p>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {tutorial.relatedTutorials.map((related, index) => (
-                          <button
+                          <Link
                             key={index}
-                            onClick={() => onNavigate(`tutorials/${related.slug}`)}
-                            className="group text-left"
+                            href={`/tutorials/${related.slug}`}
+                            className="group text-left block"
                           >
                             <div className="aspect-video bg-secondary mb-4 overflow-hidden border border-black/10 dark:border-white/10 group-hover:border-accent-brand transition-all relative">
                               <ImageWithFallback
@@ -321,7 +326,7 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
                             <h3 className="group-hover:text-accent-brand transition-colors leading-snug">
                               {related.title}
                             </h3>
-                          </button>
+                          </Link>
                         ))}
                       </div>
                     </div>
@@ -338,12 +343,12 @@ export function TutorialTemplate({ onNavigate, tutorial }: TutorialTemplateProps
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-center"
           >
-            <button
-              onClick={() => onNavigate('tutorials')}
-              className="px-8 py-4 bg-foreground text-background hover:opacity-90 transition-opacity"
+            <Link
+              href="/tutorials"
+              className="inline-block px-8 py-4 bg-foreground text-background hover:opacity-90 transition-opacity"
             >
               VIEW ALL TUTORIALS
-            </button>
+            </Link>
           </motion.div>
         </div>
       </section>

@@ -136,10 +136,11 @@ export function optimizeSupabaseImage(
     const transformOptions: any = {};
     if (options.width) transformOptions.width = options.width;
     if (options.height) transformOptions.height = options.height;
-    if (options.quality) transformOptions.quality = options.quality;
-    if (options.format && options.format !== "auto") {
-      transformOptions.format = options.format;
-    }
+    
+    // Improved defaults for performance
+    transformOptions.quality = options.quality || 75;
+    transformOptions.format = (options.format && options.format !== "auto") ? options.format : 'webp';
+    
     if (options.resize) transformOptions.resize = options.resize;
 
     // Only add transform if we have options

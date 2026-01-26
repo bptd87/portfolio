@@ -51,8 +51,8 @@ export function Footer({ onNavigate }: FooterProps) {
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 backdrop-blur-sm shadow-sm bg-white/50 dark:bg-black/50">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
                 <div className="flex flex-col leading-none gap-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">California, USA</span>
-                  <span className="text-[10px] font-mono opacity-50">{time}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-200">California, USA</span>
+                  <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">{time}</span>
                 </div>
               </div>
             </div>
@@ -65,34 +65,34 @@ export function Footer({ onNavigate }: FooterProps) {
             <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-8">
               {/* Group 1 */}
               <div className="space-y-6">
-                <h3 className="font-mono text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest">Selected Work</h3>
+                <h3 className="font-mono text-xs text-blue-700 dark:text-blue-400 uppercase tracking-widest">Selected Work</h3>
                 <ul className="space-y-3 font-sans text-sm">
-                  <li><button onClick={() => onNavigate('portfolio')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100 flex items-center gap-1 group">Scenic Design <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" /></button></li>
-                  <li><button onClick={() => onNavigate('experiential-design')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Experiential</button></li>
-                  <li><button onClick={() => onNavigate('rendering')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Rendering</button></li>
-                  <li><button onClick={() => onNavigate('scenic-models')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Scenic Models</button></li>
+                  <li><button onClick={() => onNavigate('portfolio')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white flex items-center gap-1 group">Scenic Design <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" /></button></li>
+                  <li><button onClick={() => onNavigate('experiential-design')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">Experiential</button></li>
+                  <li><button onClick={() => onNavigate('rendering')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">Rendering</button></li>
+                  <li><button onClick={() => onNavigate('scenic-models')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">Scenic Models</button></li>
                 </ul>
               </div>
 
               {/* Group 2 */}
               <div className="space-y-6">
-                <h3 className="font-mono text-xs text-green-600 dark:text-green-400 uppercase tracking-widest">Studio</h3>
+                <h3 className="font-mono text-xs text-green-700 dark:text-green-400 uppercase tracking-widest">Studio</h3>
                 <ul className="space-y-3 font-sans text-sm">
-                  <li><button onClick={() => onNavigate('scenic-insights')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Articles</button></li>
-                  <li><button onClick={() => onNavigate('scenic-vault')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">The Vault</button></li>
-                  <li><button onClick={() => onNavigate('directory')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Directory</button></li>
-                  <li><button onClick={() => onNavigate('app-studio')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">App Studio</button></li>
+                  <li><button onClick={() => onNavigate('scenic-insights')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">Articles</button></li>
+                  <li><button onClick={() => onNavigate('scenic-vault')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">The Vault</button></li>
+                  <li><button onClick={() => onNavigate('directory')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">Directory</button></li>
+                  <li><button onClick={() => onNavigate('app-studio')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">App Studio</button></li>
                 </ul>
               </div>
 
               {/* Group 3 */}
               <div className="space-y-6">
-                <h3 className="font-mono text-xs text-orange-600 dark:text-orange-400 uppercase tracking-widest">Connect</h3>
+                <h3 className="font-mono text-xs text-orange-700 dark:text-orange-400 uppercase tracking-widest">Connect</h3>
                 <ul className="space-y-3 font-sans text-sm">
-                  <li><button onClick={() => onNavigate('contact')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100 font-bold">Start a Project</button></li>
-                  <li><button onClick={() => onNavigate('about')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">About</button></li>
-                  <li><button onClick={() => onNavigate('cv')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">CV / Resume</button></li>
-                  <li><button onClick={() => onNavigate('creative-statement')} className="hover:translate-x-1 transition-transform opacity-70 hover:opacity-100">Philosophy</button></li>
+                  <li><button onClick={() => onNavigate('contact')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white font-bold">Start a Project</button></li>
+                  <li><button onClick={() => onNavigate('about')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">About</button></li>
+                  <li><button onClick={() => onNavigate('cv')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">CV / Resume</button></li>
+                  <li><button onClick={() => onNavigate('creative-statement')} className="hover:translate-x-1 transition-transform text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white">Philosophy</button></li>
                 </ul>
               </div>
             </div>
@@ -136,16 +136,16 @@ export function Footer({ onNavigate }: FooterProps) {
 
         {/* BOTTOM METADATA */}
         <div className="mt-16 pt-8 border-t border-black/5 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="font-mono text-[10px] uppercase opacity-40">
+          <div className="font-mono text-[10px] uppercase text-neutral-500 dark:text-neutral-400">
             © {currentYear} Brandon PT Davis. All Rights Reserved.
           </div>
-          <div className="flex gap-8 font-mono text-[10px] uppercase opacity-40">
-            <button onClick={() => onNavigate('privacy')} className="hover:opacity-100 hover:text-red-500 transition-colors">Privacy</button>
-            <button onClick={() => onNavigate('terms')} className="hover:opacity-100 hover:text-red-500 transition-colors">Terms</button>
-            <button onClick={() => onNavigate('faq')} className="hover:opacity-100 hover:text-red-500 transition-colors">FAQ</button>
-            <button onClick={() => onNavigate('accessibility')} className="hover:opacity-100 hover:text-red-500 transition-colors">Accessibility</button>
-            <button onClick={() => onNavigate('sitemap')} className="hover:opacity-100 hover:text-red-500 transition-colors">Sitemap</button>
-            <button onClick={() => onNavigate('admin')} className="hover:opacity-100 hover:text-red-500 transition-colors">Admin</button>
+          <div className="flex gap-8 font-mono text-[10px] uppercase text-neutral-500 dark:text-neutral-400">
+            <button onClick={() => onNavigate('privacy')} className="hover:text-red-500 transition-colors">Privacy</button>
+            <button onClick={() => onNavigate('terms')} className="hover:text-red-500 transition-colors">Terms</button>
+            <button onClick={() => onNavigate('faq')} className="hover:text-red-500 transition-colors">FAQ</button>
+            <button onClick={() => onNavigate('accessibility')} className="hover:text-red-500 transition-colors">Accessibility</button>
+            <button onClick={() => onNavigate('sitemap')} className="hover:text-red-500 transition-colors">Sitemap</button>
+            <button onClick={() => onNavigate('admin')} className="hover:text-red-500 transition-colors">Admin</button>
           </div>
         </div>
       </div>
