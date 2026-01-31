@@ -488,29 +488,28 @@ export function NewsArticle({ newsId, onNavigate }: NewsArticleProps) {
         structuredData={articleSchema}
       />
 
-      {/* Fixed Gradient Background - Restored to original dynamic style */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        data-nav="dark"
-        style={{
-          background: colors
-            ? `
-              radial-gradient(ellipse 80% 50% at 20% 20%, ${colors.primary}, transparent),
-              radial-gradient(ellipse 50% 80% at 80% 50%, ${colors.secondary}, transparent),
-              radial-gradient(ellipse 60% 40% at 40% 80%, ${colors.accent || colors.primary}, transparent),
-              linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 30%, #16213e 70%, #0a0a0a 100%)
-            `
-            : `
-              radial-gradient(circle at 20% 20%, rgba(255, 100, 150, 0.45), transparent 80%), /* Vibrant Pink - Expanded */
-              radial-gradient(circle at 80% 30%, rgba(120, 50, 220, 0.5), transparent 80%), /* Deep Purple - Expanded */
-              radial-gradient(circle at 50% 80%, rgba(50, 220, 230, 0.45), transparent 80%), /* Bright Cyan - Expanded */
-              linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%) /* Dark Base */
-            `
-        }}
-      />
+      {/* Professional Background - Admin Style */}
+      <div className="fixed inset-0 z-0 bg-zinc-950">
+        {/* Atmospheric Glows */}
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[150px]" />
+        {colors && (
+          <>
+            <div
+              className="absolute top-1/3 right-1/3 w-[500px] h-[500px] rounded-full blur-[140px] opacity-20"
+              style={{ background: colors.primary }}
+            />
+            <div
+              className="absolute bottom-1/4 left-1/3 w-[500px] h-[500px] rounded-full blur-[140px] opacity-15"
+              style={{ background: colors.secondary }}
+            />
+          </>
+        )}
+        {/* Noise Texture Overlay */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay" />
+      </div>
 
-      {/* Noise Overlay */}
-      <div className="fixed inset-0 z-[1] pointer-events-none opacity-[0.05] bg-noise mix-blend-overlay"></div>
+
 
       <div className="relative z-10 min-h-screen dark text-white">
 
