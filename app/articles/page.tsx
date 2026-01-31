@@ -13,11 +13,19 @@ export async function generateMetadata({
 }
 
 export default async function ArticlesPage() {
-  const articles = await getAllArticles();
+  let articles = [];
+
+  try {
+    articles = await getAllArticles();
+  } catch (error) {
+    console.error('Failed to fetch articles:', error);
+    // Return empty array on error - page will still render
+    articles = [];
+  }
 
   return (
     <Suspense fallback={<SkeletonArticleGrid />}>
-      <ArticlesPageClient articles={articles} />
+      <ArticlesPageClient articles={articles || []} />
     </Suspense>
   );
 }

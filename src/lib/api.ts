@@ -29,50 +29,55 @@ async function fetchAPI(query: string, { variables }: { variables?: any } = {}) 
 }
 
 export async function getAllArticles() {
-  const data = await fetchAPI(
-    `
-    query AllArticles {
-      articles(first: 100, where: { orderby: { field: DATE, order: DESC } }) {
-        edges {
-          node {
-            title
-            excerpt
-            slug
-            date
-            content
-            featuredImage {
-              node {
-                sourceUrl
-                mediaDetails {
-                    width
-                    height
+  try {
+    const data = await fetchAPI(
+      `
+      query AllArticles {
+        articles(first: 100, where: { orderby: { field: DATE, order: DESC } }) {
+          edges {
+            node {
+              title
+              excerpt
+              slug
+              date
+              content
+              featuredImage {
+                node {
+                  sourceUrl
+                  mediaDetails {
+                      width
+                      height
+                  }
                 }
               }
-            }
-            articleCatagories {
-              edges {
-                node {
-                  name
-                  slug
+              articleCatagories {
+                edges {
+                  node {
+                    name
+                    slug
+                  }
                 }
               }
-            }
-            articleTags {
-              edges {
-                node {
-                  name
-                  slug
+              articleTags {
+                edges {
+                  node {
+                    name
+                    slug
+                  }
                 }
               }
             }
           }
         }
       }
-    }
-  `
-  );
+    `
+    );
 
-  return data?.articles?.edges;
+    return data?.articles?.edges || [];
+  } catch (error) {
+    console.error('Error fetching all articles:', error);
+    return [];
+  }
 }
 
 export async function getArticle(slug: string) {
