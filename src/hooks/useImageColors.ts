@@ -69,9 +69,39 @@ export function useImageColors(imageUrl: string | undefined): ColorResult | null
           }));
 
         if (sortedColors.length >= 2) {
-          const primary = sortedColors[0];
-          const secondary = sortedColors[1];
-          const accent = sortedColors[2] || sortedColors[1];
+          // Helper function to darken light colors
+          const darkenIfTooLight = (color: { r: number; g: number; b: number }) => {
+            // Calculate luminance (0 = black, 1 = white)
+            const luminance = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+            
+            // If color is too light (luminance > 0.6), darken it significantly
+            if (luminance > 0.6) {
+              // Darken by reducing RGB values proportionally
+              const darkenFactor = 0.3; // Reduce to 30% of original brightness
+              return {
+                r: Math.round(color.r * darkenFactor),
+                g: Math.round(color.g * darkenFactor),
+                b: Math.round(color.b * darkenFactor),
+              };
+            }
+            
+            // If still somewhat light (0.4 < luminance <= 0.6), darken slightly
+            if (luminance > 0.4) {
+              const darkenFactor = 0.6; // Reduce to 60% of original brightness
+              return {
+                r: Math.round(color.r * darkenFactor),
+                g: Math.round(color.g * darkenFactor),
+                b: Math.round(color.b * darkenFactor),
+              };
+            }
+            
+            // Color is dark enough, return as-is
+            return color;
+          };
+
+          const primary = darkenIfTooLight(sortedColors[0]);
+          const secondary = darkenIfTooLight(sortedColors[1]);
+          const accent = darkenIfTooLight(sortedColors[2] || sortedColors[1]);
 
           // Calculate luminance to determine if dark or light
           const luminance = (0.299 * primary.r + 0.587 * primary.g + 0.114 * primary.b) / 255;
