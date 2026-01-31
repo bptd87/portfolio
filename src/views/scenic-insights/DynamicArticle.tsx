@@ -669,275 +669,250 @@ export function DynamicArticle({ slug, onNavigate, article: wpArticle, relatedAr
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 relative">
-      {/* Professional Background - Admin Style */}
-      <div className="fixed inset-0 z-0">
-        {/* Atmospheric Glows */}
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[150px]" />
-        {article.categoryColor && (
-          <>
-            <div
-              className="absolute top-1/3 right-1/3 w-[500px] h-[500px] rounded-full blur-[140px] opacity-20"
-              style={{ background: article.categoryColor }}
-            />
-            <div
-              className="absolute bottom-1/4 left-1/3 w-[500px] h-[500px] rounded-full blur-[140px] opacity-15"
-              style={{ background: article.categoryColor }}
-            />
-          </>
-        )}
-        {/* Noise Texture Overlay */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay" />
-      </div>
-
-      {/* Content Layer */}
-      <div className="relative z-10">
-        {article && (
-          <SEO
-            metadata={generateArticleMetadata({
-              title: article.title,
-              excerpt: article.excerpt,
-              coverImage: article.coverImage,
-              category: article.category,
-              date: article.date,
-              id: article.id,
-              slug: article.slug,
-              tags: article.tags,
-              author: {
-                name: "Brandon PT Davis",
-                url: "https://www.brandonptdavis.com/about",
-                image: "https://www.brandonptdavis.com/images/author-brandon.png"
-              }
-            })}
-          />
-        )}
-        {/* Reading Progress Bar */}
-        <motion.div
-          className="fixed top-0 left-0 right-0 h-1 z-50 origin-left"
-          style={{ scaleX: scrollYProgress, backgroundColor: article.categoryColor || 'var(--accent-brand)' } as any}
+    <div className="min-h-screen bg-white dark:bg-black">
+      {article && (
+        <SEO
+          metadata={generateArticleMetadata({
+            title: article.title,
+            excerpt: article.excerpt,
+            coverImage: article.coverImage,
+            category: article.category,
+            date: article.date,
+            id: article.id,
+            slug: article.slug,
+            tags: article.tags,
+            author: {
+              name: "Brandon PT Davis",
+              url: "https://www.brandonptdavis.com/about",
+              image: "https://www.brandonptdavis.com/images/author-brandon.png"
+            }
+          })}
         />
+      )}
+      {/* Reading Progress Bar */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 z-50 origin-left"
+        style={{ scaleX: scrollYProgress, backgroundColor: article.categoryColor || 'var(--accent-brand)' } as any}
+      />
 
-        {article.coverImage && article.coverImage.trim() !== '' ? (
-          <>
-            {/* Strict Vox-Style Hero Layout - Fixed Alignment & Image */}
-            <section className="relative w-full pt-16 md:pt-24 pb-12 px-6 md:px-12 bg-background">
-              <div className="max-w-screen-xl mx-auto flex flex-col items-center">
+      {article.coverImage && article.coverImage.trim() !== '' ? (
+        <>
+          {/* Strict Vox-Style Hero Layout - Fixed Alignment & Image */}
+          <section className="relative w-full pt-16 md:pt-24 pb-12 px-6 md:px-12 bg-background">
+            <div className="max-w-screen-xl mx-auto flex flex-col items-center">
 
-                {/* 1. Image (Top, Centered, Constrained to match text) */}
+              {/* 1. Image (Top, Centered, Constrained to match text) */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 1, ease: [0.2, 0, 0.2, 1] }}
+                className="w-full max-w-3xl relative aspect-[16/9] md:aspect-[2/1] rounded-lg overflow-hidden shadow-sm mb-12"
+              >
+                <CloudinaryImage
+                  src={article.coverImage}
+                  alt={article.title}
+                  className="w-full h-full object-cover"
+                  priority={true}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+                />
+              </motion.div>
+
+              {/* Text Container - Centered on Page, Left Aligned Text */}
+              <div className="w-full max-w-3xl flex flex-col items-start text-left">
+
+                {/* 2. Meta Info (Category | Date - Vox Style) */}
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.98, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ duration: 1, ease: [0.2, 0, 0.2, 1] }}
-                  className="w-full max-w-3xl relative aspect-[16/9] md:aspect-[2/1] rounded-lg overflow-hidden shadow-sm mb-12"
-                >
-                  <CloudinaryImage
-                    src={article.coverImage}
-                    alt={article.title}
-                    className="w-full h-full object-cover"
-                    priority={true}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
-                  />
-                </motion.div>
-
-                {/* Text Container - Centered on Page, Left Aligned Text */}
-                <div className="w-full max-w-3xl flex flex-col items-start text-left">
-
-                  {/* 2. Meta Info (Category | Date - Vox Style) */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    className="flex items-center gap-3 mb-6"
-                  >
-                    <span
-                      className="font-bold text-xs tracking-widest uppercase text-[var(--accent-brand)]"
-                      style={{ color: article.categoryColor }}
-                    >
-                      {article.category}
-                    </span>
-                    <span className="text-foreground/20">|</span>
-                    <span className="font-sans text-xs tracking-wide text-foreground/60 uppercase">
-                      {new Date(article.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </span>
-                    {article.readTime && (
-                      <>
-                        <span className="text-foreground/20">|</span>
-                        <span className="font-sans text-xs tracking-wide text-foreground/60 uppercase">
-                          {article.readTime}
-                        </span>
-                      </>
-                    )}
-                  </motion.div>
-
-                  {/* 3. Title (Left Aligned) */}
-                  <motion.h1
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    className="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05] text-foreground mb-6 tracking-tight font-semibold"
-                  >
-                    {article.title}
-                  </motion.h1>
-
-                  {/* 4. Excerpt (New) */}
-                  {/* Using article.description as fallback for excerpt if explicit excerpt doesn't exist */}
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.4 }}
-                    className="text-xl md:text-2xl leading-relaxed text-foreground/70 mb-8 font-serif antialiased"
-                  >
-                    {article.excerpt || "A deep dive into the creative process and technical challenges behind this production."}
-                  </motion.p>
-
-                  {/* 5. Author & Meta (Left Aligned) */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8 mb-4 text-sm text-foreground/60 font-medium w-full border-t border-foreground/10 pt-6"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-6 w-full border-t border-foreground/10 pt-6">
-                      <div className="flex items-center gap-3">
-                        <div className="flex flex-col items-start leading-tight gap-0.5">
-                          <span className="text-foreground text-xs uppercase tracking-wider font-bold">By Brandon PT Davis</span>
-                          <span className="text-foreground/60 text-[10px] uppercase tracking-widest font-medium">Scenic + Experiential Designer</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-6 ml-auto">
-                        <div className="flex items-center gap-3">
-                          <LikeButton projectId={article.id} type="post" initialLikes={likes} size="sm" />
-                          <ShareButton title={article.title} url={typeof window !== 'undefined' ? window.location.href : ''} size="sm" />
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-
-              </div>
-            </section>
-          </>
-        ) : (
-          <>
-            {/* No Image Hero - Centered and Big */}
-            <div className="min-h-[70vh] flex flex-col justify-center items-center text-center px-6 pt-32 pb-16 relative overflow-hidden">
-              {/* Background Pattern */}
-              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.03] to-transparent" />
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-
-              <div className="relative z-10 max-w-4xl mx-auto">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="flex flex-col items-center gap-6"
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="flex items-center gap-3 mb-6"
                 >
                   <span
-                    className="font-pixel text-xs tracking-[0.3em] uppercase bg-foreground/[0.03] px-4 py-2 rounded-full border border-foreground/[0.05]"
-                    style={{ color: article.categoryColor || 'var(--accent-brand)' }}
+                    className="font-bold text-xs tracking-widest uppercase text-[var(--accent-brand)]"
+                    style={{ color: article.categoryColor }}
                   >
                     {article.category}
                   </span>
+                  <span className="text-foreground/20">|</span>
+                  <span className="font-sans text-xs tracking-wide text-foreground/60 uppercase">
+                    {new Date(article.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  {article.readTime && (
+                    <>
+                      <span className="text-foreground/20">|</span>
+                      <span className="font-sans text-xs tracking-wide text-foreground/60 uppercase">
+                        {article.readTime}
+                      </span>
+                    </>
+                  )}
+                </motion.div>
 
-                  <h1 className="font-display text-5xl sm:text-7xl md:text-8xl italic leading-[0.9] text-foreground drop-shadow-sm">
-                    {article.title}
-                  </h1>
+                {/* 3. Title (Left Aligned) */}
+                <motion.h1
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                  className="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05] text-foreground mb-6 tracking-tight font-semibold"
+                >
+                  {article.title}
+                </motion.h1>
 
-                  <div className="flex items-center gap-6 text-sm font-sans tracking-wide opacity-60 mt-4">
-                    <span>{new Date(article.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                    <span className="w-1.5 h-1.5 bg-current rounded-full opacity-50" />
-                    <span>{article.readTime}</span>
+                {/* 4. Excerpt (New) */}
+                {/* Using article.description as fallback for excerpt if explicit excerpt doesn't exist */}
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+                  className="text-xl md:text-2xl leading-relaxed text-foreground/70 mb-8 font-serif antialiased"
+                >
+                  {article.excerpt || "A deep dive into the creative process and technical challenges behind this production."}
+                </motion.p>
+
+                {/* 5. Author & Meta (Left Aligned) */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8 mb-4 text-sm text-foreground/60 font-medium w-full border-t border-foreground/10 pt-6"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-6 w-full border-t border-foreground/10 pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-start leading-tight gap-0.5">
+                        <span className="text-foreground text-xs uppercase tracking-wider font-bold">By Brandon PT Davis</span>
+                        <span className="text-foreground/60 text-[10px] uppercase tracking-widest font-medium">Scenic + Experiential Designer</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6 ml-auto">
+                      <div className="flex items-center gap-3">
+                        <LikeButton projectId={article.id} type="post" initialLikes={likes} size="sm" />
+                        <ShareButton title={article.title} url={typeof window !== 'undefined' ? window.location.href : ''} size="sm" />
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               </div>
+
             </div>
-          </>
-        )}
+          </section>
+        </>
+      ) : (
+        <>
+          {/* No Image Hero - Centered and Big */}
+          <div className="min-h-[70vh] flex flex-col justify-center items-center text-center px-6 pt-32 pb-16 relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.03] to-transparent" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
-        {/* Article Content */}
-        <article className={`max-w-4xl mx-auto px-6 md:px-12 ${article.coverImage && article.coverImage.trim() !== '' ? 'pt-12 pb-16' : 'py-16 md:py-24'}`}>
-          {/* Article Content - Clean magazine layout */}
-          <div className="prose-custom-wrapper text-justify">
-            <BlockRenderer blocks={contentBlocks} accentColor={article.categoryColor} />
-          </div>
+            <div className="relative z-10 max-w-4xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="flex flex-col items-center gap-6"
+              >
+                <span
+                  className="font-pixel text-xs tracking-[0.3em] uppercase bg-foreground/[0.03] px-4 py-2 rounded-full border border-foreground/[0.05]"
+                  style={{ color: article.categoryColor || 'var(--accent-brand)' }}
+                >
+                  {article.category}
+                </span>
 
+                <h1 className="font-display text-5xl sm:text-7xl md:text-8xl italic leading-[0.9] text-foreground drop-shadow-sm">
+                  {article.title}
+                </h1>
 
-
-          {/* Tags */}
-          {article.tags && article.tags.length > 0 && (
-            <div className="py-12 border-t border-foreground/5">
-              <div className="flex flex-col gap-6">
-                <span className="font-pixel text-[9px] tracking-[0.3em] text-foreground/40 uppercase">Tagged</span>
-                <div className="flex flex-wrap gap-2">
-                  {article.tags.map((tag) => (
-                    <button
-                      key={tag}
-                      onClick={() => handleTagClick(tag)}
-                      className="px-3 py-1.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.06] hover:border-foreground/10 rounded-md transition-all text-xs tracking-wide opacity-70 hover:opacity-100"
-                    >
-                      {tag}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-6 text-sm font-sans tracking-wide opacity-60 mt-4">
+                  <span>{new Date(article.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  <span className="w-1.5 h-1.5 bg-current rounded-full opacity-50" />
+                  <span>{article.readTime}</span>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          )}
-
-          {/* Author Section */}
-          <div className="py-12 border-t border-foreground/5">
-            <AuthorProfile />
           </div>
+        </>
+      )}
 
-          {/* Related Articles Section */}
-          {relatedPosts.length > 0 && (
-            <div className="py-12 border-t border-foreground/5">
-              <div className="mb-10">
-                <h2 className="font-display text-3xl md:text-4xl italic mb-2">Related Articles</h2>
-                <p className="font-pixel text-[10px] tracking-[0.2em] opacity-60 uppercase">Continue Reading</p>
-              </div>
+      {/* Article Content */}
+      <article className={`max-w-4xl mx-auto px-6 md:px-12 ${article.coverImage && article.coverImage.trim() !== '' ? 'pt-12 pb-16' : 'py-16 md:py-24'}`}>
+        {/* Article Content - Clean magazine layout */}
+        <div className="prose-custom-wrapper text-justify">
+          <BlockRenderer blocks={contentBlocks} accentColor={article.categoryColor} />
+        </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                {relatedPosts.slice(0, 3).map((post, index) => (
-                  <div key={post.id} className="relative aspect-[3/4]">
-                    <BlogCard
-                      title={post.title}
-                      excerpt={post.excerpt}
-                      date={new Date(post.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                      category={post.category}
-                      readTime={post.readTime}
-                      image={post.coverImage}
-                      href={`/articles/${post.slug}`}
-                      variant="nothing"
-                      index={index}
-                    />
-                  </div>
+
+
+        {/* Tags */}
+        {article.tags && article.tags.length > 0 && (
+          <div className="py-12 border-t border-foreground/5">
+            <div className="flex flex-col gap-6">
+              <span className="font-pixel text-[9px] tracking-[0.3em] text-foreground/40 uppercase">Tagged</span>
+              <div className="flex flex-wrap gap-2">
+                {article.tags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => handleTagClick(tag)}
+                    className="px-3 py-1.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-foreground/[0.06] hover:border-foreground/10 rounded-md transition-all text-xs tracking-wide opacity-70 hover:opacity-100"
+                  >
+                    {tag}
+                  </button>
                 ))}
               </div>
             </div>
-          )}
-
-          {/* Comments Section */}
-          <div className="py-12 border-t border-foreground/5">
-            {article.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id) && (
-              <React.Suspense fallback={<div className="h-24 flex items-center justify-center opacity-40">Loading comments...</div>}>
-                <CommentsSection articleId={article.id} />
-              </React.Suspense>
-            )}
           </div>
-        </article>
+        )}
 
-        {/* Table of Contents - Fixed sidebar */}
-        {article.content && <TableOfContents blocks={article.content} activeHeading={activeHeading} />}
-      </div>
-    </div> {/* Close content layer */}
-    </div> {/* Close main container */ }
+        {/* Author Section */}
+        <div className="py-12 border-t border-foreground/5">
+          <AuthorProfile />
+        </div>
+
+        {/* Related Articles Section */}
+        {relatedPosts.length > 0 && (
+          <div className="py-12 border-t border-foreground/5">
+            <div className="mb-10">
+              <h2 className="font-display text-3xl md:text-4xl italic mb-2">Related Articles</h2>
+              <p className="font-pixel text-[10px] tracking-[0.2em] opacity-60 uppercase">Continue Reading</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {relatedPosts.slice(0, 3).map((post, index) => (
+                <div key={post.id} className="relative aspect-[3/4]">
+                  <BlogCard
+                    title={post.title}
+                    excerpt={post.excerpt}
+                    date={new Date(post.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                    category={post.category}
+                    readTime={post.readTime}
+                    image={post.coverImage}
+                    href={`/articles/${post.slug}`}
+                    variant="nothing"
+                    index={index}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Comments Section */}
+        <div className="py-12 border-t border-foreground/5">
+          {article.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id) && (
+            <React.Suspense fallback={<div className="h-24 flex items-center justify-center opacity-40">Loading comments...</div>}>
+              <CommentsSection articleId={article.id} />
+            </React.Suspense>
+          )}
+        </div>
+      </article>
+
+      {/* Table of Contents - Fixed sidebar */}
+      {article.content && <TableOfContents blocks={article.content} activeHeading={activeHeading} />}
+    </div>
   );
 }
