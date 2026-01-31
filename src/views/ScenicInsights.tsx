@@ -65,35 +65,37 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag, articl
   useEffect(() => {
     const processData = async () => {
       if (wpArticles) {
-        const mappedArticles: ArticleItem[] = wpArticles.map((edge: any) => {
-          const node = edge.node;
-          // IMPORTANT: Check for articleCatagories (typo in schema)
-          const category = node.articleCatagories?.edges?.[0]?.node?.name || 'Article';
+        const mappedArticles: ArticleItem[] = wpArticles
+          .filter((edge: any) => edge?.node) // Filter out invalid edges
+          .map((edge: any) => {
+            const node = edge.node;
+            // IMPORTANT: Check for articleCatagories (typo in schema)
+            const category = node.articleCatagories?.edges?.[0]?.node?.name || 'Article';
 
-          // Clean up excerpt - remove HTML tags
-          const excerpt = node.excerpt ? node.excerpt.replace(/<[^>]*>?/gm, '') : '';
+            // Clean up excerpt - remove HTML tags
+            const excerpt = node.excerpt ? node.excerpt.replace(/<[^>]*>?/gm, '') : '';
 
-          // Extract tags
-          const tags = node.articleTags?.edges?.map((edge: any) => edge.node.name) || [];
+            // Extract tags
+            const tags = node.articleTags?.edges?.map((edge: any) => edge.node.name) || [];
 
-          // Clean up content for word count
-          const contentText = node.content ? node.content.replace(/<[^>]*>?/gm, '') :
-            (node.excerpt ? node.excerpt.replace(/<[^>]*>?/gm, '') : '');
-          const wordCount = contentText.split(/\s+/).length || 500;
-          const readTimeProp = Math.ceil(wordCount / 200) + ' min read';
+            // Clean up content for word count
+            const contentText = node.content ? node.content.replace(/<[^>]*>?/gm, '') :
+              (node.excerpt ? node.excerpt.replace(/<[^>]*>?/gm, '') : '');
+            const wordCount = contentText.split(/\s+/).length || 500;
+            const readTimeProp = Math.ceil(wordCount / 200) + ' min read';
 
-          return {
-            id: node.slug,
-            title: node.title,
-            date: node.date,
-            category: category,
-            coverImage: node.featuredImage?.node?.sourceUrl,
-            excerpt: excerpt,
-            slug: node.slug,
-            tags: tags,
-            readTime: readTimeProp,
-          };
-        });
+            return {
+              id: node.slug || node.id || `article-${Date.now()}`,
+              title: node.title || 'Untitled',
+              date: node.date || new Date().toISOString(),
+              category: category,
+              coverImage: node.featuredImage?.node?.sourceUrl,
+              excerpt: excerpt,
+              slug: node.slug || node.id,
+              tags: tags,
+              readTime: readTimeProp,
+            };
+          });
         setArticles(mappedArticles);
         setLoading(false);
 
@@ -220,7 +222,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag, articl
                   <BlogCard
                     title={article.title}
                     excerpt={article.excerpt}
-                    date={new Date(article.date).toLocaleDateString()}
+                    date={article.date ? new Date(article.date).toLocaleDateString() : 'No date'}
                     category={article.category}
                     readTime={article.readTime}
                     image={article.coverImage}
