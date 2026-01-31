@@ -1,0 +1,556 @@
+--- FOUND ARTICLE ---
+Keys: [
+  'id',
+  'slug',
+  'title',
+  'excerpt',
+  'content',
+  'category',
+  'cover_image',
+  'published_at',
+  'read_time',
+  'tags',
+  'views',
+  'likes',
+  'published',
+  'created_at',
+  'updated_at',
+  'cover_image_focal_point'
+]
+Slug: sora-in-the-studio-testing-ais-potential-for-theatrical-design
+[
+  {
+    id: 'block-1767777830573-0',
+    type: 'paragraph',
+    content: "As a scenic designer, I've found myself at the crossroads of tradition and innovation. AI tools have burst onto the scene, but Sora stands apart as something uniquely suited to theatrical visualization. Many of my colleagues are understandably cautious—worried that the human touch and collaborative spirit that define our craft might be diluted by automated shortcuts."
+  },
+  {
+    id: 'block-1767777830573-1',
+    type: 'paragraph',
+    content: "I share those concerns. Yet I can't ignore how the landscape is shifting around us. In architectural visualization and commercial production, AI is already becoming standard practice. Detailed 3D modeling that once took days in Cinema 4D or Unreal Engine is increasingly being replaced by faster, AI-driven alternatives—not because they're better, but because they're more economical and efficient."
+  },
+  {
+    id: 'block-1767777830573-2',
+    type: 'paragraph',
+    content: "What makes Sora different is its remarkable ability to understand and transform existing images. Unlike tools like Midjourney that excel at generating images from text descriptions, Sora can take a designer's original rendering and enhance it while maintaining the core design elements. This image-to-image capability is revolutionary for designers who already have visualization skills but want to elevate their presentations without starting from scratch."
+  },
+  {
+    id: 'block-1767777830573-3',
+    type: 'paragraph',
+    content: "As freelance designers increasingly work on hourly rates, clients are less willing to pay for time-intensive modeling and rendering. That reality saddens me—those meticulous stages of creation are part of what I love about design. But it's also prompted me to explore: how might we adapt without losing the essence of what makes us designers?"
+  },
+  {
+    id: 'block-1767777830573-4',
+    type: 'heading',
+    content: 'Sora vs. Other AI Tools',
+    metadata: { level: 2 }
+  },
+  {
+    id: 'block-1767777830573-5',
+    type: 'paragraph',
+    content: "Before diving into my experiments, it's worth highlighting what makes Sora distinctive in the AI landscape. Unlike Gigapixel AI, which enhances resolution but often produces unpredictable results and requires significant time investment, Sora offers more creative control while maintaining reasonable processing speeds. Though not as lightning-fast as Midjourney, Sora's learning curve is considerably gentler—especially for designers who already think visually rather than textually."
+  },
+  {
+    id: 'block-1767777830573-6',
+    type: 'paragraph',
+    content: "The key difference is Sora's image-to-image workflow. While most AI tools require you to build an image from scratch using text prompts alone, Sora excels at taking existing design work and transforming it in ways that preserve the designer's intent. This means you can start with your own sketches, renderings, or photographs and enhance them rather than replacing them with AI-generated alternatives."
+  },
+  {
+    id: 'block-1767777830573-7',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/87d2242a-ee2d-49a1-a05e-7acfffd73555/assets-task_01jqnmsj26fgr8cfc4h0txegvj-img_0+Large.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-8',
+    type: 'heading',
+    content: 'Technical Setup',
+    metadata: { level: 2 }
+  },
+  {
+    id: 'block-1767777830573-9',
+    type: 'paragraph',
+    content: "For those curious about my experimental setup, I'm using:"
+  },
+  {
+    id: 'block-1767777830573-10',
+    type: 'list',
+    content: 'Primary design software: Vectorworks for drafting and basic 3D modeling\n' +
+      'Rendering enhancement: Sora for image-to-video and retexturing\n' +
+      'Post-processing: Adobe Photoshop for fine-tuning AI outputs\n' +
+      "Prompt development: ChatGPT to help craft precise instructions (essential for Sora's workflow)\n" +
+      'Hardware: 16" MacBook Pro M4 Max with 64GB RAM for local work',
+    metadata: { listType: 'bullet' }
+  },
+  {
+    id: 'block-1767777830573-11',
+    type: 'paragraph',
+    content: "While Sora's learning curve is more approachable than many AI tools, I've found that spending time refining prompts before processing images leads to better results with fewer iterations. The system responds particularly well to detailed, specific instructions that reference elements already present in your original image."
+  },
+  {
+    id: 'block-1767777830573-12',
+    type: 'heading',
+    content: 'Seven Experiments with Sora',
+    metadata: { level: 2 }
+  },
+  {
+    id: 'block-1767777830573-13',
+    type: 'paragraph',
+    content: "In this exploration, I've been experimenting with seven distinct applications of Sora within my scenic design workflow. These aren't finished designs or polished concepts, but rather experiments and case studies. Some proved more successful than others, but each has given me insight into how AI might complement—rather than replace—a designer's toolkit."
+  },
+  {
+    id: 'block-1767777830573-14',
+    type: 'heading',
+    content: '1. Image to Video: Testing Motion and Mood',
+    metadata: { level: 2 }
+  },
+  {
+    id: 'block-1767777830573-15',
+    type: 'paragraph',
+    content: 'Context'
+  },
+  {
+    id: 'block-1767777830573-16',
+    type: 'paragraph',
+    content: "My first experiment with Sora focused on transforming static renderings into short video sequences. I started with a concept rendering I'd created for the Red Line Café, a Chicago-inspired environment."
+  },
+  {
+    id: 'block-1767777830573-17',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/772f02e0-0c1f-416f-9b57-38f6893fc391/Rendering_Red+Line+Cafe6.jpg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-18',
+    type: 'heading',
+    content: 'Prompt Used:',
+    metadata: { level: 2 }
+  },
+  {
+    id: 'block-1767777830573-19',
+    type: 'paragraph',
+    content: '"This was a simple request to see how the software would interpret the atmosphere, layout, and depth of the space."'
+  },
+  { id: 'block-1767777830573-20', type: 'paragraph', content: '' },
+  {
+    id: 'block-1767777830573-21',
+    type: 'heading',
+    content: 'Reflections',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830573-22',
+    type: 'paragraph',
+    content: "Using Sora, I converted my still rendering into a 10-second animated video, simulating atmospheric elements like light shifts and subtle movement. While the retexturing added dimension, the lighting wasn't quite what I'd hoped for."
+  },
+  {
+    id: 'block-1767777830573-23',
+    type: 'paragraph',
+    content: 'The results were nonetheless impressive. Sora captured the atmospheric flow of the space in a way that would typically require a complete 3D model. However, the environment beyond the original frame became less accurate, and the characters that appeared often felt contextually mismatched.'
+  },
+  {
+    id: 'block-1767777830573-24',
+    type: 'paragraph',
+    content: "This exercise revealed potential for creating quick mood reels or dynamic pitch materials when time or budget constraints don't allow for traditional animation workflows."
+  },
+  {
+    id: 'block-1767777830573-25',
+    type: 'heading',
+    content: '2. Retexturing and Relighting Existing Renderings',
+    metadata: { level: 2 }
+  },
+  {
+    id: 'block-1767777830573-26',
+    type: 'heading',
+    content: 'Context',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830573-27',
+    type: 'paragraph',
+    content: "I explored how Sora handles texture and lighting enhancements using two different scenic renderings: All My Sons and Romero. Each project presented unique opportunities to test Sora's capabilities at different stages of completion."
+  },
+  {
+    id: 'block-1767777830573-28',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/53932bbf-a4c3-4bb6-a965-8fba53273db9/All+My+Sons_Sketch-4+Large.jpeg',
+    metadata: { alt: '', size: 'small', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-29',
+    type: 'heading',
+    content: 'Process & Prompt',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830573-30',
+    type: 'paragraph',
+    content: 'The All My Sons rendering was an older image I had previously enhanced using Gigapixel AI. I wanted to see if Sora could refine the textures while preserving the original design elements.'
+  },
+  {
+    id: 'block-1767777830573-31',
+    type: 'paragraph',
+    content: 'Prompt Used:'
+  },
+  {
+    id: 'block-1767777830573-32',
+    type: 'paragraph',
+    content: '"I want you to retexture this rendering but maintain the design elements. Going for realism."'
+  },
+  {
+    id: 'block-1767777830573-33',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/089ca2ab-1916-4239-a67f-c9567f690c61/pasted-image+Large.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-34',
+    type: 'paragraph',
+    content: 'Sora generated rendering of All My Sons Scenic Design.'
+  },
+  {
+    id: 'block-1767777830573-35',
+    type: 'paragraph',
+    content: 'Reflections'
+  },
+  {
+    id: 'block-1767777830573-36',
+    type: 'paragraph',
+    content: 'The result was genuinely impressive—the quality gained an almost dreamlike realism. The materials and lighting were enhanced in a way that gave the image a painterly quality.'
+  },
+  {
+    id: 'block-1767777830573-37',
+    type: 'paragraph',
+    content: "One notable issue: the young couple in the original rendering appeared significantly older after the transformation. This revealed one of Sora's limitations in preserving character intention. In future tests, I'd use more detailed, character-specific prompts to address this."
+  },
+  {
+    id: 'block-1767777830573-38',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/1745343784564-HCEUNMHHHPR0RBP5TH2V/Romero.jpg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-39',
+    type: 'paragraph',
+    content: 'Process & Prompt'
+  },
+  {
+    id: 'block-1767777830573-40',
+    type: 'paragraph',
+    content: "For Romero—a production I'm actively designing that opens next month—I started with a basic Vectorworks rendering. This time, I used ChatGPT to help craft a more precise prompt:"
+  },
+  {
+    id: 'block-1767777830573-41',
+    type: 'paragraph',
+    content: 'Prompt Used:'
+  },
+  {
+    id: 'block-1767777830573-42',
+    type: 'quote',
+    content: '"Enhance this theatrical stage rendering with photorealistic detail while strictly preserving the original layout, aspect ratio, camera angle, and spatial design.This includes maintaining the exact size, shape, position, and elevation of the platform at center stage. Do not modify the platform in any way—it is a scenic element that must remain structurally accurate. The actor portraying Archbishop Óscar Romero must remain standing on the platform, not in front of or behind it, and centered within the triangle as shown.Apply cinematic, theatrical lighting with rich shadows and directional highlights that maintain a sense of atmosphere and depth without obscuring detail. Think stage lighting with dramatic clarity.There are three projection screens in the design—enhance them to look like realistic theatrical projections, including soft glow, fabric texture, and visible projection light diffusion. Do not move or scale the screens.The stage curtains on either side should be rendered with photorealistic fabric depth, folds, and interaction with theatrical lighting—without changing their position or coverage.Keep the yellow floor markings, ground texture, and triangle structure exactly as designed. Enhance realism only through subtle texture improvements—dust, scuffs, and theatrical floor detail.This is a fixed scenic design rendering, so all scenic elements must retain their original spatial relationships. Do not crop, reframe, add, or remove any elements."'
+  },
+  {
+    id: 'block-1767777830573-43',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/5ca092a1-d904-46ff-98a6-0fc37d0b7122/pasted-image-2+Large.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-44',
+    type: 'heading',
+    content: 'Reflections',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830573-45',
+    type: 'paragraph',
+    content: 'The final image quality was remarkably improved—crisp, atmospheric, and more theatrical than the original. Despite my detailed prompt, Sora still introduced subtle warping to the angular platform. This limitation highlights the need for post-processing or additional refinement, but the overall improvement was compelling enough for director conversations or visual pitches.'
+  },
+  {
+    id: 'block-1767777830573-46',
+    type: 'heading',
+    content: '3. Matching Aesthetic Styles for Branding and Graphics',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830573-47',
+    type: 'paragraph',
+    content: 'ContextI had created a simple graphic for a blog about connections between scenic design and video game level design. I wanted to see if Sora could enhance the visual appeal through texture and lighting while maintaining the essential information.'
+  },
+  {
+    id: 'block-1767777830573-48',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/f01ea21b-8c72-44cd-8e20-601cbf6bc1fe/pasted-image-3+Large.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-49',
+    type: 'paragraph',
+    content: 'Prompt Used'
+  },
+  {
+    id: 'block-1767777830573-50',
+    type: 'quote',
+    content: `"I want the 3D object to have texture and cinematic lighting. Background black. Keep text: Block Out, Focal Point, and Guidance—white text. Keep title 'Video Game Level Design,' move to top."`
+  },
+  {
+    id: 'block-1767777830573-51',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/dd1d70ff-a0a0-4936-b875-1ec0afa04f08/pasted-image-4+Large.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-52',
+    type: 'heading',
+    content: 'Reflections',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830573-53',
+    type: 'paragraph',
+    content: 'The result was a significant visual upgrade. Sora interpreted the graphic with stylized lighting and texture depth, giving it a more polished, cinematic quality. This kind of enhancement could be valuable for designers developing branded media—whether for blogs, portfolios, or marketing materials.'
+  },
+  {
+    id: 'block-1767777830573-54',
+    type: 'heading',
+    content: '4. Sketch to Realism: From Model to Concept Art',
+    metadata: { level: 2 }
+  },
+  {
+    id: 'block-1767777830573-55',
+    type: 'heading',
+    content: 'Context',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830573-56',
+    type: 'paragraph',
+    content: 'As both a 3D modeler and scenic designer, I often communicate through detailed 3D renderings rather than sketches. While this approach helps clarify spatial relationships, it sometimes creates tension in the collaborative process. Directors may feel the design is too finalized too early, or hesitate to suggest changes that seem substantial.'
+  },
+  {
+    id: 'block-1767777830573-57',
+    type: 'paragraph',
+    content: 'I wondered if Sora could transform a realistic rendering into something that looked like a hand-drawn sketch—something that would invite conversation rather than shut it down.'
+  },
+  {
+    id: 'block-1767777830573-58',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/65595df9-35ad-4e1c-b988-8e9f867251b1/Footloose+Twinmotion+Rendering.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-59',
+    type: 'heading',
+    content: 'Prompt Used',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830573-60',
+    type: 'paragraph',
+    content: '"This is a scenic rendering I created that I want to look like a scenic design sketch. Dynamic black and white drawing."'
+  },
+  {
+    id: 'block-1767777830573-61',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/90a30fd2-5e0f-4127-a330-e076cdae119b/pasted-image-5+Large.jpeg',
+    metadata: { alt: '', size: 'large', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-62',
+    type: 'paragraph',
+    content: 'This experiment offered valuable insights into collaboration. Sora created a sketch-style rendering that felt expressive and loose, shifting the tone from finalized design to conceptual possibility. It reinforced how visual communication style can influence when and how feedback flows in the design process.'
+  },
+  {
+    id: 'block-1767777830573-63',
+    type: 'heading',
+    content: '5. Populating Environments and Adjusting Perspective',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830573-64',
+    type: 'paragraph',
+    content: 'Context'
+  },
+  {
+    id: 'block-1767777830573-65',
+    type: 'paragraph',
+    content: "For this test, I used a physical scenic model I created for the opera Falstaff during graduate school at UC Irvine. I had always wished I'd included human figures in the model photo to provide scale, so I wanted to see how Sora might handle both retexturing and populating the scene with appropriate characters."
+  },
+  {
+    id: 'block-1767777830573-66',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/052f77f7-6827-4431-9f40-83ca409b6b6f/Scenic+Model_Fallstaff.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830573-67',
+    type: 'paragraph',
+    content: 'Prompt Used'
+  },
+  {
+    id: 'block-1767777830573-68',
+    type: 'paragraph',
+    content: `"Bring this scenic model to life. It's a tavern for the opera Falstaff. Add human characters from Falstaff."`
+  },
+  {
+    id: 'block-1767777830574-69',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/e730c78e-459a-460d-a716-f7f7fbd066fa/pasted-image-6+Large.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830574-70',
+    type: 'paragraph',
+    content: 'Reflections'
+  },
+  {
+    id: 'block-1767777830574-71',
+    type: 'paragraph',
+    content: 'The results exceeded my expectations. The scenic details were greatly enhanced, and while Sora took some creative liberties, most could be refined in post-processing. What impressed me most was how the characters felt appropriate to the world of Falstaff, bringing life and atmosphere to the model beyond what I captured in the original photo.'
+  },
+  {
+    id: 'block-1767777830574-72',
+    type: 'heading',
+    content: '6. Generating Seamless Textures from a Single Image',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830574-73',
+    type: 'paragraph',
+    content: 'Context'
+  },
+  {
+    id: 'block-1767777830574-74',
+    type: 'paragraph',
+    content: 'After seeing the effectiveness of the Falstaff rendering, I wondered if I could use that enhanced image to help create a 3D model. The biggest challenge would be recreating the wall and floor textures—a typically time-consuming process.'
+  },
+  {
+    id: 'block-1767777830574-75',
+    type: 'paragraph',
+    content: 'I asked Sora to generate textures directly from the image.'
+  },
+  { id: 'block-1767777830574-76', type: 'paragraph', content: '' },
+  {
+    id: 'block-1767777830574-77',
+    type: 'paragraph',
+    content: 'Prompt Used'
+  },
+  {
+    id: 'block-1767777830574-78',
+    type: 'paragraph',
+    content: '"Can you create seamless textures of the wall elements and floor for 3D model?"'
+  },
+  {
+    id: 'block-1767777830574-79',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/48defb23-dbd7-4e46-b3ae-936da985d789/assets-task_01jqgay27ke4a9abm01k47fcbd-img_0.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830574-80',
+    type: 'paragraph',
+    content: 'Reflections'
+  },
+  {
+    id: 'block-1767777830574-81',
+    type: 'paragraph',
+    content: "The initial result combined multiple textures into one image, which wasn't ideal for 3D workflow. This was likely due to the 2:3 aspect ratio I used, and the textures weren't fully seamless."
+  },
+  {
+    id: 'block-1767777830574-82',
+    type: 'paragraph',
+    content: "For a second test, I used an image from Bethesda's Skyrim with a 1:1 aspect ratio."
+  },
+  {
+    id: 'block-1767777830574-83',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/ea292673-a1f3-451b-b4ee-4efc7593fbc0/XmzW5cV.jpeg',
+    metadata: { alt: '', size: 'medium', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830574-84',
+    type: 'paragraph',
+    content: 'Prompt Used'
+  },
+  {
+    id: 'block-1767777830574-85',
+    type: 'paragraph',
+    content: '"Create seamless textures from this image."'
+  },
+  {
+    id: 'block-1767777830574-86',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/bda6105d-7633-46ac-ab7e-dafdedc8c888/assets-task_01jqma1gwdfhkrn3yj4cf3p4sv-img_0.jpeg',
+    metadata: { alt: '', size: 'large', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830574-87',
+    type: 'paragraph',
+    content: 'Reflections'
+  },
+  {
+    id: 'block-1767777830574-88',
+    type: 'paragraph',
+    content: 'This time it worked perfectly. The texture passed seamless testing in Photoshop, opening my eyes to how much time could be saved by building a library of AI-generated textures specifically for scenic design.'
+  },
+  {
+    id: 'block-1767777830574-89',
+    type: 'heading',
+    content: '7. Costume to Realism Integration',
+    metadata: { level: 3 }
+  },
+  {
+    id: 'block-1767777830574-90',
+    type: 'paragraph',
+    content: 'Context'
+  },
+  {
+    id: 'block-1767777830574-91',
+    type: 'paragraph',
+    content: "In stylized productions, it's often helpful to contextualize scenic renderings alongside costume designs. However, costume designers may work in different mediums or styles that don't align with scenic rendering aesthetics."
+  },
+  {
+    id: 'block-1767777830574-92',
+    type: 'paragraph',
+    content: 'After seeing how well Sora translated a model photo into a theatrical image, I wondered what it would do with a costume rendering. My colleague and friend, Lauryn Terceira, graciously allowed me to use one of her designs for this test.'
+  },
+  {
+    id: 'block-1767777830574-93',
+    type: 'paragraph',
+    content: 'The rendering depicts Cecily Cardew from The Importance of Being Earnest. I remembered that Lauryn had printed the actual fabric pattern used for the dress.'
+  },
+  {
+    id: 'block-1767777830574-94',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/ee8e6940-6482-43ce-8881-2ef6f2f9576e/Terceira_Stage.jpg',
+    metadata: { alt: '', size: 'large', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830574-95',
+    type: 'paragraph',
+    content: 'Prompt Used'
+  },
+  {
+    id: 'block-1767777830574-96',
+    type: 'paragraph',
+    content: '"Make this costume rendering a realistic person."'
+  },
+  {
+    id: 'block-1767777830574-97',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/a4c088dc-a1f4-414f-a816-b4b9309c4854/assets-task_01jqmavdvbf9xbqfgstxbe0rm1-img_0.jpeg',
+    metadata: { alt: '', size: 'large', align: 'full', caption: '' }
+  },
+  {
+    id: 'block-1767777830574-98',
+    type: 'paragraph',
+    content: "The result was a photorealistic transformation that preserved the original character's spirit. To refine it further, Lauryn shared a swatch of the printed fabric pattern she used, which led to a second test."
+  },
+  {
+    id: 'block-1767777830574-99',
+    type: 'image',
+    content: 'https://images.squarespace-cdn.com/content/v1/6806bfb0a40e4a097d6b0625/54ea2e40-18a5-4e69-8ccd-60d6218eea68/Lauryn+Fabric.jpeg',
+    metadata: { alt: '', size: 'full', align: 'full', caption: '' }
+  },
+  ... 32 more items
+]

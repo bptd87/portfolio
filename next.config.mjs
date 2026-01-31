@@ -25,6 +25,22 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "cms.brandonptdavis.com",
+      },
+      {
+        protocol: "http",
+        hostname: "cms.brandonptdavis.com",
+      },
+      {
+        protocol: "https",
+        hostname: "static.wixstatic.com",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
     ],
   },
   async rewrites() {

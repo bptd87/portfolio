@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
+import { findCategoryColor, Category } from '../utils/categoryHelpers';
 import { BlogCard } from '../components/shared/BlogCard';
 import { BookOpen } from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
@@ -26,84 +27,103 @@ interface ScenicInsightsProps {
   onNavigate: (page: string, slug?: string) => void;
   initialCategory?: string;
   initialTag?: string;
+  articles?: any[];
 }
 
-export function ScenicInsights({ onNavigate, initialCategory, initialTag }: ScenicInsightsProps) {
+export function ScenicInsights({ onNavigate, initialCategory, initialTag, articles: wpArticles }: ScenicInsightsProps) {
   const { theme } = useTheme();
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [selectedTag, setSelectedTag] = useState<string>(initialTag || 'all');
-  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string; color?: string }>>([]);
+  // Categories derived or fetched. For now lets derive or just keep simple.
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [dbCategories, setDbCategories] = useState<Category[]>([]);
+
+  // Fetch DB categories for colors
+  useEffect(() => {
+    const fetchDbCategories = async () => {
+      try {
+        const { data } = await supabase.from('categories').select('*').eq('type', 'articles');
+        if (data) {
+          setDbCategories(data);
+        }
+      } catch (e) {
+        console.error('Error fetching categories:', e);
+      }
+    };
+    fetchDbCategories();
+  }, []);
 
   useEffect(() => {
     if (initialCategory) {
-      // If we have categories loaded, try to find the name from the slug
-      if (categories.length > 0) {
-        const matchedCategory = categories.find(c => c.slug === initialCategory);
-        if (matchedCategory) {
-          setSelectedCategory(matchedCategory.name);
-        } else {
-          // Fallback if no match (or if it's already a name)
-          setSelectedCategory(initialCategory);
-        }
-      } else {
-        // Categories not loaded yet, set temporarily (will be updated when categories load)
-        setSelectedCategory(initialCategory);
-      }
+      setSelectedCategory(initialCategory);
     }
     if (initialTag) setSelectedTag(initialTag);
-  }, [initialCategory, initialTag, categories]);
+  }, [initialCategory, initialTag]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
+    const processData = async () => {
+      if (wpArticles) {
+        const mappedArticles: ArticleItem[] = wpArticles.map((edge: any) => {
+          const node = edge.node;
+          // IMPORTANT: Check for articleCatagories (typo in schema)
+          const category = node.articleCatagories?.edges?.[0]?.node?.name || 'Article';
 
-        // Fetch categories
-        const { data: categoriesData, error: catError } = await supabase
-          .from('categories')
-          .select('*')
-          .eq('type', 'articles')
-          .order('display_order');
+          // Clean up excerpt - remove HTML tags
+          const excerpt = node.excerpt ? node.excerpt.replace(/<[^>]*>?/gm, '') : '';
 
-        if (!catError && categoriesData) {
-          setCategories(categoriesData);
+          // Extract tags
+          const tags = node.articleTags?.edges?.map((edge: any) => edge.node.name) || [];
+
+          // Clean up content for word count
+          const contentText = node.content ? node.content.replace(/<[^>]*>?/gm, '') :
+            (node.excerpt ? node.excerpt.replace(/<[^>]*>?/gm, '') : '');
+          const wordCount = contentText.split(/\s+/).length || 500;
+          const readTimeProp = Math.ceil(wordCount / 200) + ' min read';
+
+          return {
+            id: node.slug,
+            title: node.title,
+            date: node.date,
+            category: category,
+            coverImage: node.featuredImage?.node?.sourceUrl,
+            excerpt: excerpt,
+            slug: node.slug,
+            tags: tags,
+            readTime: readTimeProp,
+          };
+        });
+        setArticles(mappedArticles);
+        setLoading(false);
+
+        // Derive categories and resolve colors
+        const uniqueCategories = new Set(mappedArticles.map(a => a.category));
+        const derivedCategories = Array.from(uniqueCategories).map(cat => ({
+          id: cat,
+          name: cat,
+          slug: cat.toLowerCase().replace(/\s+/g, '-'),
+          color: findCategoryColor(cat, dbCategories)
+        }));
+        setCategories(derivedCategories);
+
+        // Update articles with resolved colors if missing (so cards can use them)
+        if (dbCategories.length > 0) {
+          const updatedArticles = mappedArticles.map(article => {
+            const color = findCategoryColor(article.category, dbCategories);
+            return { ...article, categoryColor: color }; // Add categoryColor to article item? BlogCard needs updating or usage check.
+          });
+          // BlogCard uses color prop passed from ScenicInsights.tsx line 175
         }
 
-        // Fetch articles
-        const { data: articlesData, error: _artError } = await supabase
-          .from('articles')
-          .select('*')
-          .eq('published', true)
-          .order('published_at', { ascending: false });
-
-        if (articlesData) {
-          // Map database fields to frontend interface
-          const mappedArticles: ArticleItem[] = articlesData.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            date: item.published_at || item.created_at, // Prioritize published_at
-            category: item.category || 'Article',
-            coverImage: item.cover_image || item.coverImage,
-            coverImageFocalPoint: item.cover_image_focal_point,
-            excerpt: item.excerpt,
-            slug: item.slug,
-            tags: item.tags || [],
-            readTime: '5 min read', // TODO: Calculate or store read time
-          }));
-
-          setArticles(mappedArticles);
-        }
-      } catch (err) {
-        console.error('Failed to load articles:', err);
-      } finally {
+      } else {
+        // Fallback to Supabase if no WP articles passed (optional, strictly following user request for WP)
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    processData();
+  }, [wpArticles, dbCategories]);
 
   // Build filter options - DEDUPLICATED
   // Combine categories from DB and unique categories found in articles
@@ -188,7 +208,7 @@ export function ScenicInsights({ onNavigate, initialCategory, initialTag }: Scen
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {filteredArticles.map((article, index) => {
-              const categoryColor = categories.find(c => c.name === article.category)?.color;
+              const categoryColor = findCategoryColor(article.category, dbCategories) || categories.find(c => c.name === article.category)?.color;
               return (
                 <motion.div
                   key={article.id}

@@ -1400,3 +1400,17 @@ html {
   100% { transform: translateY(0px) rotate(var(--rot)); }
 }
 }
+
+/* Drop Cap Styling */
+.drop-cap:first-letter {
+  float: left;
+  font-family: var(--font-display);
+  font-size: 5rem;
+  line-height: 0.8;
+  font-weight: 700;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0rem;
+  color: var(--drop-cap-color, var(--foreground));
+  text-transform: uppercase;
+}

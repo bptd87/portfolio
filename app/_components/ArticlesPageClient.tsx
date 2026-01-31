@@ -5,7 +5,7 @@ import { SiteShell } from "./SiteShell";
 import { useLegacyNavigate } from "./useLegacyNavigate";
 import { useSearchParams } from "next/navigation";
 
-export default function ArticlesPageClient() {
+export default function ArticlesPageClient({ articles }: { articles: any[] }) {
   const onNavigate = useLegacyNavigate();
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category") || undefined;
@@ -17,6 +17,7 @@ export default function ArticlesPageClient() {
         onNavigate={onNavigate}
         initialCategory={initialCategory}
         initialTag={initialTag}
+        articles={articles}
       />
     </SiteShell>
   );

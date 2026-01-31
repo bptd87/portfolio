@@ -1,6 +1,11 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import { CloudinaryImage } from './CloudinaryImage';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { ChevronDown, X, ZoomIn, Info, AlertTriangle, CheckCircle, XCircle, Download } from 'lucide-react';
+import Link from 'next/link';
 import { GalleryBlock } from './GalleryBlock';
 
 // Code block component that handles dynamic imports client-side only
@@ -30,6 +35,7 @@ export interface ContentBlock {
     calloutType?: 'info' | 'warning' | 'success' | 'error'; // for callouts
     fileName?: string; // for file downloads
     fileSize?: string; // for file downloads
+    isDropCap?: boolean; // for first paragraph
   };
 }
 
@@ -83,7 +89,7 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
   const [lightboxImage, setLightboxImage] = useState<{ url: string; caption?: string; alt?: string } | null>(null);
 
   // Default accent color if none provided
-  const accent = accentColor || '#3B82F6';
+  const accent = accentColor;
 
   if (!blocks || blocks.length === 0) {
     return (
@@ -114,69 +120,144 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
   const getVimeoId = (url: string) => {
     const regExp = /vimeo\.com\/([0-9]+)/;
-    const match = url.match(regExp);
+    const match = regExp.exec(url);
     return match ? match[1] : null;
   };
 
   // Parse markdown-style formatting in text
   const parseFormattedText = (text: string) => {
-    // Check if content contains HTML tags (from rich text editor)
-    // Look for common HTML tags: <b>, <strong>, <i>, <em>, <a>, <p>, <div>, <span>, <br>, <u>
-    const hasHTML = /<(b|strong|i|em|a|p|div|span|br|u|blockquote|pre|code|ul|ol|li)[\s>\/]/i.test(text);
+    // Check if content contains BLOCK HTML tags that we can't easily parse
+    // We allow inline tags (b, strong, i, em, a, span, br, u, code) to be parsed manually below
+    const hasComplexHTML = /<(p|div|blockquote|pre|ul|ol|li|table|iframe|img)[\s>\/]/i.test(text);
 
-    if (hasHTML) {
+    if (hasComplexHTML) {
+      // Rewrite internal links in complex HTML too, just in case
+      const processedHtml = text.replace(/href="https:\/\/cms\.brandonptdavis\.com([^"]*)"/g, 'href="$1"');
+
       return (
-        <span
-          dangerouslySetInnerHTML={{ __html: text }}
+        <div
+          dangerouslySetInnerHTML={{ __html: processedHtml }}
           className="rich-content"
           style={{ '--accent-color': accent } as React.CSSProperties}
         />
       );
     }
 
-    // Otherwise, parse markdown syntax
+    // Otherwise, parse links/formatting from Markdown OR HTML
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
 
-    const combinedRegex = /(\*\*(.+?)\*\*)|(\*(.+?)\*)|(\[(.+?)\]\((.+?)\))/g;
+    // Regex to capture: 
+    // 1. Markdown Bold: **text**
+    // 2. Markdown Italic: *text*
+    // 3. Markdown Link: [text](url)
+    // 4. HTML Link: <a ... href="...">text</a>
+    // 5. HTML Bold: <strong>text</strong> or <b>text</b>
+    // 6. HTML Italic: <em>text</em> or <i>text</i>
+    // 7. HTML Break: <br /> or <br>
+
+    // Note: Regex ordering matters
+    // HTML Link: group 8 (full), 9 (href), 10 (text)
+    // HTML Bold: group 11 (full), 12 (tag), 13 (text)
+    // HTML Italic: group 14 (full), 15 (tag), 16 (text)
+    const combinedRegex =
+      /(\*\*(.+?)\*\*)|(\*(.+?)\*)|(\[(.+?)\]\((.+?)\))|(<a[^>]+href="([^"]+)"[^>]*>(.*?)<\/a>)|(<(strong|b)>(.*?)<\/\12>)|(<(em|i)>(.*?)<\/\15>)|(<br\s*\/?>)/gi;
+
     let match;
 
     while ((match = combinedRegex.exec(text)) !== null) {
       if (match.index > lastIndex) {
-        parts.push(text.substring(lastIndex, match.index));
+        parts.push(
+          <span key={`text-${lastIndex}`} dangerouslySetInnerHTML={{ __html: text.substring(lastIndex, match.index) }} />
+        );
       }
 
+      // 1. Markdown Bold (**text**)
       if (match[1]) {
         parts.push(
-          <span key={match.index} className="font-semibold" style={{ color: accent }}>
+          <span key={`bold-${match.index}`} className="font-semibold" style={{ color: accent }}>
             {match[2]}
           </span>
         );
-      } else if (match[3]) {
-        parts.push(<em key={match.index}>{match[4]}</em>);
-      } else if (match[5]) {
+      }
+      // 2. Markdown Italic (*text*)
+      else if (match[3]) {
+        parts.push(<em key={`italic-${match.index}`}>{match[4]}</em>);
+      }
+      // 3. Markdown Link ([text](url)) - Groups 6, 7
+      else if (match[5]) {
+        const href = match[7];
+        const label = match[6];
+        const isInternal = href.startsWith('/') || href.includes('brandonptdavis.com');
+        const finalHref = href.replace('https://cms.brandonptdavis.com', '');
+
+        if (isInternal && !href.startsWith('http')) {
+          parts.push(
+            <Link key={`link-${match.index}`} href={finalHref} className="hover:opacity-80 transition-opacity underline cursor-pointer" style={{ color: accent }}>
+              {label}
+            </Link>
+          );
+        } else {
+          parts.push(
+            <a key={`link-${match.index}`} href={href} className="hover:opacity-80 transition-opacity underline" style={{ color: accent }} target="_blank" rel="noopener noreferrer">
+              {label}
+            </a>
+          );
+        }
+      }
+      // 4. HTML Link (<a href="...">...</a>) - Groups 8, 9, 10
+      else if (match[8]) {
+        const href = match[9];
+        const label = match[10]; // This might contain tags, simplified for now
+        const isInternal = href.startsWith('/') || href.includes('brandonptdavis.com');
+        const finalHref = href.replace('https://cms.brandonptdavis.com', '');
+
+        if (isInternal || finalHref.startsWith('/')) { // If rewritten to relative, treat as internal
+          parts.push(
+            <Link key={`html-link-${match.index}`} href={finalHref.replace('https://cms.brandonptdavis.com', '')} className="hover:opacity-80 transition-opacity underline cursor-pointer" style={{ color: accent }}>
+              <span dangerouslySetInnerHTML={{ __html: label }} />
+            </Link>
+          );
+        } else {
+          parts.push(
+            <a key={`html-link-${match.index}`} href={href} className="hover:opacity-80 transition-opacity underline" style={{ color: accent }} target="_blank" rel="noopener noreferrer">
+              <span dangerouslySetInnerHTML={{ __html: label }} />
+            </a>
+          );
+        }
+      }
+      // 5. HTML Bold (<strong>...</strong>) - Groups 11, 12, 13
+      else if (match[11]) {
         parts.push(
-          <a
-            key={match.index}
-            href={match[7]}
-            className="hover:opacity-80 transition-opacity underline"
-            style={{ color: accent }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {match[6]}
-          </a>
+          <span key={`html-bold-${match.index}`} className="font-semibold" style={{ color: accent }}>
+            {match[13]}
+          </span>
         );
+      }
+      // 6. HTML Italic (<em>...</em>) - Groups 14, 15, 16
+      else if (match[14]) {
+        parts.push(<em key={`html-italic-${match.index}`}>{match[16]}</em>);
+      }
+      // 7. Break (<br />) - Group 17
+      else if (match[17]) {
+        parts.push(<br key={`br-${match.index}`} />);
       }
 
       lastIndex = match.index + match[0].length;
     }
 
     if (lastIndex < text.length) {
-      parts.push(text.substring(lastIndex));
+      parts.push(
+        <span key={`text-${lastIndex}`} dangerouslySetInnerHTML={{ __html: text.substring(lastIndex) }} />
+      );
     }
 
-    return parts.length > 0 ? parts : text;
+    if (parts.length === 0) {
+      // If no custom parsing matched, return the whole text as HTML to decode entities
+      return <span dangerouslySetInnerHTML={{ __html: text }} />;
+    }
+
+    return parts;
   };
 
   // Helper to inject IDs into headers for TOC support
@@ -206,13 +287,15 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
         style={{
           '--accent-color': accent,
           '--drop-cap-color': accent,
-          '--accent-default': '#3B82F6'
+
         } as React.CSSProperties}
       >
         {blocks.map((block, index) => {
-          // Find first paragraph for drop cap
-          const isFirstParagraph = enableDropCap && block.type === 'paragraph' &&
-            blocks.findIndex(b => b.type === 'paragraph') === index;
+          // Use metadata if available, otherwise fallback to index check
+          const isFirstParagraph = block.metadata?.isDropCap ?? (
+            enableDropCap && block.type === 'paragraph' &&
+            blocks.findIndex(b => b.type === 'paragraph') === index
+          );
 
           switch (block.type) {
             case 'paragraph': {
@@ -222,8 +305,8 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                 return (
                   <ScrollReveal key={block.id}>
                     <div
-                      className={`leading-[1.8] mb-8 text-foreground/90 text-[18px] md:text-[20px] font-sans text-left rich-content`}
-                      style={{ '--accent-color': accent } as React.CSSProperties}
+                      className={`leading-[1.8] mb-8 text-foreground/90 text-[18px] md:text-[20px] font-sans text-left rich-content ${isFirstParagraph ? 'drop-cap' : ''}`}
+                      style={{ '--accent-color': accent, '--drop-cap-color': accent } as React.CSSProperties}
                       dangerouslySetInnerHTML={{ __html: injectIdsIntoHeaders(block.content) }}
                     />
                   </ScrollReveal>
@@ -272,32 +355,39 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                     imageAlign === 'center' ? 'mx-auto' :
                       ''; // full width
 
-              // Size classes
+              // Size classes - now focused on width constraints
               const sizeClass =
                 imageSize === 'small' ? 'max-w-sm' :
                   imageSize === 'medium' ? 'max-w-2xl' :
                     imageSize === 'large' ? 'max-w-4xl' :
-                      'max-w-full'; // full width
+                      'w-full'; // full width
 
               return (
                 <ScrollReveal key={block.id}>
                   <figure className={`my-12 group ${alignmentClass} ${sizeClass}`}>
-                    <div className="relative overflow-hidden rounded-2xl cursor-pointer" onClick={() => openLightbox(block.content, block.metadata?.caption, block.metadata?.alt)}>
-                      <ImageWithFallback
+                    {/* Debug Image Src */}
+                    {/* <div className="hidden">{console.log('Rendering Image Block:', block.content)}</div> */}
+                    <div
+                      className="relative overflow-hidden cursor-pointer rounded-lg w-full"
+                      style={{ aspectRatio: 'auto', maxHeight: '70vh' }}
+                      onClick={() => openLightbox(block.content, block.metadata?.caption, block.metadata?.alt)}
+                    >
+                      <CloudinaryImage
                         src={block.content}
                         alt={block.metadata?.alt || ''}
-                        className="w-full h-auto max-h-[85vh] object-cover transition-transform duration-500 group-hover:scale-105"
-                        style={{ maxHeight: '85vh' }}
-                        optimize={imageSize === 'small' ? 'thumbnail' : imageSize === 'medium' ? 'card' : 'gallery'}
+                        width={1200}
+                        height={800}
+                        className="w-full h-auto max-h-[70vh] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
                       />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center pointer-events-none">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm bg-white/10 rounded-full p-4">
                           <ZoomIn className="w-6 h-6 text-white" />
                         </div>
                       </div>
                     </div>
                     {block.metadata?.caption && (
-                      <figcaption className="mt-3 py-2 px-6 text-sm text-center font-sans text-foreground/90 bg-white/60 dark:bg-black/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-full shadow-sm mx-auto max-w-[90%] w-fit italic relative z-10">
+                      <figcaption className="mt-3 text-sm text-center font-serif italic text-foreground/60 w-full px-4">
                         {block.metadata.caption}
                       </figcaption>
                     )}
@@ -324,12 +414,26 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               return (
                 <div key={block.id} className="my-12 bg-black rounded-2xl overflow-hidden shadow-xl">
                   {videoType === 'custom' ? (
-                    <video
-                      src={videoSrc}
-                      controls
-                      className="w-full h-auto max-h-[80vh] mx-auto"
-                      preload="metadata"
-                    />
+                    // Check if it's a URL (iframe) or direct video file
+                    block.content.match(/\.(mp4|webm|ogg)$/i) ? (
+                      <video
+                        src={block.content}
+                        controls
+                        className="w-full h-auto max-h-[80vh] mx-auto"
+                        preload="metadata"
+                      />
+                    ) : (
+                      <div className="aspect-video">
+                        <iframe
+                          src={block.content}
+                          title="Embedded Content"
+                          className="w-full h-full"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )
                   ) : (
                     <div className="aspect-video">
                       <iframe
@@ -342,6 +446,11 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
                       />
                     </div>
                   )}
+                  {block.metadata?.caption && (
+                    <div className="mt-3 text-sm text-center font-serif italic text-foreground/60 w-full px-4 pb-4 bg-background">
+                      {block.metadata.caption}
+                    </div>
+                  )}
                 </div>
               );
 
@@ -349,11 +458,10 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               return (
                 <ScrollReveal key={block.id}>
                   <blockquote
-                    className="my-14 mx-auto w-full py-8 px-8 text-center border-y border-border/40 bg-foreground/[0.02] relative overflow-hidden"
+                    className="my-12 pl-6 border-l-4 border-[var(--accent-color)] italic text-2xl md:text-3xl font-display text-foreground/90 leading-snug"
+                    style={{ '--accent-color': accent } as React.CSSProperties}
                   >
-                    <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: 'var(--accent-color)' }} />
-                    <div className="absolute top-0 right-0 w-1 h-full" style={{ backgroundColor: 'var(--accent-color)' }} />
-                    <p className="text-2xl md:text-3xl leading-snug font-display italic text-foreground/80 relative z-10">"{block.content}"</p>
+                    {parseFormattedText(block.content)}
                   </blockquote>
                 </ScrollReveal>
               );
@@ -363,16 +471,19 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
 
               const listItems = block.metadata?.items
                 ? block.metadata.items
-                : block.content.split('\n').map((item) => item.trim()).filter(item => item);
+                : block.content.split('\n')
+                  .map((item) => item.replace(/<\/?li[^>]*>/gi, '').trim()) // Fallback: strip li tags if parsing missed them
+                  .filter(item => item);
 
               if (isOrdered) {
                 return (
                   <ol
                     key={block.id}
-                    className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-sans list-decimal marker:text-[var(--accent-color)] opacity-90"
+                    className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-sans list-decimal opacity-90"
+                    style={{ markerColor: accent, color: 'inherit' } as any}
                   >
                     {listItems.map((item, i) => (
-                      <li key={i} className="leading-[1.8] pl-3">
+                      <li key={i} className="leading-[1.8] pl-3 marker:text-[var(--accent-color)]" style={{ '--accent-color': accent } as React.CSSProperties}>
                         {parseFormattedText(item)}
                       </li>
                     ))}
@@ -383,10 +494,10 @@ export function BlockRenderer({ blocks, enableDropCap = true, accentColor }: Blo
               return (
                 <ul
                   key={block.id}
-                  className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-sans list-disc marker:text-[var(--accent-color)] opacity-90"
+                  className="mb-8 pl-6 space-y-3 text-[19px] md:text-[21px] font-sans list-disc opacity-90"
                 >
                   {listItems.map((item, i) => (
-                    <li key={i} className="leading-[1.8] pl-3">
+                    <li key={i} className="leading-[1.8] pl-3 marker:text-[var(--accent-color)]" style={{ '--accent-color': accent } as React.CSSProperties}>
                       {parseFormattedText(item)}
                     </li>
                   ))}

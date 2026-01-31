@@ -5,32 +5,18 @@ import { projectId, publicAnonKey } from './src/utils/supabase/info';
 const supabase = createClient(`https://${projectId}.supabase.co`, publicAnonKey);
 
 async function checkData() {
-    console.log("Checking Supabase Connection...");
-    const { data: projects, error } = await supabase
-        .from('portfolio_projects')
-        .select('*')
-        .eq('featured', true)
-        .eq('published', true);
+    const { data: articles, error: artError } = await supabase
+        .from('articles')
+        .select('slug, content')
+        .ilike('content', '%gallery%')
+        .limit(1);
 
-    if (error) {
-        console.error("Error fetching projects:", error);
+    if (artError) {
+        console.error("Error fetching articles:", artError);
+    } else if (articles && articles.length > 0) {
+        console.log(`Found Article with Gallery: ${articles[0].slug}`);
     } else {
-        console.log(`Found ${projects.length} featured projects.`);
-        if (projects.length > 0) {
-            console.log("Sample Project:", projects[0].title);
-            console.log("Image URL:", projects[0].card_image);
-        }
-    }
-
-    const { data: news, error: newsError } = await supabase
-        .from('news')
-        .select('*')
-        .limit(5);
-
-    if (newsError) {
-        console.error("Error fetching news:", newsError);
-    } else {
-        console.log(`Found ${news.length} news items.`);
+        console.log("No articles with gallery found.");
     }
 }
 

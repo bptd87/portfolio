@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import ArticlesPageClient from "../_components/ArticlesPageClient";
 import { resolveMetadataFromParams } from "../seo/resolve-metadata";
 import { SkeletonArticleGrid } from "@/src/components/skeletons/SkeletonArticleGrid";
+import { getAllArticles } from "@/src/lib/api";
 
 export async function generateMetadata({
   searchParams,
@@ -11,10 +12,12 @@ export async function generateMetadata({
   return resolveMetadataFromParams({ params: { path: ["articles"] }, searchParams });
 }
 
-export default function ArticlesPage() {
+export default async function ArticlesPage() {
+  const articles = await getAllArticles();
+
   return (
     <Suspense fallback={<SkeletonArticleGrid />}>
-      <ArticlesPageClient />
+      <ArticlesPageClient articles={articles} />
     </Suspense>
   );
 }

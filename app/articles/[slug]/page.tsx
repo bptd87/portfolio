@@ -16,6 +16,8 @@ export async function generateMetadata({
   });
 }
 
+import { getArticle, getAllArticles } from "@/src/lib/api";
+
 export default async function ArticleDetailPage({
   params,
   searchParams,
@@ -25,6 +27,22 @@ export default async function ArticleDetailPage({
 }) {
   const resolvedParams = await Promise.resolve(params);
   const resolvedSearchParams = await Promise.resolve(searchParams);
+
+  // Fetch valid article and related/recent articles in parallel
+  const [article, allArticles] = await Promise.all([
+    getArticle(resolvedParams.slug),
+    getAllArticles()
+  ]);
+
+  console.log('Server Side Article Props:', {
+    slug: resolvedParams.slug,
+    articleTitle: article?.title,
+    tagsEdges: article?.articleTags?.edges?.length,
+    categoryEdges: article?.articleCatagories?.edges?.length,
+    featuredImage: article?.featuredImage?.node?.sourceUrl,
+    relatedCount: allArticles?.length
+  });
+
   const structuredData = await resolveStructuredData(
     `/articles/${resolvedParams.slug}`,
     resolvedSearchParams,
@@ -33,7 +51,7 @@ export default async function ArticleDetailPage({
   return (
     <>
       <StructuredData data={structuredData} />
-      <ArticleDetailPageClient slug={resolvedParams.slug} />
+      <ArticleDetailPageClient slug={resolvedParams.slug} article={article} relatedArticles={allArticles} />
     </>
   );
 }

@@ -1074,7 +1074,7 @@ html {
 .rich-content strong,
 .rich-content b {
   font-weight: inherit;
-  color: var(--accent-default);
+  color: var(--accent-color, var(--accent-default));
 }
 
 .rich-content a {

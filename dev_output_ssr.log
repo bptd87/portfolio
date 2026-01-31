@@ -1,0 +1,31 @@
+
+> dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.235:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 908ms
+ ○ Compiling /articles/[slug] ...
+ ✓ Compiled /articles/[slug] in 4.5s (3992 modules)
+Server Side Article Props: {
+  slug: 'sora-in-the-studio-testing-ais-potential-for-theatrical-design',
+  articleTitle: 'Sora in the Studio: Testing AI’s Potential for Theatrical Design',
+  tagsEdges: 1,
+  categoryEdges: 1,
+  featuredImage: 'https://res.cloudinary.com/dsq2xg1iw/images/f_webp,q_auto/v1769767168/ow1ff4l435h_1765052405738/ow1ff4l435h_1765052405738.webp?_i=AA',
+  relatedCount: 17
+}
+DEBUG: DynamicArticle rendering. Article present: true
+DEBUG: DynamicArticle content type: object
+DEBUG: DynamicArticle content length: 129
+ GET /articles/sora-in-the-studio-testing-ais-potential-for-theatrical-design 200 in 7152ms
+ ✓ Compiled in 276ms (1888 modules)
+ ✓ Compiled in 160ms (1888 modules)
+ ✓ Compiled in 159ms (1888 modules)
+ ✓ Compiled in 171ms (1888 modules)
+ ✓ Compiled in 189ms (1888 modules)
+[?25h

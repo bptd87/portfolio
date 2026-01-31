@@ -1,0 +1,302 @@
+
+> dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.235:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1026ms
+ ○ Compiling /articles ...
+ ✓ Compiled /articles in 2.6s (1762 modules)
+ ○ Compiling /articles/[slug] ...
+ ✓ Compiled /articles/[slug] in 3s (3982 modules)
+ GET /articles 200 in 421ms
+ GET /articles 200 in 6416ms
+ GET /articles 200 in 3521ms
+ GET /articles 200 in 4030ms
+Server Side Article Props: {
+  slug: 'sora-in-the-studio-testing-ais-potential-for-theatrical-design',
+  articleTitle: 'Sora in the Studio: Testing AI’s Potential for Theatrical Design',
+  tagsEdges: 1,
+  categoryEdges: 1,
+  featuredImage: 'https://res.cloudinary.com/dsq2xg1iw/images/f_webp,q_auto/v1769767168/ow1ff4l435h_1765052405738/ow1ff4l435h_1765052405738.webp?_i=AA',
+  relatedCount: 17
+}
+DEBUG: DynamicArticle rendering. Article present: false
+ GET /articles/sora-in-the-studio-testing-ais-potential-for-theatrical-design 200 in 4436ms
+Server Side Article Props: {
+  slug: 'building-the-visual-world-art-direction-in-film-television',
+  articleTitle: 'Building the Visual World: Art Direction in Film & Television',
+  tagsEdges: 0,
+  categoryEdges: 1,
+  featuredImage: 'https://res.cloudinary.com/dsq2xg1iw/images/f_webp,q_auto/v1769767134/bd61335e-9dd9-46f7-b3de-eaa0e63924fb-1767940694094-Medium/bd61335e-9dd9-46f7-b3de-eaa0e63924fb-1767940694094-Medium.jpeg?_i=AA',
+  relatedCount: 17
+}
+ GET /articles/building-the-visual-world-art-direction-in-film-television 200 in 283ms
+Server Side Article Props: {
+  slug: 'the-1960s-musical-revolution-when-hollywoods-golden-formula-met-rock-and-rebellion',
+  articleTitle: 'The 1960s Musical Revolution: When Hollywood’s Golden Formula Met Rock and Rebellion',
+  tagsEdges: 0,
+  categoryEdges: 1,
+  featuredImage: 'https://res.cloudinary.com/dsq2xg1iw/images/f_webp,q_auto/v1769766865/1960s-musical-in-cinema/1960s-musical-in-cinema.jpeg?_i=AA',
+  relatedCount: 17
+}
+ GET /articles/the-1960s-musical-revolution-when-hollywoods-golden-formula-met-rock-and-rebellion 200 in 773ms
+Server Side Article Props: {
+  slug: 'building-the-visual-world-art-direction-in-film-television',
+  articleTitle: 'Building the Visual World: Art Direction in Film & Television',
+  tagsEdges: 0,
+  categoryEdges: 1,
+  featuredImage: 'https://res.cloudinary.com/dsq2xg1iw/images/f_webp,q_auto/v1769767134/bd61335e-9dd9-46f7-b3de-eaa0e63924fb-1767940694094-Medium/bd61335e-9dd9-46f7-b3de-eaa0e63924fb-1767940694094-Medium.jpeg?_i=AA',
+  relatedCount: 17
+}
+DEBUG: DynamicArticle rendering. Article present: false
+ GET /articles/building-the-visual-world-art-direction-in-film-television 200 in 180ms
+ ⨯ ./src/views/scenic-insights/DynamicArticle.tsx
+Error:   [31mx[0m Expected ';', '}' or <eof>
+     ,-[[36;1;4m/Users/brandonptdavis/portfolio/src/views/scenic-insights/DynamicArticle.tsx[0m:309:1]
+ [2m306[0m |     
+ [2m307[0m |       // Parse WP content to blocks
+ [2m308[0m |       const parseContent = (html: string): ContentBlock[] => {
+ [2m309[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     type: 'image',
+ [2m310[0m | [35;1m|[0m[35;1m-[0m[35;1m>[0m       content: imgMatch[1],
+     : [35;1m`[0m[35;1m---[0m[33;1m             ^[0m
+     : [35;1m`[0m[35;1m---[0m[35;1m-[0m [35;1mThis is the expression part of an expression statement[0m
+ [2m311[0m |             metadata: {
+ [2m312[0m |           alt: altMatch ? altMatch[1] : '',
+ [2m313[0m |             size: 'full',
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/views/scenic-insights/DynamicArticle.tsx
+./app/_components/ArticleDetailPageClient.tsx
+ ⨯ ./src/views/scenic-insights/DynamicArticle.tsx
+Error:   [31mx[0m Expected ';', '}' or <eof>
+     ,-[[36;1;4m/Users/brandonptdavis/portfolio/src/views/scenic-insights/DynamicArticle.tsx[0m:309:1]
+ [2m306[0m |     
+ [2m307[0m |       // Parse WP content to blocks
+ [2m308[0m |       const parseContent = (html: string): ContentBlock[] => {
+ [2m309[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     type: 'image',
+ [2m310[0m | [35;1m|[0m[35;1m-[0m[35;1m>[0m       content: imgMatch[1],
+     : [35;1m`[0m[35;1m---[0m[33;1m             ^[0m
+     : [35;1m`[0m[35;1m---[0m[35;1m-[0m [35;1mThis is the expression part of an expression statement[0m
+ [2m311[0m |             metadata: {
+ [2m312[0m |           alt: altMatch ? altMatch[1] : '',
+ [2m313[0m |             size: 'full',
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/views/scenic-insights/DynamicArticle.tsx
+./app/_components/ArticleDetailPageClient.tsx
+ ⨯ ./src/views/scenic-insights/DynamicArticle.tsx
+Error:   [31mx[0m Expected ';', '}' or <eof>
+     ,-[[36;1;4m/Users/brandonptdavis/portfolio/src/views/scenic-insights/DynamicArticle.tsx[0m:328:1]
+ [2m325[0m |     
+ [2m326[0m |       // Parse WP content to blocks
+ [2m327[0m |       const parseContent = (html: string): ContentBlock[] => {
+ [2m328[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m     type: 'image',
+ [2m329[0m | [35;1m|[0m[35;1m-[0m[35;1m>[0m       content: imgMatch[1],
+     : [35;1m`[0m[35;1m---[0m[33;1m             ^[0m
+     : [35;1m`[0m[35;1m---[0m[35;1m-[0m [35;1mThis is the expression part of an expression statement[0m
+ [2m330[0m |             metadata: {
+ [2m331[0m |           alt: altMatch ? altMatch[1] : '',
+ [2m332[0m |             size: 'full',
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/views/scenic-insights/DynamicArticle.tsx
+./app/_components/ArticleDetailPageClient.tsx
+ ✓ Compiled in 533ms (3984 modules)
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/server/next-font-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/server/next-font-manifest.json',
+  page: '/articles/building-the-visual-world-art-direction-in-film-television'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1067ms (4316 modules)
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/server/next-font-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/server/next-font-manifest.json',
+  page: '/articles/building-the-visual-world-art-direction-in-film-television'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+ GET /articles/building-the-visual-world-art-direction-in-film-television 500 in 2689ms
+ GET /articles/building-the-visual-world-art-direction-in-film-television 500 in 239ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json',
+  page: '/articles/building-the-visual-world-art-direction-in-film-television'
+}
+ ⨯ Failed to generate static paths for /articles/[slug]:
+[Error: Cannot find module './vendor-chunks/@supabase.js'
+Require stack:
+- /Users/brandonptdavis/portfolio/.next/server/webpack-runtime.js
+- /Users/brandonptdavis/portfolio/.next/server/app/articles/[slug]/page.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/require.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/load-components.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/build/utils.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/dev/static-paths-worker.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json',
+  page: '/articles/building-the-visual-world-art-direction-in-film-television'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+ GET /articles/building-the-visual-world-art-direction-in-film-television 500 in 816ms
+ GET /articles/building-the-visual-world-art-direction-in-film-television 500 in 285ms
+ ⨯ [Error: Cannot find module './vendor-chunks/@supabase.js'
+Require stack:
+- /Users/brandonptdavis/portfolio/.next/server/webpack-runtime.js
+- /Users/brandonptdavis/portfolio/.next/server/app/articles/[slug]/page.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/require.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/load-components.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/build/utils.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/dev/static-paths-worker.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/articles/building-the-visual-world-art-direction-in-film-television'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+[Error: Cannot find module './vendor-chunks/@supabase.js'
+Require stack:
+- /Users/brandonptdavis/portfolio/.next/server/webpack-runtime.js
+- /Users/brandonptdavis/portfolio/.next/server/app/articles/[slug]/page.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/require.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/load-components.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/build/utils.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/dev/static-paths-worker.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/articles/building-the-visual-world-art-direction-in-film-television'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+ GET /articles/building-the-visual-world-art-direction-in-film-television 500 in 664ms
+ GET /articles/building-the-visual-world-art-direction-in-film-television 500 in 233ms
+ ⨯ [Error: Cannot find module './vendor-chunks/@supabase.js'
+Require stack:
+- /Users/brandonptdavis/portfolio/.next/server/webpack-runtime.js
+- /Users/brandonptdavis/portfolio/.next/server/app/articles/[slug]/page.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/require.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/load-components.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/build/utils.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/dev/static-paths-worker.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/articles/building-the-visual-world-art-direction-in-film-television'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+[Error: Cannot find module './vendor-chunks/@supabase.js'
+Require stack:
+- /Users/brandonptdavis/portfolio/.next/server/webpack-runtime.js
+- /Users/brandonptdavis/portfolio/.next/server/app/articles/[slug]/page.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/require.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/load-components.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/build/utils.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/server/dev/static-paths-worker.js
+- /Users/brandonptdavis/portfolio/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/articles/building-the-visual-world-art-direction-in-film-television'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/brandonptdavis/portfolio/.next/routes-manifest.json'
+}
+ GET /articles/building-the-visual-world-art-direction-in-film-television 500 in 652ms
+ GET /articles/building-the-visual-world-art-direction-in-film-television 500 in 233ms
+[?25h

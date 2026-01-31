@@ -1,23 +1,27 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import Image from 'next/image';
 // @ts-ignore
-import { motion, useScroll, useTransform } from 'motion/react';
-import { ArrowLeft, ArrowRight, Tag, Loader2, Twitter, Linkedin, Link2, Check } from 'lucide-react';
+import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Tag, Loader2, Twitter, Linkedin, Link2, Check, Eye } from 'lucide-react';
 import { ArticleAuthor } from '../../components/shared/ArticleAuthor';
 import { BlockRenderer, ContentBlock } from '../../components/shared/BlockRenderer';
+import { AccordionBlock } from '../../components/shared/AccordionBlock';
 import { SkeletonArticle } from '../../components/skeletons/SkeletonArticle';
 import { BlogCard } from '../../components/shared/BlogCard';
 import { supabase } from '../../utils/supabase/client';
 import { LikeButton } from '../../components/shared/LikeButton';
 import { ShareButton } from '../../components/shared/ShareButton';
-import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
-import { Eye } from 'lucide-react';
+import { CloudinaryImage } from '../../components/shared/CloudinaryImage';
 import { SEO } from '../../components/SEO';
 import { generateArticleMetadata, PAGE_METADATA } from '../../utils/seo/metadata';
 import { generateVideoSchema, generateArticleSchema } from '../../utils/seo/structured-data';
 import { AuthorProfile } from '../../components/shared/AuthorProfile';
+import { findCategoryColor } from '../../utils/categoryHelpers';
+import { parseWpContent } from '../../utils/parseWpContent';
 // Lazy load comments to speed up initial article render
 const CommentsSection = React.lazy(() => import('../../components/shared/CommentsSection').then(m => ({ default: m.CommentsSection })));
 const authorImageSrc = '/images/author-brandon.png';
+
 
 interface Article {
   id: string;
@@ -32,37 +36,6 @@ interface Article {
   tags: string[];
   cover_image_focal_point?: { x: number; y: number };
   content: ContentBlock[];
-}
-
-interface Category {
-  id: string;
-  name: string;
-  color?: string;
-}
-
-// Helper to find category color from categories list
-function findCategoryColor(categoryName: string, categories: Category[]): string | undefined {
-  if (!categoryName || !categories.length) return undefined;
-
-  const normalizedName = categoryName.toLowerCase().trim();
-
-  // 1. Exact match
-  let match = categories.find(c => c.name?.toLowerCase().trim() === normalizedName);
-  if (match?.color) return match.color;
-
-  // 2. Starts with match (e.g., "Design Philosophy" matches "Design Philosophy & Scenic Insights")
-  match = categories.find(c => c.name && normalizedName.startsWith(c.name.toLowerCase().trim()));
-  if (match?.color) return match.color;
-
-  // 3. Contains match (e.g., looking for "Technology" in "Technology & Tutorials")
-  match = categories.find(c => c.name && normalizedName.includes(c.name.toLowerCase().trim()));
-  if (match?.color) return match.color;
-
-  // 4. Reverse contains (category name contains our search term)
-  match = categories.find(c => c.name && c.name.toLowerCase().trim().includes(normalizedName));
-  if (match?.color) return match.color;
-
-  return undefined;
 }
 
 // Helper to extract video URLs from article content for SEO
@@ -84,6 +57,8 @@ function extractVideosFromContent(content: ContentBlock[]): Array<{ url: string;
 interface DynamicArticleProps {
   slug: string;
   onNavigate: (page: string) => void;
+  article?: any; // WP Article passed down
+  relatedArticles?: any[]; // WP Related Articles passed down
 }
 
 // Share button component
@@ -104,7 +79,7 @@ function ShareButtons({ title, url }: { title: string; url: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      // Fallback for browsers that don't support clipboard API
+      // Fallback for browsers
       const textArea = document.createElement('textarea');
       textArea.value = url;
       textArea.style.position = 'fixed';
@@ -153,15 +128,39 @@ function ShareButtons({ title, url }: { title: string; url: string }) {
   );
 }
 
-// Minimalist end flourish
-function ArticleEndFlourish() {
+// Cool end signature with cat image
+// Elegant geometric end marker
+function ArticleEndFlourish({ color }: { color?: string }) {
+  const style = { '--flourish-color': color || 'currentColor' } as React.CSSProperties;
   return (
-    <div className="flex items-center justify-center py-20">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-px bg-foreground/10" />
-        <div className="w-1.5 h-1.5 bg-foreground/20 rounded-full" />
-        <div className="w-12 h-px bg-foreground/10" />
-      </div>
+    <div className="flex flex-col items-center justify-center py-24" style={style}>
+      <motion.div
+        className="relative flex items-center justify-center"
+        initial={{ opacity: 0, scale: 0.8 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+      >
+        {/* Glow pulsing effect */}
+        <motion.div
+          className="absolute inset-0 bg-[var(--flourish-color)] blur-[20px] rounded-full opacity-20"
+          animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.2, 1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Diamond Shape */}
+        <motion.div
+          className="relative w-3 h-3 bg-[var(--flourish-color)] rotate-45"
+          animate={{ rotate: 405 }} // 45 + 360
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
+
+        {/* Outer Ring (optional, subtle) */}
+        <motion.div
+          className="absolute w-8 h-8 border border-[var(--flourish-color)] rotate-45 opacity-20"
+          animate={{ rotate: -315 }} // 45 - 360
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
+      </motion.div>
     </div>
   );
 }
@@ -179,18 +178,15 @@ function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; ac
           level: block.metadata?.level || 2
         });
       } else if (block.type === 'paragraph') {
-        // Find headers in HTML content and generate IDs on the fly
-        // Matches <h[1-6] ... >Text</h[1-6]>
+        // Find headers in HTML content
         const regex = /<h([1-6])(.*?)>(.*?)<\/h\1>/gi;
         let match;
-        // Reset lastIndex just in case
         regex.lastIndex = 0;
 
         while ((match = regex.exec(block.content)) !== null) {
           const level = parseInt(match[1]);
           const content = match[3];
 
-          // Generate ID from content (same logic as BlockRenderer)
           const cleanContent = content.replace(/<[^>]*>/g, '');
           const id = cleanContent
             .toLowerCase()
@@ -204,7 +200,6 @@ function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; ac
       }
     });
 
-    // Filter to only show H2 headings
     return items.filter(item => item.level === 2);
   }, [blocks]);
 
@@ -239,19 +234,37 @@ function TableOfContents({ blocks, activeHeading }: { blocks: ContentBlock[]; ac
   );
 }
 
-export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
-  const [article, setArticle] = useState<Article | null>(null);
+export function DynamicArticle({ slug, onNavigate, article: wpArticle, relatedArticles }: DynamicArticleProps) {
+  const [article, setArticle] = useState<Article | null>(() => {
+    if (!wpArticle) return null;
+    const contentText = wpArticle.content ? wpArticle.content.replace(/<[^>]*>?/gm, '') : '';
+    const wordCount = contentText.split(/\s+/).length;
+    const readTime = Math.ceil(wordCount / 200) + ' min read';
+
+    return {
+      id: wpArticle.slug,
+      slug: wpArticle.slug,
+      title: wpArticle.title,
+      category: wpArticle.articleCatagories?.edges?.[0]?.node?.name || 'Article',
+      date: wpArticle.date,
+      readTime: readTime,
+      excerpt: wpArticle.excerpt ? wpArticle.excerpt.replace(/<[^>]*>?/gm, '') : '',
+      coverImage: wpArticle.featuredImage?.node?.sourceUrl,
+      tags: wpArticle.articleTags?.edges?.map((edge: any) => edge.node.name) || [],
+      content: parseWpContent(wpArticle.content)
+    };
+  });
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [relatedPosts, setRelatedPosts] = useState<Article[]>([]);
   const [allPosts, setAllPosts] = useState<Article[]>([]);
   const [activeHeading, setActiveHeading] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [views, setViews] = useState(0);
   const [likes, setLikes] = useState(0);
 
+
   // Framer Motion hooks must be at top level
-  // @ts-ignore
   const { scrollY, scrollYProgress } = useScroll();
   // @ts-ignore
   const heroParallaxY = useTransform(scrollY, [0, 1000], [0, 300]);
@@ -274,6 +287,108 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
     };
     fetchCategories();
   }, []);
+
+  const contentBlocks = useMemo(() => {
+    if (!article) return [];
+
+
+    if (typeof article.content === 'string') {
+      return parseContent(article.content);
+    }
+    // Safety check: ensure content is an array
+    if (Array.isArray(article.content)) {
+      return article.content;
+    }
+
+    console.warn('DynamicArticle content is not array or string:', typeof article.content);
+    return [];
+  }, [article]);
+
+
+
+  // Re-apply color when categories load (Fixes "flash" issue)
+  useEffect(() => {
+    if (article && categories.length > 0) {
+      const newColor = findCategoryColor(article.category, categories);
+      // Only update if color actually changes to avoid infinite loop
+      if (newColor && newColor !== article.categoryColor) {
+        setArticle(prev => prev ? ({ ...prev, categoryColor: newColor }) : null);
+      }
+    }
+  }, [categories, article?.category, article?.categoryColor]);
+
+  // Parse WP content to blocks
+  // Parse WP content to blocks
+  const parseContent = (html: string): ContentBlock[] => {
+    return parseWpContent(html);
+  };
+
+  useEffect(() => {
+    if (wpArticle) {
+      const category = wpArticle.categories?.edges?.[0]?.node?.name || 'Article';
+
+      // Calculate read time
+      const contentText = wpArticle.content ? wpArticle.content.replace(/<[^>]*>?/gm, '') : '';
+      const wordCount = contentText.split(/\s+/).length;
+      const readTime = Math.ceil(wordCount / 200) + ' min read';
+
+      const mappedArticle: Article = {
+        id: wpArticle.slug,
+        slug: wpArticle.slug,
+        title: wpArticle.title,
+        category: wpArticle.articleCatagories?.edges?.[0]?.node?.name || 'Article',
+        date: wpArticle.date,
+        readTime: readTime,
+        excerpt: wpArticle.excerpt ? wpArticle.excerpt.replace(/<[^>]*>?/gm, '') : '',
+        coverImage: wpArticle.featuredImage?.node?.sourceUrl,
+        tags: wpArticle.articleTags?.edges?.map((edge: any) => edge.node.name) || [],
+        content: parseContent(wpArticle.content)
+      };
+
+      if (categories.length > 0) {
+        const clientColor = findCategoryColor(category, categories);
+        if (clientColor) {
+          mappedArticle.categoryColor = clientColor;
+        }
+      }
+
+
+
+      setArticle(mappedArticle);
+
+      // Handle Related Articles from WP
+      if (relatedArticles && relatedArticles.length > 0) {
+        const mappedRelated: Article[] = relatedArticles
+          .filter((p: any) => p.node.slug !== wpArticle.slug) // Filter out current
+          .slice(0, 3)
+          .map((p: any) => {
+            const node = p.node;
+            const contentText = node.content ? node.content.replace(/<[^>]*>?/gm, '') : '';
+            const wordCount = contentText.split(/\s+/).length || 500; // Fallback
+            const readTime = Math.ceil(wordCount / 200) + ' min read';
+
+            return {
+              id: node.slug,
+              slug: node.slug,
+              title: node.title,
+              category: node.articleCatagories?.edges?.[0]?.node?.name || 'Article',
+              date: node.date,
+              readTime: readTime,
+              excerpt: node.excerpt ? node.excerpt.replace(/<[^>]*>?/gm, '') : '',
+              coverImage: node.featuredImage?.node?.sourceUrl,
+              tags: node.articleTags?.edges?.map((edge: any) => edge.node.name) || [],
+              content: []
+            };
+          });
+        setRelatedPosts(mappedRelated);
+      } else {
+        // Fallback to fetch if not provided (legacy)
+        fetchRelatedPosts(mappedArticle);
+      }
+
+      setLoading(false);
+    }
+  }, [wpArticle, categories, relatedArticles]);
 
   // Apply category color when categories load (if article already loaded without color)
   useEffect(() => {
@@ -357,6 +472,8 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
   }, []);
 
   useEffect(() => {
+    if (wpArticle) return; // Skip fetch if WP article provided
+
     const fetchArticle = async () => {
       try {
         setLoading(true);
@@ -428,11 +545,15 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
     };
 
     fetchArticle();
-  }, [slug, categories]); // Categories needed for color mapping on load
+  }, [slug, categories, wpArticle]); // Categories needed for color mapping on load
 
-  // Force-fetch live counts for articles
+  // Force-fetch live counts for articles (SKIP for WP for now to avoid 400 errors)
   useEffect(() => {
     if (!article?.id) return;
+
+    // Check if ID is a legacy UUID (Supabase style)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id);
+    if (!isUUID) return;
 
     const fetchLiveCounts = async () => {
       try {
@@ -459,6 +580,10 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
 
     const incrementView = async () => {
       try {
+        // Check if ID is a legacy UUID (Supabase style)
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id);
+        if (!isUUID) return;
+
         await supabase.rpc('increment_article_view', { article_id: article.id });
       } catch (err) {
         // Silent fail
@@ -567,7 +692,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       {/* Reading Progress Bar */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 z-50 origin-left"
-        style={{ scaleX: scrollYProgress, backgroundColor: article.categoryColor || 'var(--accent-brand)' }}
+        style={{ scaleX: scrollYProgress, backgroundColor: article.categoryColor || 'var(--accent-brand)' } as any}
       />
 
       {article.coverImage && article.coverImage.trim() !== '' ? (
@@ -583,13 +708,13 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                 transition={{ duration: 1, ease: [0.2, 0, 0.2, 1] }}
                 className="w-full max-w-3xl relative aspect-[16/9] md:aspect-[2/1] rounded-lg overflow-hidden shadow-sm mb-12"
               >
-                <ImageWithFallback
+                <CloudinaryImage
                   src={article.coverImage}
                   alt={article.title}
                   className="w-full h-full object-cover"
                   priority={true}
-                  focusPoint={article.cover_image_focal_point}
-                  optimize="hero"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
                 />
               </motion.div>
 
@@ -604,8 +729,8 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                   className="flex items-center gap-3 mb-6"
                 >
                   <span
-                    className="font-bold text-xs tracking-widest uppercase"
-                    style={{ color: article.categoryColor || 'var(--accent-brand)' }}
+                    className="font-bold text-xs tracking-widest uppercase text-[var(--accent-brand)]"
+                    style={{ color: article.categoryColor }}
                   >
                     {article.category}
                   </span>
@@ -613,6 +738,14 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
                   <span className="font-sans text-xs tracking-wide text-foreground/60 uppercase">
                     {new Date(article.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </span>
+                  {article.readTime && (
+                    <>
+                      <span className="text-foreground/20">|</span>
+                      <span className="font-sans text-xs tracking-wide text-foreground/60 uppercase">
+                        {article.readTime}
+                      </span>
+                    </>
+                  )}
                 </motion.div>
 
                 {/* 3. Title (Left Aligned) */}
@@ -706,11 +839,10 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
       <article className={`max-w-4xl mx-auto px-6 md:px-12 ${article.coverImage && article.coverImage.trim() !== '' ? 'pt-12 pb-16' : 'py-16 md:py-24'}`}>
         {/* Article Content - Clean magazine layout */}
         <div className="prose-custom-wrapper text-justify">
-          <BlockRenderer blocks={article.content || []} accentColor={article.categoryColor} />
+          <BlockRenderer blocks={contentBlocks} accentColor={article.categoryColor} />
         </div>
 
-        {/* Tech-inspired end flourish */}
-        <ArticleEndFlourish />
+
 
         {/* Tags */}
         {article.tags && article.tags.length > 0 && (
@@ -771,7 +903,7 @@ export function DynamicArticle({ slug, onNavigate }: DynamicArticleProps) {
 
         {/* Comments Section */}
         <div className="py-12 border-t border-foreground/5">
-          {article.id && (
+          {article.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id) && (
             <React.Suspense fallback={<div className="h-24 flex items-center justify-center opacity-40">Loading comments...</div>}>
               <CommentsSection articleId={article.id} />
             </React.Suspense>
